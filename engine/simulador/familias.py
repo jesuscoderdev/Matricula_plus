@@ -7,7 +7,7 @@ sedes cercanas. Las distancias y el ruido de preferencias se calculan UNA vez pa
 sedes y todas las ubicaciones candidatas del colegio nuevo, así cada escenario usa los mismos
 números aleatorios (comparación justa y reproducible).
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -29,6 +29,8 @@ class Familias:
     dist: np.ndarray             # familias × (sedes + candidatos), km en línea recta
     ruido: np.ndarray            # mismo tamaño que dist
     n_sedes: int                 # columnas de sedes existentes (después vienen los candidatos)
+    # Las preferencias solo dependen del colegio nuevo: se calculan una vez por ubicación
+    _cache: dict = field(default_factory=dict, repr=False)
 
     @property
     def n(self) -> int:
@@ -45,6 +47,8 @@ class Familias:
         Si tiene hermano y su sede no quedó en la lista, entra de primera (como sim.py).
         Índices sobre las columnas activas (el colegio nuevo, si existe, es el último índice).
         """
+        if (candidato, n_opciones) in self._cache:
+            return self._cache[(candidato, n_opciones)].copy()
         cols = self.columnas(candidato)
         puntaje = self.dist[:, cols] + self.ruido[:, cols]
         k = min(n_opciones, len(cols))
@@ -56,7 +60,8 @@ class Familias:
             h = self.sede_hermano[i]
             if h not in prefs[i]:
                 prefs[i] = np.concatenate([[h], prefs[i][:k - 1]])
-        return prefs
+        self._cache[(candidato, n_opciones)] = prefs
+        return prefs.copy()
 
 
 def generar_familias(base: Base, p: ParametrosSimulador) -> Familias:

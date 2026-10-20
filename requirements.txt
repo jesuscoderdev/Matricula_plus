@@ -7,3 +7,4 @@ networkx>=3.2
 requests>=2.31
 pytest>=8.0
 odfpy>=1.4
+pyarrow>=15

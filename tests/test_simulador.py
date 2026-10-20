@@ -143,3 +143,12 @@ def test_capacidad_real_cuadra_con_sed():
     import geopandas as gpd
     total = gpd.read_file(ruta)[CUPOS_REGULARES].sum().sum()
     assert abs(total / 785_191 - 1) < 0.01
+
+
+def test_identificadores_de_escenario_unicos():
+    """Las 324 combinaciones de palancas tienen nombres de archivo distintos."""
+    import itertools
+    from engine.simulador.config import NIVELES, UBICACIONES_NUEVO
+    ids = {Palancas(c, h, v, n, j).id for c, h, v, n, j in itertools.product(
+        NIVELES, NIVELES, NIVELES, [None] + [u[0] for u in UBICACIONES_NUEVO], [False, True])}
+    assert len(ids) == 3 * 3 * 3 * 6 * 2 == 324

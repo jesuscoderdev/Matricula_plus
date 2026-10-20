@@ -29,7 +29,7 @@ def claves_prioridad(fam: Familias, prefs: np.ndarray, candidato: int | None,
                      w_cercania: float, w_hermanos: float, w_vuln: float, peso_desempate: float) -> np.ndarray:
     """Clave de cada (familia, opción): menor = más prioridad (es −puntaje)."""
     cols = fam.columnas(candidato)
-    d = np.take_along_axis(fam.dist[:, cols], prefs, axis=1).astype(np.float64)
+    d = fam.dist[np.arange(len(prefs))[:, None], cols[prefs]].astype(np.float64)
     hermano = prefs == fam.sede_hermano[:, None]       # el colegio nuevo nunca es la sede del hermano
     puntaje = (-w_cercania * d + w_hermanos * hermano + w_vuln * fam.vulnerable[:, None]
                + peso_desempate * fam.desempate[:, None])
