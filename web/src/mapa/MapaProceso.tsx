@@ -47,6 +47,8 @@ interface Props {
   sinAnimar?: boolean
   alTerminar?: () => void
   onTocarCandidato?: (clave: string) => void
+  /** arrastrar y hacer zoom (rueda, pellizco o doble clic) */
+  interactivo?: boolean
 }
 
 // --------------------------------------------------------------- utilidades
@@ -107,8 +109,9 @@ function tiemposRondas(R: number, rapido: boolean) {
 // --------------------------------------------------------------- componente
 export default function MapaProceso({
   datos, localidad, hoy, politica, palancas, fase, reproduccion, rapido = false, sinAnimar = false,
-  alTerminar, onTocarCandidato,
+  alTerminar, onTocarCandidato, interactivo = false,
 }: Props) {
+  const [centrar, setCentrar] = useState(0)
   const [ref, { w, h }] = useTamano<HTMLDivElement>()
   const f = datos.familias
   const k = f.opciones
@@ -278,7 +281,7 @@ export default function MapaProceso({
       .fitBounds(encuadre, { padding: { top: Math.round(h * 0.24), bottom: Math.round(h * 0.13), left: 18, right: 18 } })
     return { longitude: vp.longitude, latitude: vp.latitude, zoom: vp.zoom, pitch: 0, bearing: 0,
       transitionDuration: 1100, transitionInterpolator: new FlyToInterpolator({ speed: 1.8 }) }
-  }, [encuadre, w, h])
+  }, [encuadre, w, h, centrar])
 
   const etiquetasUpz = useMemo(() => datos.upz.features.filter((x) => x.properties.localidad === localidad)
     .map((x) => ({ nombre: x.properties.nombre, pos: centroide(x.geometry) })), [datos, localidad])
@@ -350,13 +353,15 @@ export default function MapaProceso({
   const epf = f.estudiantes_por_familia
   return (
     <div ref={ref} className="mapa-proceso">
-      <DeckGL initialViewState={viewState} controller={false} layers={capas}
+      <DeckGL initialViewState={viewState} controller={interactivo ? { dragRotate: false, touchRotate: false, doubleClickZoom: true, scrollZoom: { speed: 0.02, smooth: true } } : false} layers={capas}
+              getCursor={({ isDragging }) => (interactivo ? (isDragging ? 'grabbing' : 'grab') : 'default')}
               onClick={(info: PickingInfo) => { if (info.layer?.id === 'colegios-anillo' && typeof info.object === 'number' && info.object >= S) onTocarCandidato?.(politica.claveColegio ?? '') }} />
       <div className="proceso__texto" aria-live="polite">
         {cuadro.paso && <span className="proceso__paso">{cuadro.paso}</span>}
         <span>{cuadro.texto}</span>
         <span className="proceso__clave">◉ colegio: el relleno son los cupos ocupados · ● = {f.estudiantes_por_familia} niños</span>
       </div>
+      {interactivo && <button className="mapa-centrar" onClick={() => setCentrar((x) => x + 1)} title="Volver a centrar el mapa">⤢ Centrar</button>}
       <div className="proceso__contadores">
         {fase === 'llegada' && <span><b>{entero(cuadro.llegaron * epf)}</b> de {entero(fams.length * epf)} llegaron</span>}
         <span className="c-azul"><i />{entero(cuadro.conColegio * epf)} con colegio</span>

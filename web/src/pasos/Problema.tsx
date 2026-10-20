@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import BotonGrande from '../componentes/BotonGrande'
 import MapaSimulador, { LeyendaSinCupo } from '../mapa/MapaSimulador'
 import MapaProceso from '../mapa/MapaProceso'
+import GuiaProceso from '../componentes/GuiaProceso'
 import { entero } from '../datos'
 import type { PropsPaso } from './tipos'
 
@@ -32,7 +33,7 @@ export default function Problema({ datos, base, ir, modo, localidad, elegirLocal
             Hay <b>{por100}</b> cupos por cada 100 que piden.</p>
         </header>
         <div className="mapa-zona">
-          <MapaSimulador datos={datos} porUpz={base.porUpz}
+          <MapaSimulador datos={datos} porUpz={base.porUpz} interactivo={modo !== 'auto'}
                          onTocarUpz={modo === 'auto' ? undefined : (c) => elegirLocalidad(datos.localidadDeUpz[datos.posUpz[c]])} />
           <LeyendaSinCupo />
           <div className="mapa-zona__aviso">👆 Toca tu localidad</div>
@@ -55,7 +56,8 @@ export default function Problema({ datos, base, ir, modo, localidad, elegirLocal
       </header>
       <div className="mapa-zona mapa-zona--proceso">
         <MapaProceso datos={datos} localidad={localidad} hoy={hoy} politica={politica} palancas={palancas}
-                     fase="llegada" reproduccion={repeticion} alTerminar={() => setTermino(true)} />
+                     fase="llegada" reproduccion={repeticion} alTerminar={() => setTermino(true)}
+                     interactivo={modo !== 'auto'} />
       </div>
       <footer className="pie-acciones">
         {modo !== 'auto' && (
@@ -68,6 +70,7 @@ export default function Problema({ datos, base, ir, modo, localidad, elegirLocal
           </>
         )}
       </footer>
+      <GuiaProceso tipo="hoy" />
     </div>
   )
 }

@@ -1,14 +1,19 @@
 import type { ReactNode } from 'react'
+import { NombreApp } from '../componentes/Marca'
 
-export type Pestana = 'recorrido' | 'localidad' | 'agendar'
+export type Pestana = 'inicio' | 'recorrido' | 'localidad' | 'agendar'
 
 const PESTANAS: { id: Pestana; etiqueta: string; icono: ReactNode }[] = [
   {
-    id: 'recorrido', etiqueta: 'Simulador',
+    id: 'inicio', etiqueta: 'Inicio',
+    icono: <path d="M12 3 2.5 11h2.8v9.5h5.2v-6h3v6h5.2V11h2.8z" />,
+  },
+  {
+    id: 'recorrido', etiqueta: 'Recorrido',
     icono: <path d="M8 5.5v13l11-6.5z" />,
   },
   {
-    id: 'localidad', etiqueta: 'Mi localidad',
+    id: 'localidad', etiqueta: 'Explorar',
     icono: <path d="M12 2.5a7 7 0 0 0-7 7c0 5.2 7 12 7 12s7-6.8 7-12a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" />,
   },
   {
@@ -21,6 +26,7 @@ const PESTANAS: { id: Pestana; etiqueta: string; icono: ReactNode }[] = [
 export default function BarraInferior({ actual, cambiar }: { actual: Pestana; cambiar: (p: Pestana) => void }) {
   return (
     <nav className="barra">
+      <NombreApp className="barra__marca solo-escritorio" />
       {PESTANAS.map((p) => (
         <button key={p.id} className={`barra__item ${actual === p.id ? 'barra__item--activo' : ''}`} onClick={() => cambiar(p.id)}
                 aria-current={actual === p.id ? 'page' : undefined}>

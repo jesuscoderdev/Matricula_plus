@@ -3,6 +3,7 @@ import BotonGrande from '../componentes/BotonGrande'
 import { Interruptor, Opciones } from '../componentes/Controles'
 import MapaProceso, { type FaseProceso } from '../mapa/MapaProceso'
 import { APP_NAME } from '../config'
+import GuiaProceso from '../componentes/GuiaProceso'
 import { entero } from '../datos'
 import type { PropsPaso } from './tipos'
 
@@ -47,7 +48,7 @@ export default function Accion({ datos, palancas, cambiarPalancas, ir, modo, loc
       </header>
       <div className="mapa-zona mapa-zona--proceso">
         <MapaProceso datos={datos} localidad={loc} hoy={hoy} politica={politica} palancas={palancas}
-                     fase={fase} reproduccion={repeticion} rapido={rapido}
+                     fase={fase} reproduccion={repeticion} rapido={rapido} interactivo={modo !== 'auto'}
                      alTerminar={() => setEstado('hecho')} />
       </div>
       <div className="controles controles--compactos">
@@ -74,6 +75,7 @@ export default function Accion({ datos, palancas, cambiarPalancas, ir, modo, loc
               {estado === 'asignando' ? 'Asignando…' : `▶ Asignar con ${APP_NAME}`}
             </BotonGrande>)}
       </footer>
+      <GuiaProceso tipo="matricula" prioridad={presets.find((p) => p.clave === palancas.preset)?.descripcion} />
     </div>
   )
 }

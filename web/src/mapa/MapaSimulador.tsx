@@ -70,6 +70,7 @@ export default function MapaSimulador({
 }: Props) {
   const [ref, { w, h }] = useTamano<HTMLDivElement>()
   const respiro = useRespiro(respirar)
+  const [centrar, setCentrar] = useState(0)
 
   const viewState = useMemo(() => {
     const bbox = encuadre === 'ciudad' ? datos.bboxCiudad : encuadre === 'zona' ? datos.bboxZonaCritica : encuadre
@@ -81,7 +82,7 @@ export default function MapaSimulador({
       longitude: vp.longitude, latitude: vp.latitude, zoom: vp.zoom, pitch: 0, bearing: 0,
       transitionDuration: 1200, transitionInterpolator: new FlyToInterpolator({ speed: 1.6 }),
     }
-  }, [encuadre, w, h, margenArriba, margenAbajo, datos])
+  }, [encuadre, w, h, margenArriba, margenAbajo, datos, centrar])
 
   const zona = useMemo(() => ({ type: 'FeatureCollection', features: datos.upz.features.filter((f) => f.properties.zona_critica) }), [datos])
   const sedes = useMemo(() => datos.colegios.features.filter((f) => f.properties.tipo === 'sede'), [datos])
@@ -159,10 +160,11 @@ export default function MapaSimulador({
     <div ref={ref} className="mapa">
       <DeckGL
         initialViewState={viewState}
-        controller={interactivo ? { dragRotate: false, touchRotate: false, doubleClickZoom: false } : false}
+        controller={interactivo ? { dragRotate: false, touchRotate: false, doubleClickZoom: true, scrollZoom: { speed: 0.02, smooth: true } } : false}
         layers={capas}
-        getCursor={({ isHovering }) => (isHovering ? 'pointer' : 'default')}
+        getCursor={({ isHovering, isDragging }) => (isDragging ? 'grabbing' : isHovering && onTocarUpz ? 'pointer' : interactivo ? 'grab' : 'default')}
       />
+      {interactivo && <button className="mapa-centrar" onClick={() => setCentrar((x) => x + 1)} title="Volver a centrar el mapa">⤢ Centrar</button>}
     </div>
   )
 }

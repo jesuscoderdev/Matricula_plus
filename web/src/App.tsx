@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'r
 import { AnimatePresence, motion } from 'framer-motion'
 import { cargarDatos, resultado, resultadoBase, type Datos, type Palancas } from './datos'
 import { DURACION_PASOS, SEGUNDOS_INACTIVIDAD } from './config'
-import { esTotem, leerModo } from './modo'
+import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import BarraProgreso, { PASOS, type PasoId } from './componentes/BarraProgreso'
 import { LogoReinicio } from './componentes/Marca'
 import Intro from './componentes/Intro'
@@ -15,6 +15,7 @@ import Accion from './pasos/Accion'
 import Resultado from './pasos/Resultado'
 import Supuestos from './pasos/Supuestos'
 import Metodo from './pasos/Metodo'
+import Inicio from './pasos/Inicio'
 import BarraInferior, { type Pestana } from './movil/BarraInferior'
 import MiLocalidad from './movil/MiLocalidad'
 import DetalleUPZ from './movil/DetalleUPZ'
@@ -38,32 +39,40 @@ const SEGUNDO_ELEGIR_LOCALIDAD = 1.5
 const SEGUNDO_ASIGNAR = 5.5
 
 export default function App() {
-  const modo = useMemo(leerModo, [])
+  const [modo, setModo] = useState<Modo>(leerModo)
   const [datos, setDatos] = useState<Datos | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [vista, setVista] = useState<Vista>('espera')
+  // El tótem arranca en la pantalla de espera; celular y PC, en la pantalla de inicio
+  const [vista, setVista] = useState<Vista>(esTotem(modo) ? 'espera' : 'problema')
   const [palancas, setPalancas] = useState<Palancas>(PALANCAS_INICIALES)
   const [vuelta, setVuelta] = useState(0)
   // Animación de entrada al abrir la web
   const [intro, setIntro] = useState(true)
-  // Solo celular
-  const [pestana, setPestana] = useState<Pestana>('recorrido')
+  // Solo celular y PC
+  const [pestana, setPestana] = useState<Pestana>('inicio')
   const [localidad, setLocalidad] = useState<string | null>(null)
   const [disparoAuto, setDisparoAuto] = useState(0)
   const [upz, setUpz] = useState<string | null>(null)
 
   useEffect(() => {
-    document.documentElement.dataset.modo = modo
     cargarDatos().then(setDatos).catch((e) => setError(String(e.message ?? e)))
-  }, [modo])
+  }, [])
+  useEffect(() => { document.documentElement.dataset.modo = modo }, [modo])
+  // Sin ?modo= en la URL, la vista sigue el tamaño de la ventana (PC ↔ celular)
+  useEffect(() => {
+    if (!modoAutomatico()) return
+    const alCambiar = () => setModo(leerModo())
+    window.addEventListener('resize', alCambiar)
+    return () => window.removeEventListener('resize', alCambiar)
+  }, [])
 
   const reiniciar = useCallback(() => {
     setPalancas(PALANCAS_INICIALES)
     setLocalidad(null)
-    setVista('espera')
-    setPestana('recorrido')
+    setVista(esTotem(modo) ? 'espera' : 'problema')
+    setPestana('inicio')
     setUpz(null)
-  }, [])
+  }, [modo])
   const ir = useCallback((v: Vista) => (v === 'espera' ? reiniciar() : setVista(v)), [reiniciar])
   const cambiarPalancas = useCallback((c: Partial<Palancas>) => setPalancas((p) => ({ ...p, ...c })), [])
 
@@ -151,11 +160,16 @@ export default function App() {
 
   if (esTotem(modo)) return <div className="app"><>{flujo}</>{entrada}</div>
 
-  // --- Celular: simulador + "Mi localidad" + "Agendar", con barra inferior ---
+  // --- Celular y PC: inicio + recorrido + explorar el mapa + agendar ---
+  const abrirRecorrido = () => { setVista('problema'); setPestana('recorrido') }
   return (
-    <div className="app app--celular">
+    <div className={`app app--celular ${modo === 'escritorio' ? 'app--escritorio' : ''}`}>
       <>
       <main className="vista">
+        {pestana === 'inicio' && (
+          <Inicio datos={datos} base={base} alRecorrido={abrirRecorrido}
+                  alExplorar={() => setPestana('localidad')} alAgendar={() => setPestana('agendar')} />
+        )}
         {pestana === 'recorrido' && flujo}
         {pestana === 'localidad' && !upz && (
           <MiLocalidad datos={datos} localidad={localidad ?? 'Suba'} setLocalidad={setLocalidad} base={base} actual={actual}

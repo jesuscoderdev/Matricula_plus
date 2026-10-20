@@ -74,10 +74,20 @@ Genera `scenarios/` y lo copia a `web/public/simulador/`.
 |---|---|
 | `?modo=stand` | **Tótem táctil** vertical 1080×1920, sin scroll. Vuelve al inicio tras **30 s** sin interacción |
 | `?modo=auto` | **Tótem sin interacción:** recorre los 5 pasos solo (unos 60 s) y mueve las palancas con otra combinación en cada vuelta |
-| sin parámetro | **Celular / tablet:** pestañas Simulador · Mi localidad (mapa y detalle por UPZ) · Agendar |
+| sin parámetro | Se adapta a la pantalla: **PC** si es ancha (mapa grande a la izquierda, panel a la derecha, navegación arriba) o **celular** (barra inferior). Empieza en la **pantalla de inicio**: Recorrido guiado · Explorar el mapa · Agendar |
+| `?modo=escritorio` / `?modo=celular` | Fuerza la vista de PC o de celular |
 | `_previa-stand.html` | Herramienta de desarrollo: muestra el tótem a 1080×1920 escalado a la ventana |
 
 **Reinicio oculto:** mantener presionado el logo **Matrícula+** durante 3 segundos.
+
+Los mapas se pueden **arrastrar y hacer zoom** (rueda del mouse, pellizco o doble clic), salvo en `?modo=auto`.
+El botón **⤢ Centrar** los devuelve a la vista inicial.
+
+### En el celular
+- **Mismo Wi-Fi que el PC:** `npm run preview` muestra una dirección *Network* (por ejemplo `http://192.168.1.40:4173`);
+  ábrela en el navegador del celular. Si no carga, permite Node.js en el Firewall de Windows (redes privadas).
+- **Para el evento (QR):** publica `web/dist` en un hosting con HTTPS (Netlify, Vercel o GitHub Pages) y genera el QR
+  con esa URL. Con HTTPS la app se puede *agregar a la pantalla principal* y funciona sin conexión después de la primera visita.
 
 ### Tótem en Windows (kiosco)
 ```bat
