@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { APP_NAME, EMPRESA, SEGUNDOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } from '../config'
 import logoProliferante from '../assets/logo-proliferante.webp'
+import { alternarTema, useTema } from '../tema'
 
 // Ritmo del logo de la cabecera: "Matrícula+" un rato, se agrupa en "M+", se queda así otro rato
 // y se abre de nuevo (cada SEGUNDOS_ANIMACION_LOGO)
@@ -9,14 +10,34 @@ const SEG_ABIERTO = SEGUNDOS_ANIMACION_LOGO
 const SEG_COMPACTO = SEGUNDOS_ANIMACION_LOGO
 const PASO_LETRA = 0.045
 
-/** Nombre de la app: "Matrícula" en Fraunces + el "+" en violeta. */
+/** El "+" de la marca: cruz de brazos redondeados (no el carácter "+", que cambia con la fuente). */
+export function Cruz() {
+  return (
+    <svg className="cruz" viewBox="0 0 7.2 7.2" aria-hidden>
+      <path d="M3.6 1.3V5.9M1.3 3.6H5.9" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** Nombre de la app: "Matrícula" en Fraunces + la cruz violeta en alto. */
 export function NombreApp({ className = '' }: { className?: string }) {
   const termina = APP_NAME.endsWith('+')
   return (
     <span className={`marca-app ${className}`}>
       {termina ? APP_NAME.slice(0, -1) : APP_NAME}
-      {termina && <span className="marca-app__mas">+</span>}
+      {termina && <span className="marca-app__mas"><Cruz /></span>}
     </span>
+  )
+}
+
+/** Icono de la app: "M" sobre cuadro redondeado con la cruz violeta arriba a la derecha. */
+export function IconoApp({ claro = false, className = '' }: { claro?: boolean; className?: string }) {
+  return (
+    <svg className={`icono-app ${claro ? 'icono-app--claro' : ''} ${className}`} viewBox="0 0 100 100" role="img" aria-label={APP_NAME}>
+      <rect className="icono-app__fondo" width="100" height="100" rx="21" />
+      <text className="icono-app__m" x="45" y="75" textAnchor="middle">M</text>
+      <path className="icono-app__cruz" d="M75.3 16.6V32M67.6 24.3H83" strokeWidth="8.7" strokeLinecap="round" />
+    </svg>
   )
 }
 
@@ -57,7 +78,7 @@ export function NombreAnimado({ cargando = false }: { cargando?: boolean }) {
   const medio = [...palabra.slice(1)]
   return (
     <span className="marca-app marca-app--animada" aria-label={APP_NAME}>
-      <span className="marca-app__molde" aria-hidden>{palabra}{termina && <span className="marca-app__mas">+</span>}</span>
+      <span className="marca-app__molde" aria-hidden>{palabra}{termina && <span className="marca-app__mas"><Cruz /></span>}</span>
       <span className="marca-app__vivo" aria-hidden>
         <span>{palabra[0]}</span>
         {medio.map((l, i) => (
@@ -76,9 +97,10 @@ export function NombreAnimado({ cargando = false }: { cargando?: boolean }) {
         ))}
         {termina && (
           <motion.span className="marca-app__mas" initial={false}
-                       animate={compacto ? { scale: [1, 1.25, 1], rotate: 90 } : { scale: [1, 1.25, 1], rotate: 0 }}
+                       // En "M+" la cruz se pega a la esquina de la M, como en el icono
+                       animate={compacto ? { scale: [1, 1.25, 1], rotate: 90, x: '-0.16em' } : { scale: [1, 1.25, 1], rotate: 0, x: 0 }}
                        transition={{ duration: 0.5, delay: compacto ? medio.length * PASO_LETRA : 0 }}>
-            +
+            <Cruz />
           </motion.span>
         )}
       </span>
@@ -118,4 +140,25 @@ export function LogoReinicio({ alReiniciar }: { alReiniciar: () => void }) {
 /** Logo oficial de Proliferante (empaquetado, funciona sin conexión). */
 export function LogoEmpresa({ className = '' }: { className?: string }) {
   return <img className={`logo-empresa ${className}`} src={logoProliferante} alt={EMPRESA} draggable={false} />
+}
+
+/** Botón ☾/☀: cambia entre modo claro y oscuro (por defecto sigue al sistema). */
+export function BotonTema() {
+  const tema = useTema()
+  const oscuro = tema === 'oscuro'
+  return (
+    <button type="button" className="boton-tema" onClick={(e) => { e.stopPropagation(); alternarTema() }}
+            title={oscuro ? 'Modo claro' : 'Modo oscuro'} aria-label={oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}>
+      {oscuro ? (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
+          <circle cx="12" cy="12" r="4.2" />
+          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+        </svg>
+      ) : (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
+          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+        </svg>
+      )}
+    </button>
+  )
 }

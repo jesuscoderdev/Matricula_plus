@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { entero } from '../datos'
-import { LogoEmpresa } from '../componentes/Marca'
+import { BotonTema, IconoApp, LogoEmpresa, NombreApp } from '../componentes/Marca'
 import Proli from '../componentes/Proli'
 import { esTotem } from '../modo'
 import type { PropsCapitulo } from './tipos'
@@ -14,8 +14,13 @@ export default function Portada({ datos, r, modo, ir }: PropsCapitulo) {
     <>
       <div className="portada__contenido">
         <motion.div className="portada__marca" {...entrar} transition={{ delay: 0.05 }}>
-          <LogoEmpresa />
+          <div className="portada__logos">
+            <LogoEmpresa />
+            <span className="portada__sep" aria-hidden />
+            <span className="marca-bloque"><IconoApp /><NombreApp /></span>
+          </div>
           <span className="etiqueta">GovTech · 3–4 nov 2026</span>
+          <BotonTema />
         </motion.div>
         <motion.span className="kicker" {...entrar} transition={{ delay: 0.15 }}>Simulador de matrícula · Bogotá</motion.span>
         <motion.h1 className="display display--xl" {...entrar} transition={{ delay: 0.25 }}>

@@ -8,7 +8,11 @@
  *       diferida → asignación diferida por rondas;
  *       y al final de ambas, la reubicación de quienes no cupieron en sus opciones.
  *     Con pausa, avance por ronda y velocidad. Al tocar una familia o un colegio se ve su ficha.
- *  · "caso"    — una familia de ejemplo, sus colegios y lo que le pasa.
+ *  · "caso"    — una familia de ejemplo, sus colegios y su viaje animado: pide cada opción en orden,
+ *                la rechazan (✕) o queda (✓); si no cabe, la reubican o queda sin cupo. En bucle.
+ *
+ * Con `conexiones` (portada) las familias se van conectando con su colegio en bucle, como si la
+ * simulación corriera de fondo. Los colores siguen el tema claro/oscuro.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import DeckGL from '@deck.gl/react'
@@ -17,6 +21,8 @@ import { GeoJsonLayer, LineLayer, ScatterplotLayer, TextLayer } from '@deck.gl/l
 import { decimal, entero, type Bbox, type Datos, type Feature, type PropsUpz } from '../datos'
 import type { ColegioNuevo, Supuestos } from '../motor'
 import { familiasDe, nombreColegio, type Resultados } from '../estado'
+import { useTema, type Tema } from '../tema'
+import type { Cual, Viaje } from '../capitulos/Caso'
 
 export type Escena = 'ciudad' | 'proceso' | 'caso'
 export type FaseProceso = 'neutro' | 'llegada' | 'diferida'
@@ -42,7 +48,26 @@ export const ESCALA: { hasta: number; color: RGB; etiqueta: string }[] = [
   { hasta: 40, color: [127, 69, 238], etiqueta: '30–40%' },
   { hasta: 101, color: [74, 32, 158], etiqueta: '≥ 40%' },
 ]
-const colorEscala = (pct: number) => (ESCALA.find((e) => pct < e.hasta) ?? ESCALA[ESCALA.length - 1]).color
+// En oscuro la escala va al revés: más niños fuera = más brillante
+const ESCALA_OSCURA: RGB[] = [[36, 33, 74], [62, 46, 132], [100, 64, 204], [144, 104, 246], [206, 186, 255]]
+const escalaDe = (tema: Tema) => (tema === 'oscuro' ? ESCALA.map((x, i) => ({ ...x, color: ESCALA_OSCURA[i] })) : ESCALA)
+const colorEscala = (escala: typeof ESCALA, pct: number) => (escala.find((e) => pct < e.hasta) ?? escala[escala.length - 1]).color
+
+/** Colores del mapa que dependen del tema (fondos, bordes, textos). */
+const PALETA = {
+  claro: {
+    tinta: COLOR.tinta, upzFuera: [234, 232, 240, 255] as RGBA, upzDentro: [255, 255, 255, 255] as RGBA,
+    bordeCiudad: [255, 255, 255, 220] as RGBA, bordeDentro: [22, 19, 43, 70] as RGBA, bordeFuera: [255, 255, 255, 255] as RGBA,
+    texto: [90, 88, 112, 220] as RGBA, superficie: [255, 255, 255, 240] as RGBA, contorno: [255, 255, 255, 200] as RGBA,
+    ocupacion: [22, 19, 43, 205] as RGBA, nuevo: [241, 235, 254, 255] as RGBA,
+  },
+  oscuro: {
+    tinta: [236, 233, 250, 255] as RGBA, upzFuera: [26, 28, 56, 255] as RGBA, upzDentro: [40, 42, 82, 255] as RGBA,
+    bordeCiudad: [13, 15, 34, 230] as RGBA, bordeDentro: [255, 255, 255, 60] as RGBA, bordeFuera: [13, 15, 34, 255] as RGBA,
+    texto: [176, 172, 204, 220] as RGBA, superficie: [30, 32, 66, 245] as RGBA, contorno: [13, 15, 34, 210] as RGBA,
+    ocupacion: [236, 233, 250, 215] as RGBA, nuevo: [52, 40, 110, 255] as RGBA,
+  },
+}
 const alfa = (c: RGBA | RGB, a: number): RGBA => [c[0], c[1], c[2], a]
 
 // ---------------------------------------------------------------- utilidades
@@ -74,6 +99,11 @@ function tiemposRondas(R: number, rapido: boolean) {
   return { inicio, total: t }
 }
 const REUBICACION_S = 2.6
+const N_CONEXIONES = 220       // portada: familias conectándose a la vez
+const PERIODO_CONEXION = 4.2   // s que dura cada conexión (crece, late el colegio, se desvanece)
+const PASO_VIAJE = 1.35        // caso: s por colegio pedido (la línea crece 0.8 s y luego se marca)
+const CRECE_VIAJE = 0.8
+const PAUSA_VIAJE = 2.8        // caso: s quieto al final antes de repetir
 
 // ---------------------------------------------------------------- props
 interface Props {
@@ -97,12 +127,15 @@ interface Props {
   mostrarCandidatos?: boolean
   onTocarCandidato?: (clave: string) => void
   /** caso */
-  caso?: { lon: number; lat: number; colegios: number[]; hermanoEn: number | null } | null
+  caso?: { lon: number; lat: number; colegios: number[]; hermanoEn: number | null; viaje?: Viaje | null; cual?: Cual } | null
+  onCual?: (c: Cual) => void
   onTocarColegio?: (sede: number) => void
   /** interacción */
   onTocarUpz?: (codigo: string) => void
   onTocarMapa?: (lon: number, lat: number) => void
   interactivo?: boolean
+  /** portada: familias que se conectan con su colegio en bucle */
+  conexiones?: boolean
   /** espacio arriba/abajo que tapan los paneles flotantes (px) */
   margen?: { arriba?: number; abajo?: number; izquierda?: number; derecha?: number }
   children?: ReactNode
@@ -114,9 +147,12 @@ export default function MapaEscena(props: Props) {
   const {
     datos, r, supuestos, escena, localidad, coloreo = 'hoy', respirar = false, upzSeleccionada = null,
     fase = 'neutro', reproduccion = 0, rapido = false, alTerminar, textoNeutro,
-    colegioNuevo = null, mostrarCandidatos = false, onTocarCandidato, caso = null, onTocarColegio,
-    onTocarUpz, onTocarMapa, interactivo = true, margen = {}, children,
+    colegioNuevo = null, mostrarCandidatos = false, onTocarCandidato, caso = null, onTocarColegio, onCual,
+    onTocarUpz, onTocarMapa, interactivo = true, margen = {}, children, conexiones = false,
   } = props
+  const tema = useTema()
+  const P = PALETA[tema]
+  const escala = escalaDe(tema)
   const [ref, { w, h }] = useTamano<HTMLDivElement>()
   const f = datos.familias
   const S = f.n_sedes
@@ -135,8 +171,13 @@ export default function MapaEscena(props: Props) {
   // ---------------------------------------------------------------- cámara
   const encuadre = useMemo<Bbox>(() => {
     if (escena === 'caso' && caso) {
-      const m = 0.025
-      return [[caso.lon - m, caso.lat - m * 0.8], [caso.lon + m, caso.lat + m * 0.8]]
+      const m = 0.016
+      let [x0, y0, x1, y1] = [caso.lon - m, caso.lat - m * 0.8, caso.lon + m, caso.lat + m * 0.8]
+      for (const s of caso.viaje?.sedes ?? []) {
+        const p = r.pol.pos[s]
+        if (p) { x0 = Math.min(x0, p[0] - 0.006); y0 = Math.min(y0, p[1] - 0.006); x1 = Math.max(x1, p[0] + 0.006); y1 = Math.max(y1, p[1] + 0.006) }
+      }
+      return [[x0, y0], [x1, y1]]
     }
     if (!localidad) return datos.bboxCiudad
     if (fams.length) {
@@ -146,7 +187,7 @@ export default function MapaEscena(props: Props) {
       return [[q(xs, 0.02), q(ys, 0.02)], [q(xs, 0.98), q(ys, 0.98)]]
     }
     return datos.bboxLocalidad[localidad]
-  }, [escena, caso?.lon, caso?.lat, localidad, fams, f, datos])
+  }, [escena, caso?.lon, caso?.lat, caso?.viaje?.sedes.join(), localidad, fams, f, datos])  // eslint-disable-line react-hooks/exhaustive-deps
   const viewState = useMemo(() => {
     const W = Math.max(w, 60), H = Math.max(h, 60)
     const pad = Math.round(Math.min(W, H) * 0.05)
@@ -229,7 +270,8 @@ export default function MapaEscena(props: Props) {
     if (escena === 'caso' && caso) {
       const cerca: [number, number][] = []
       pos.forEach((p, s) => { const d = Math.hypot((p[0] - caso.lon) * 110.9, (p[1] - caso.lat) * 110.6); if (d < 3) cerca.push([d, s]) })
-      return cerca.sort((a, b) => a[0] - b[0]).slice(0, 30).map((x) => x[1])
+      const l = cerca.sort((a, b) => a[0] - b[0]).slice(0, 30).map((x) => x[1])
+      return [...new Set([...l, ...(caso.viaje?.sedes ?? [])])]
     }
     const set = new Set<number>()
     for (const i of fams) {
@@ -346,6 +388,38 @@ export default function MapaEscena(props: Props) {
     return { colorFam, radioFam, lineas, ocupado, c, paso, texto }
   }, [escena, fase, t, T1, terminado, fams, colegios, sim, r, rondas, turnos, prefs, k, f, localidad, supuestos, textoNeutro])  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ---------------------------------------------------------------- conexiones (portada)
+  // Familias de toda la ciudad piden su colegio: la línea crece desde la casa, el colegio late al
+  // recibirla y la línea se desvanece. Cada vuelta toma otras familias (asignación con Matrícula+).
+  const reloj = useReloj(conexiones)
+  const conAsignacion = useMemo(() => {
+    if (!conexiones) return []
+    const l: number[] = []
+    for (let i = 0; i < f.n; i++) if (r.pol.fase1[i] >= 0 || r.pol.fase2.asign[i] >= 0) l.push(i)
+    return l
+  }, [conexiones, f.n, r.pol])
+  const enlaces = useMemo(() => {
+    if (!conAsignacion.length) return []
+    const out: { de: [number, number]; a: [number, number]; punta: [number, number]; color: RGBA; alfa: number; llegada: number }[] = []
+    for (let n = 0; n < N_CONEXIONES; n++) {
+      const tt = reloj + ((n * 0.6180339887) % 1) * PERIODO_CONEXION
+      const vuelta = Math.floor(tt / PERIODO_CONEXION)
+      const u = (tt % PERIODO_CONEXION) / PERIODO_CONEXION
+      const i = conAsignacion[(n * 7919 + vuelta * 104729) % conAsignacion.length]
+      const s = r.pol.fase1[i] >= 0 ? r.pol.fase1[i] : r.pol.fase2.asign[i]
+      const de: [number, number] = [f.lon[i], f.lat[i]], a = r.pol.pos[s] ?? de
+      const p = suave(Math.min(1, u / 0.4))
+      out.push({
+        de, a, punta: [de[0] + (a[0] - de[0]) * p, de[1] + (a[1] - de[1]) * p],
+        color: r.pol.fase1[i] < 0 ? COLOR.reubicado : r.pol.opcion[i] === 0 ? COLOR.primera : COLOR.otra,
+        alfa: u < 0.7 ? Math.min(1, u / 0.08) : Math.max(0, 1 - (u - 0.7) / 0.3),
+        llegada: u >= 0.4 && u < 0.75 ? (u - 0.4) / 0.35 : -1,
+      })
+    }
+    return out
+  }, [conAsignacion, reloj, r.pol, f])
+  const latidos = enlaces.filter((x) => x.llegada >= 0)
+
   // ---------------------------------------------------------------- capas
   const etiquetas = useMemo(() => (localidad && escena !== 'ciudad'
     ? datos.upz.features.filter((x) => x.properties.localidad === localidad).map((x) => ({ n: x.properties.nombre, p: centroide(x.geometry) }))
@@ -357,34 +431,103 @@ export default function MapaEscena(props: Props) {
   const radioCol = (s: number) => e * (w < 500 ? 0.7 : 1) * (4 + 11 * Math.sqrt(Math.max(1, sim.cap[s] ?? 1) / capMax))
   const ocup = (s: number) => cuadro.ocupado.get(s) ?? 0
 
+  // ---------------------------------------------------------------- viaje de la familia (caso)
+  // Desde la casa, una línea crece hacia cada opción en orden: ✕ si no hay cupo para ella, ✓ si
+  // queda. Si no cupo en ninguna, la reubican (verde azulado) o queda sin cupo (naranja). En bucle.
+  const viaje = escena === 'caso' && caso ? caso.viaje ?? null : null
+  const [vez, setVez] = useState(0)
+  const quieto = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
+  const relojViaje = useReloj(!!viaje && !quieto, `${viaje?.llave}-${vez}`)
+  const recorrido = useMemo(() => {
+    if (!viaje || !caso) return null
+    const n = viaje.pasos.length
+    const total = n * PASO_VIAJE + (viaje.final === 'sin' ? 0.8 : 0) + PAUSA_VIAJE
+    const tv = quieto ? Infinity : relojViaje % total
+    const casa: [number, number] = [caso.lon, caso.lat]
+    const lineas: { de: [number, number]; a: [number, number]; color: RGBA; ancho: number }[] = []
+    const anillos: { p: [number, number]; color: RGBA; u: number; radio: number }[] = []
+    const marcas: { p: [number, number]; texto: string; color: RGBA }[] = []
+    let punta: { p: [number, number]; color: RGBA } | null = null
+    let texto = ''
+    viaje.pasos.forEach((paso, j) => {
+      const t0 = j * PASO_VIAJE
+      if (tv < t0) return
+      const a = coord(paso.sede)
+      const nombre = nombreColegio(datos, paso.sede)
+      const pc = suave(Math.min(1, (tv - t0) / CRECE_VIAJE))
+      const reub = paso.resultado === 'reubicado', rech = paso.resultado === 'rechazo'
+      if (pc < 1) {
+        const c = reub ? COLOR.reubicado : COLOR.pidiendo
+        const p: [number, number] = [casa[0] + (a[0] - casa[0]) * pc, casa[1] + (a[1] - casa[1]) * pc]
+        lineas.push({ de: casa, a: p, color: c, ancho: 3 })
+        punta = { p, color: c }
+        texto = reub ? `No cupo en sus opciones: la reubican en ${nombre}` : `Pide su ${j + 1}.ª opción: ${nombre}`
+        return
+      }
+      const u = Math.min(1, (tv - t0 - CRECE_VIAJE) / 0.35)   // la marca aparece
+      const color = rech ? COLOR.rechazo : reub ? COLOR.reubicado : tema === 'oscuro' ? COLOR.otra : COLOR.primera
+      lineas.push({ de: casa, a, color: rech ? alfa(COLOR.rechazo, Math.round(230 - 130 * u)) : color, ancho: rech ? 2 : 3.6 })
+      anillos.push({ p: a, color, u, radio: radioCol(paso.sede) })
+      marcas.push({ p: a, texto: rech ? '✕' : '✓', color })
+      // Donde queda, el colegio late
+      if (!rech) { const l = quieto ? 0.5 : ((tv - t0 - CRECE_VIAJE) % 1.4) / 1.4; anillos.push({ p: a, color, u: 1 - l, radio: radioCol(paso.sede) + 14 * e * l }) }
+      texto = rech ? `✕ ${nombre}: no hubo cupo para ella` : reub ? `Reubicada en ${nombre}, fuera de sus opciones` : `✓ Queda en ${nombre}, su ${j + 1}.ª opción`
+    })
+    if (viaje.final === 'sin' && tv >= n * PASO_VIAJE) {
+      const l = quieto ? 0.5 : ((tv - n * PASO_VIAJE) % 1.4) / 1.4
+      anillos.push({ p: casa, color: COLOR.sin, u: 1, radio: 13 * e }, { p: casa, color: COLOR.sin, u: 1 - l, radio: (13 + 16 * l) * e })
+      texto = `Sin cupo: ningún colegio con cupo a menos de ${decimal(supuestos.radioReubicacionKm)} km`
+    }
+    return { lineas, anillos, marcas, punta: punta as { p: [number, number]; color: RGBA } | null, texto, avance: Math.min(1, tv / (total - PAUSA_VIAJE)) }
+  }, [viaje, caso, relojViaje, quieto, datos, supuestos, e, pos, capMax, tema])  // eslint-disable-line react-hooks/exhaustive-deps
+
+
   const capas: any[] = [
     new GeoJsonLayer<PropsUpz>({
       id: 'upz', data: datos.upz as any, filled: true, stroked: true,
       pickable: !!onTocarUpz,
       opacity: respirar ? 0.75 + 0.25 * respiro : 1,
       getFillColor: (x: Feature<PropsUpz>) => {
-        if (escena === 'ciudad') return alfa(colorEscala(colorUpz[datos.posUpz[x.properties.codigo]] ?? 0), 255)
-        return x.properties.localidad === localidad ? [255, 255, 255, 255] : [234, 232, 240, 255]
+        if (escena === 'ciudad') return alfa(colorEscala(escala, colorUpz[datos.posUpz[x.properties.codigo]] ?? 0), 255)
+        return x.properties.localidad === localidad ? P.upzDentro : P.upzFuera
       },
-      getLineColor: (x: Feature<PropsUpz>) => (x.properties.codigo === upzSeleccionada ? alfa(COLOR.tinta, 255)
-        : escena === 'ciudad' ? [255, 255, 255, 220] : x.properties.localidad === localidad ? [22, 19, 43, 70] : [255, 255, 255, 255]),
+      getLineColor: (x: Feature<PropsUpz>) => (x.properties.codigo === upzSeleccionada ? P.tinta
+        : escena === 'ciudad' ? P.bordeCiudad : x.properties.localidad === localidad ? P.bordeDentro : P.bordeFuera),
       getLineWidth: (x: Feature<PropsUpz>) => (x.properties.codigo === upzSeleccionada ? 3.5 : 1),
       lineWidthUnits: 'pixels',
-      updateTriggers: { getFillColor: [escena, colorUpz, localidad], getLineColor: [upzSeleccionada, escena, localidad], getLineWidth: [upzSeleccionada] },
+      updateTriggers: { getFillColor: [escena, colorUpz, localidad, tema], getLineColor: [upzSeleccionada, escena, localidad, tema], getLineWidth: [upzSeleccionada] },
       transitions: { getFillColor: 450 },
     }),
     escena === 'ciudad' && new GeoJsonLayer({
       id: 'zona', data: zona as any, filled: false, stroked: true,
-      getLineColor: alfa(COLOR.tinta, 255), getLineWidth: 2.5 * e, lineWidthUnits: 'pixels',
-      getDashArray: [4, 3], updateTriggers: { getLineWidth: [e] },
+      getLineColor: P.tinta, getLineWidth: 2.5 * e, lineWidthUnits: 'pixels',
+      getDashArray: [4, 3], updateTriggers: { getLineWidth: [e], getLineColor: [tema] },
     }),
     etiquetas.length && new TextLayer({
       id: 'upz-nombres', data: etiquetas, getPosition: (x: any) => x.p, getText: (x: any) => x.n,
-      getSize: 10.5 * e, getColor: [90, 88, 112, 220], fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 600, characterSet: 'auto',
+      getSize: 10.5 * e, getColor: P.texto, updateTriggers: { getColor: [tema] }, fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 600, characterSet: 'auto',
     }),
     escena === 'ciudad' && new ScatterplotLayer({
       id: 'sedes', data: datos.posSedes, getPosition: (p: any) => p, getRadius: 1.4 * e, radiusUnits: 'pixels',
-      getFillColor: alfa(COLOR.tinta, 130), updateTriggers: { getRadius: [e] },
+      getFillColor: alfa(P.tinta, 130), updateTriggers: { getRadius: [e], getFillColor: [tema] },
+    }),
+    enlaces.length && new LineLayer({
+      id: 'conexiones', data: enlaces, getSourcePosition: (x: any) => x.de, getTargetPosition: (x: any) => x.punta,
+      getColor: (x: any) => alfa(P.tinta, Math.round((tema === 'oscuro' ? 190 : 175) * x.alfa)), getWidth: 1.7 * e, widthUnits: 'pixels',
+    }),
+    latidos.length && new ScatterplotLayer({
+      id: 'conexiones-latido', data: latidos, getPosition: (x: any) => x.a, radiusUnits: 'pixels',
+      getRadius: (x: any) => e * (3 + 13 * x.llegada), stroked: true, filled: false, lineWidthUnits: 'pixels', getLineWidth: 1.8 * e,
+      getLineColor: (x: any) => alfa(tema === 'oscuro' ? COLOR.otra : COLOR.primera, Math.round(230 * (1 - x.llegada))),
+    }),
+    enlaces.length && new ScatterplotLayer({
+      id: 'conexiones-puntos', data: enlaces, radiusUnits: 'pixels',
+      getPosition: (x: any) => x.punta, getRadius: 3.4 * e, getFillColor: (x: any) => alfa(x.color, Math.round(255 * x.alfa)),
+      stroked: true, lineWidthUnits: 'pixels', getLineWidth: 1 * e, getLineColor: (x: any) => alfa(P.contorno, Math.round(220 * x.alfa)),
+    }),
+    enlaces.length && new ScatterplotLayer({
+      id: 'conexiones-casas', data: enlaces, radiusUnits: 'pixels',
+      getPosition: (x: any) => x.de, getRadius: 1.8 * e, getFillColor: (x: any) => alfa(P.tinta, Math.round(200 * x.alfa)),
     }),
     cuadro.lineas.length && new LineLayer({
       id: 'solicitudes', data: cuadro.lineas, getSourcePosition: (l: any) => l.de, getTargetPosition: (l: any) => l.a,
@@ -394,54 +537,72 @@ export default function MapaEscena(props: Props) {
       id: 'familias', data: fams.map((_, j) => j), pickable: true,
       getPosition: (j) => [f.lon[fams[j]], f.lat[fams[j]]],
       getFillColor: (j) => cuadro.colorFam[j], getRadius: (j) => cuadro.radioFam[j] * e, radiusUnits: 'pixels',
-      stroked: true, getLineColor: (j) => (sel?.tipo === 'familia' && sel.i === fams[j] ? [22, 19, 43, 255] : [255, 255, 255, 200]),
+      stroked: true, getLineColor: (j) => (sel?.tipo === 'familia' && sel.i === fams[j] ? P.tinta : P.contorno),
       getLineWidth: (j) => (sel?.tipo === 'familia' && sel.i === fams[j] ? 2.5 : 0.6) * e, lineWidthUnits: 'pixels',
-      updateTriggers: { getFillColor: [marca], getRadius: [marca, e], getLineColor: [sel], getLineWidth: [sel, e] },
+      updateTriggers: { getFillColor: [marca], getRadius: [marca, e], getLineColor: [sel, tema], getLineWidth: [sel, e] },
     }),
     colegios.length && new ScatterplotLayer<number>({
       id: 'colegios', data: colegios, pickable: true,
       getPosition: coord, getRadius: radioCol, radiusUnits: 'pixels',
-      getFillColor: (s) => (s >= S ? [241, 235, 254, 255] : [255, 255, 255, 240]),
+      getFillColor: (s) => (s >= S ? P.nuevo : P.superficie),
       stroked: true, lineWidthUnits: 'pixels',
       getLineWidth: (s) => e * (ocup(s) > (sim.cap[s] ?? 0) ? 3.2 : (caso && caso.colegios.includes(s)) || (sel?.tipo === 'colegio' && sel.s === s) ? 3 : 1.6),
-      getLineColor: (s) => (ocup(s) > (sim.cap[s] ?? 0) ? COLOR.rechazo : (caso && caso.colegios.includes(s)) ? COLOR.violeta : s >= S ? COLOR.violeta : COLOR.tinta),
-      updateTriggers: { getLineWidth: [marca, caso, sel, e], getLineColor: [marca, caso], getRadius: [capMax, e] },
+      getLineColor: (s) => (ocup(s) > (sim.cap[s] ?? 0) ? COLOR.rechazo : (caso && caso.colegios.includes(s)) ? COLOR.violeta : s >= S ? COLOR.violeta : P.tinta),
+      updateTriggers: { getFillColor: [tema], getLineWidth: [marca, caso, sel, e], getLineColor: [marca, caso, tema], getRadius: [capMax, e] },
     }),
     escena === 'proceso' && colegios.length && new ScatterplotLayer<number>({
       id: 'ocupacion', data: colegios,
       getPosition: coord, getRadius: (s) => radioCol(s) * Math.sqrt(Math.min(1, ocup(s) / Math.max(1, sim.cap[s] ?? 1))), radiusUnits: 'pixels',
-      getFillColor: (s) => (s >= S ? alfa(COLOR.violeta, 230) : [22, 19, 43, 205]),
-      updateTriggers: { getRadius: [marca, capMax, e] },
+      getFillColor: (s) => (s >= S ? alfa(COLOR.violeta, 230) : P.ocupacion),
+      updateTriggers: { getRadius: [marca, capMax, e], getFillColor: [tema] },
     }),
     caso && escena === 'caso' && new TextLayer({
       id: 'caso-numeros', data: caso.colegios.map((s, o) => ({ s, o })),
       getPosition: (x: any) => coord(x.s), getText: (x: any) => String(x.o + 1), getSize: 13 * e,
-      getColor: alfa(COLOR.violeta, 255), getPixelOffset: [0, -20 * e], fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600,
-      background: true, getBackgroundColor: [255, 255, 255, 240], backgroundPadding: [4, 2], updateTriggers: { getSize: [e], getPixelOffset: [e] },
+      getColor: alfa(COLOR.violeta, 255), getPixelOffset: [0, -(caso.viaje ? 30 : 20) * e], fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600,
+      background: true, getBackgroundColor: P.superficie, backgroundPadding: [4, 2], updateTriggers: { getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
     }),
     caso && escena === 'caso' && new LineLayer({
       id: 'caso-lineas', data: caso.colegios, getSourcePosition: () => [caso.lon, caso.lat], getTargetPosition: (s: number) => coord(s),
-      getColor: alfa(COLOR.violeta, 160), getWidth: 2 * e, widthUnits: 'pixels', updateTriggers: { getWidth: [e] },
+      getColor: alfa(COLOR.violeta, recorrido ? 55 : 160), getWidth: (recorrido ? 1.4 : 2) * e, widthUnits: 'pixels',
+      updateTriggers: { getWidth: [e, !!recorrido], getColor: [!!recorrido] },
+    }),
+    recorrido && new LineLayer({
+      id: 'caso-viaje', data: recorrido.lineas, getSourcePosition: (l: any) => l.de, getTargetPosition: (l: any) => l.a,
+      getColor: (l: any) => l.color, getWidth: (l: any) => l.ancho * e, widthUnits: 'pixels',
+    }),
+    recorrido && new ScatterplotLayer({
+      id: 'caso-anillos', data: recorrido.anillos, getPosition: (x: any) => x.p, radiusUnits: 'pixels',
+      getRadius: (x: any) => x.radio + e * (4 + 10 * (1 - x.u)), stroked: true, filled: false, lineWidthUnits: 'pixels', getLineWidth: 3 * e,
+      getLineColor: (x: any) => alfa(x.color, Math.round(255 * x.u)),
+    }),
+    recorrido && new TextLayer({
+      id: 'caso-marcas', data: recorrido.marcas, getPosition: (x: any) => x.p, getText: (x: any) => x.texto, getSize: 15 * e,
+      getColor: (x: any) => x.color, fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 800, characterSet: ['✕', '✓'],
+    }),
+    recorrido?.punta && new ScatterplotLayer({
+      id: 'caso-punta', data: [recorrido.punta], getPosition: (x: any) => x.p, getRadius: 5 * e, radiusUnits: 'pixels',
+      getFillColor: (x: any) => x.color, stroked: true, getLineColor: alfa(P.superficie, 255), lineWidthMinPixels: 2,
     }),
     caso && new ScatterplotLayer({
       id: 'caso-casa', data: [caso], getPosition: (x: any) => [x.lon, x.lat], getRadius: 8 * e, radiusUnits: 'pixels',
-      getFillColor: alfa(COLOR.sin, 255), stroked: true, getLineColor: [255, 255, 255, 255], lineWidthMinPixels: 3,
-      updateTriggers: { getRadius: [e] },
+      getFillColor: alfa(COLOR.sin, 255), stroked: true, getLineColor: alfa(P.superficie, 255), lineWidthMinPixels: 3,
+      updateTriggers: { getRadius: [e], getLineColor: [tema] },
     }),
     (mostrarCandidatos || colegioNuevo) && new ScatterplotLayer<any>({
       id: 'candidatos', pickable: !!onTocarCandidato,
       data: [...(mostrarCandidatos ? datos.indice.colegio_nuevo : []), ...(colegioNuevo && !colegioNuevo.clave ? [{ ...colegioNuevo, clave: '' }] : [])],
       getPosition: (c: any) => [c.lon, c.lat], radiusUnits: 'pixels',
       getRadius: (c: any) => e * (colegioNuevo && ((c.clave && c.clave === colegioNuevo.clave) || (!c.clave && !colegioNuevo.clave)) ? 11 : 7),
-      getFillColor: (c: any) => (colegioNuevo && ((c.clave && c.clave === colegioNuevo.clave) || (!c.clave && !colegioNuevo.clave)) ? COLOR.violeta : [255, 255, 255, 255]),
+      getFillColor: (c: any) => (colegioNuevo && ((c.clave && c.clave === colegioNuevo.clave) || (!c.clave && !colegioNuevo.clave)) ? COLOR.violeta : alfa(P.superficie, 255)),
       stroked: true, getLineColor: alfa(COLOR.violeta, 255), lineWidthMinPixels: 2.5,
-      updateTriggers: { getRadius: [colegioNuevo, e], getFillColor: [colegioNuevo] },
+      updateTriggers: { getRadius: [colegioNuevo, e], getFillColor: [colegioNuevo, tema] },
     }),
     colegioNuevo && new TextLayer({
       id: 'nuevo-etiqueta', data: [colegioNuevo], getPosition: (c: any) => [c.lon, c.lat], getText: () => '+ colegio nuevo',
       getPixelOffset: [0, -22 * e], getSize: 12.5 * e, getColor: alfa(COLOR.violeta, 255),
-      fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 700, background: true, getBackgroundColor: [255, 255, 255, 235], backgroundPadding: [5, 3],
-      updateTriggers: { getSize: [e], getPixelOffset: [e] },
+      fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 700, background: true, getBackgroundColor: P.superficie, backgroundPadding: [5, 3],
+      updateTriggers: { getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
     }),
   ].filter(Boolean)
 
@@ -497,7 +658,7 @@ export default function MapaEscena(props: Props) {
       {escena === 'ciudad' && (
         <div className="mapa__leyenda">
           <span className="mapa__leyenda-titulo">Niños fuera de sus opciones · {coloreo === 'hoy' ? 'hoy' : 'con la política'}</span>
-          <div className="mapa__escala">{ESCALA.map((x) => <span key={x.etiqueta}><i style={{ background: `rgb(${x.color.join(',')})` }} />{x.etiqueta}</span>)}</div>
+          <div className="mapa__escala">{escala.map((x) => <span key={x.etiqueta}><i style={{ background: `rgb(${x.color.join(',')})` }} />{x.etiqueta}</span>)}</div>
           <span className="mapa__zona"><i />Zona crítica (SED)</span>
         </div>
       )}
@@ -508,12 +669,42 @@ export default function MapaEscena(props: Props) {
         </div>
       )}
 
+      {recorrido && (
+        <div className="mapa__viaje">
+          <div className="mapa__viaje-fila">
+            {onCual ? (
+              <div className="segmentos" role="group" aria-label="Qué viaje ver">
+                <button className={`segmento ${caso?.cual === 'hoy' ? 'segmento--activo' : ''}`} onClick={() => onCual('hoy')}>Hoy</button>
+                <button className={`segmento ${caso?.cual !== 'hoy' ? 'segmento--activo' : ''}`} onClick={() => onCual('matricula')}>Matrícula+</button>
+              </div>
+            ) : <span className="mapa__paso">Viaje · {caso?.cual === 'hoy' ? 'Hoy' : 'Matrícula+'}</span>}
+            {!quieto && onCual && <button className="mapa__repetir" onClick={() => setVez((x) => x + 1)} title="Repetir el viaje" aria-label="Repetir el viaje">↻</button>}
+          </div>
+          <p aria-live="polite">{recorrido.texto || ' '}</p>
+          {!quieto && <span className="mapa__barra"><span style={{ width: `${100 * recorrido.avance}%` }} /></span>}
+        </div>
+      )}
+
       {sel && escena === 'proceso' && <Ficha datos={datos} r={r} sel={sel} cerrar={() => setSel(null)} />}
 
       {interactivo && <button className="mapa__centrar" onClick={() => setCentrar((x) => x + 1)} title="Volver a centrar">⤢</button>}
       {children}
     </div>
   )
+}
+
+/** Segundos desde que se activó (o cambió la llave), a ~30 cuadros por segundo. Con "reducir movimiento" se queda quieto. */
+function useReloj(activo: boolean, llave = '') {
+  const [s, setS] = useState({ llave, s: 0 })
+  useEffect(() => {
+    if (!activo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let id = 0, ult = 0
+    const inicio = performance.now()
+    const p = (ms: number) => { if (ms - ult > 33) { setS({ llave, s: Math.max(0, ms - inicio) / 1000 }); ult = ms } id = requestAnimationFrame(p) }
+    id = requestAnimationFrame(p)
+    return () => cancelAnimationFrame(id)
+  }, [activo, llave])
+  return activo && s.llave === llave ? s.s : 0
 }
 
 function useRespiro(activo: boolean) {

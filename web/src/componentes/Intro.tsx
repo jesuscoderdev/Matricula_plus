@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { APP_NAME, TITULO_SIMULADOR } from '../config'
+import { Cruz, IconoApp } from './Marca'
 
 /**
- * Animación de entrada: primero aparece el "+", y luego las letras de "Matrícula"
- * una a una, empujándolo hacia la derecha hasta formar "Matrícula+".
- * Se puede saltar tocando la pantalla. Con "reducir movimiento" se muestra el nombre directo.
+ * Animación de entrada (sigue a la pantalla de carga, con su mismo fondo): el icono M+ queda
+ * arriba, aparece la cruz y luego las letras de "Matrícula" una a una, empujándola hacia la
+ * derecha hasta formar "Matrícula+". Se puede saltar tocando la pantalla. Con "reducir
+ * movimiento" se muestra el nombre directo.
  */
 const RETRASO_LETRAS = 0.75   // s que el "+" está solo
 const PASO_LETRA = 0.075      // s entre letras
@@ -38,6 +40,9 @@ export default function Intro({ alTerminar }: { alTerminar: () => void }) {
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.45, ease: 'easeInOut' }}
         >
+          <motion.div initial={false} animate={reducir ? {} : { scale: [1, 1.06, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}>
+            <IconoApp />
+          </motion.div>
           <div className="intro__marca" aria-label={APP_NAME}>
             <AnimatePresence>
               {letras.slice(0, visibles).map((l, i) => (
@@ -65,7 +70,7 @@ export default function Intro({ alTerminar }: { alTerminar: () => void }) {
                   layout: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
                 }}
               >
-                +
+                <Cruz />
               </motion.span>
             )}
           </div>

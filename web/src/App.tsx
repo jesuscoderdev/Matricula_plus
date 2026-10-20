@@ -6,7 +6,7 @@ import type { ColegioNuevo, Supuestos } from './motor'
 import { DURACION_PASOS, EMPRESA, SEGUNDOS_INACTIVIDAD } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import MapaEscena from './mapa/MapaEscena'
-import { LogoReinicio, pulsoLogo } from './componentes/Marca'
+import { BotonTema, LogoReinicio, pulsoLogo } from './componentes/Marca'
 import Intro from './componentes/Intro'
 import Esqueleto from './componentes/Esqueleto'
 import { CAPITULOS, numeroDe, type Capitulo, type PropsCapitulo, type Vista } from './capitulos/tipos'
@@ -16,7 +16,7 @@ import Accion from './capitulos/Accion'
 import Resultado, { type Alcance } from './capitulos/Resultado'
 import Laboratorio from './capitulos/Laboratorio'
 import Metodo from './capitulos/Metodo'
-import Caso, { alternarColegio, casoInicial, cercanos, type EstadoCaso } from './capitulos/Caso'
+import Caso, { alternarColegio, casoInicial, cercanos, resolverCaso, viajeDe, type Cual, type EstadoCaso } from './capitulos/Caso'
 import Explorar from './capitulos/Explorar'
 import Agendar from './capitulos/Agendar'
 
@@ -51,6 +51,7 @@ export default function App() {
   const [coloreo, setColoreo] = useState<'hoy' | 'pol'>('pol')
   const [upz, setUpz] = useState<string | null>(null)
   const [caso, setCaso] = useState<EstadoCaso>(casoInicial)
+  const [cual, setCual] = useState<Cual>('matricula')  // qué viaje de la familia se ve en el mapa
   const [vuelta, setVuelta] = useState(0)
 
   const [intento, setIntento] = useState(0)
@@ -87,7 +88,7 @@ export default function App() {
     if (!datos) return
     setPalancas(palancasIniciales(datos)); setSupuestos(supuestosIniciales(datos))
     setLocalidad(null); setVista('portada'); setAlcance('localidad'); setColoreo('pol')
-    setUpz(null); setCaso(casoInicial()); setEligiendoPunto(false)
+    setUpz(null); setCaso(casoInicial()); setCual('matricula'); setEligiendoPunto(false)
   }, [datos])
   const ir = useCallback((v: Vista) => {
     if (v === 'portada') return reiniciar()
@@ -102,8 +103,14 @@ export default function App() {
   const alTerminar = useCallback(() => setTerminado(true), [])
   const ubicar = useCallback((lon: number, lat: number) => {
     if (!r || !supuestos) return
-    setCaso((c) => ({ ...c, lon, lat, hermanoEn: null, colegios: cercanos(r.pol.pos, lon, lat, supuestos.opciones).map((x) => x.s) }))
+    setCaso((c) => ({ ...c, lon, lat, hermanoEn: null, quien: null, colegios: cercanos(r.pol.pos, lon, lat, supuestos.opciones).map((x) => x.s) }))
   }, [r, supuestos])
+
+  // Simula una familia: la asignación completa con la familia agregada (~100 ms, solo en esa vista)
+  const politica = r?.pol.politica
+  const resCaso = useMemo(() => (vista === 'caso' && datos && supuestos && politica ? resolverCaso(datos, supuestos, politica, caso) : null),
+    [vista, datos, supuestos, politica, caso.lon, caso.lat, caso.vulnerable, caso.hermanoEn, caso.colegios, caso.llegada])  // eslint-disable-line react-hooks/exhaustive-deps
+  const viaje = useMemo(() => (resCaso && supuestos ? viajeDe(caso.colegios, resCaso, cual, supuestos.opciones) : null), [resCaso, caso.colegios, cual, supuestos])
 
   // Kiosco táctil: sin interacción en N segundos, vuelve a la portada
   useEffect(() => {
@@ -198,18 +205,21 @@ export default function App() {
         return { ...base, escena: 'ciudad', coloreo, localidad: null, upzSeleccionada: upz, onTocarUpz: setUpz }
       case 'caso':
         return { ...base, escena: 'caso', localidad: null,
-          caso: caso.lon == null ? null : { lon: caso.lon, lat: caso.lat!, colegios: caso.colegios, hermanoEn: caso.hermanoEn },
+          caso: caso.lon == null ? null : { lon: caso.lon, lat: caso.lat!, colegios: caso.colegios, hermanoEn: caso.hermanoEn, viaje, cual },
+          onCual: modo === 'auto' ? undefined : setCual,
+          // El recuadro del viaje tapa la parte baja del mapa
+          margen: viaje ? { abajo: 7 * parseFloat(getComputedStyle(document.documentElement).fontSize) } : undefined,
           onTocarMapa: modo === 'auto' ? undefined : ubicar,
           onTocarColegio: (s: number) => setCaso((c) => alternarColegio(c, s, supuestos.opciones)) }
       case 'portada':
         // El mapa se corre hacia donde no lo tapa el texto de la portada
-        return { ...base, escena: 'ciudad', coloreo: 'hoy', localidad: null, respirar: true, colegioNuevo: null,
+        return { ...base, escena: 'ciudad', coloreo: 'hoy', localidad: null, conexiones: true, colegioNuevo: null,
           margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * parseFloat(getComputedStyle(document.documentElement).fontSize)) }
             : { arriba: window.innerHeight * 0.3, abajo: window.innerHeight * 0.22 } }
       default:
         return { ...base, escena: 'ciudad', coloreo: 'pol', localidad: null, respirar: vista === 'metodo' || vista === 'agendar' }
     }
-  }, [vista, modo, localidad, palancas, supuestos, asignado, reproduccion, alTerminar, eligiendoPunto, coloreo, alcance, upz, caso, ubicar, cambiarPalancas, datos])
+  }, [vista, modo, localidad, palancas, supuestos, asignado, reproduccion, alTerminar, eligiendoPunto, coloreo, alcance, upz, caso, viaje, cual, ubicar, cambiarPalancas, datos])
 
   const entrada = intro && <Intro alTerminar={() => setIntro(false)} />
   if (error || !datos || !r || !supuestos || !palancas || !propsMapa) {
@@ -232,7 +242,7 @@ export default function App() {
       case 'resultado': return <Resultado {...props} alcance={alcance} setAlcance={setAlcance} coloreo={coloreo} setColoreo={setColoreo} />
       case 'laboratorio': return <Laboratorio {...props} />
       case 'metodo': return <Metodo {...props} />
-      case 'caso': return <Caso {...props} caso={caso} setCaso={setCaso} ubicar={ubicar} />
+      case 'caso': return <Caso {...props} caso={caso} setCaso={setCaso} ubicar={ubicar} res={resCaso} cual={cual} setCual={setCual} />
       case 'explorar': return <Explorar {...props} upz={upz} setUpz={setUpz} coloreo={coloreo} setColoreo={setColoreo} />
       case 'agendar': return <Agendar />
       default: return null
@@ -270,6 +280,7 @@ export default function App() {
               ))}
             </div>
           )}
+          <BotonTema />
         </header>
       )}
 

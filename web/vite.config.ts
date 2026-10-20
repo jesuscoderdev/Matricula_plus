@@ -11,7 +11,10 @@ const cabecerasSeguridad: Record<string, string> = Object.fromEntries(
     .filter((h: { key: string }) => h.key !== 'Strict-Transport-Security')
     .map((h: { key: string; value: string }) => [h.key, h.value.replace(/;\s*upgrade-insecure-requests/, '')]))
 
-/** En el HTML de doble clic no hay carpeta de íconos: el favicon va incrustado y se quita el de Apple. */
+/**
+ * En el HTML de doble clic no hay carpeta pública: el favicon y la fuente del logo van incrustados,
+ * y se quitan el ícono de Apple y la precarga de la fuente.
+ */
 const iconosIncrustados = () => ({
   name: 'iconos-incrustados',
   transformIndexHtml(html: string) {
@@ -19,6 +22,15 @@ const iconosIncrustados = () => ({
     return html
       .replace('href="./iconos/favicon.png"', `href="data:image/png;base64,${png}"`)
       .replace(/\s*<link rel="apple-touch-icon"[^>]*>/, '')
+      .replace(/\s*<link rel="preload"[^>]*as="font"[^>]*>/, '')
+  },
+  // Las url() del <style> de index.html Vite las resuelve al final, así que la fuente se incrusta
+  // sobre el archivo ya escrito
+  writeBundle({ dir }: { dir?: string }) {
+    const ruta = `${dir}/index.html`
+    const html = fs.readFileSync(ruta, 'utf-8').replace(/url\(['"]?[^'")]*fuentes\/([\w-]+\.woff2)['"]?\)/g, (_, f: string) =>
+      `url('data:font/woff2;base64,${fs.readFileSync(`public/fuentes/${f}`).toString('base64')}')`)
+    fs.writeFileSync(ruta, html)
   },
 })
 
