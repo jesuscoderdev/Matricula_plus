@@ -31,7 +31,7 @@ export const whatsappCon = (mensaje: string) => `https://wa.me/${WHATSAPP_CITA}?
 // --- Kiosco ---
 export const SEGUNDOS_INACTIVIDAD = 30        // vuelve al inicio sin interacción
 export const SEGUNDOS_REINICIO_LOGO = 3       // mantener presionado el logo para reiniciar
-export const MINUTOS_ANIMACION_LOGO = 5       // cada cuánto el logo pasa a "M+" y vuelve
+export const SEGUNDOS_ANIMACION_LOGO = 5.3    // el logo alterna "Matrícula+" ↔ "M+" cada N segundos
 
 // Duración de cada capítulo en modo automático (segundos): ~67 s por vuelta.
 // Problema y Acción incluyen la animación del proceso en la localidad.

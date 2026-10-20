@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { APP_NAME, EMPRESA, MINUTOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } from '../config'
+import { APP_NAME, EMPRESA, SEGUNDOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } from '../config'
 import logoProliferante from '../assets/logo-proliferante.webp'
 
-// Ritmo del logo de la cabecera: "Matrícula+" la mayor parte del tiempo; cada MINUTOS_ANIMACION_LOGO
-// se agrupa en "M+", espera unos segundos y se abre de nuevo
-const SEG_ABIERTO = MINUTOS_ANIMACION_LOGO * 60
-const SEG_COMPACTO = 3.5
+// Ritmo del logo de la cabecera: "Matrícula+" un rato, se agrupa en "M+", se queda así otro rato
+// y se abre de nuevo (cada SEGUNDOS_ANIMACION_LOGO)
+const SEG_ABIERTO = SEGUNDOS_ANIMACION_LOGO
+const SEG_COMPACTO = SEGUNDOS_ANIMACION_LOGO
 const PASO_LETRA = 0.045
 
 /** Nombre de la app: "Matrícula" en Fraunces + el "+" en violeta. */
