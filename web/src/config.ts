@@ -1,21 +1,22 @@
 /**
- * Configuración de marca y enlaces. Todo lo que cambia entre eventos vive aquí.
+ * Configuración de marca, tiempos y enlaces. Todo lo que cambia entre eventos vive aquí.
  */
 
-// Nombre de la app (se muestra en toda la interfaz)
+// Nombre de la app y del demostrador
 export const APP_NAME = 'Matrícula+'
-
-// Empresa que presenta la demo
+export const TITULO_SIMULADOR = '¿Dónde cabe cada niño?'
 export const EMPRESA = 'Proliferante'
 
-// QR en el cierre (app en el celular + agendar cita). Apagado hasta tener la URL pública.
-export const MOSTRAR_QR = false
+// --- QR del cierre ---
+// Imagen configurable: pon el archivo en web/public/ con este nombre (PNG o SVG).
+// Si no existe, se genera un QR local con URL_CITA (solo si MOSTRAR_QR_GENERADO es true).
+export const QR_IMAGEN = './qr-cita.png'
+export const MOSTRAR_QR_GENERADO = false
 
-// URL que codifica el QR de la app. Si queda vacía, se usa la URL actual sin parámetros.
+// URL que codifica el QR de la app en el celular (vacía = URL actual sin parámetros)
 export const URL_APP = ''
 
-// Agendar una cita. WHATSAPP: número en formato internacional sin "+" (PENDIENTE: número real).
-// Si CALENDLY tiene un enlace, el botón lo abre en vez del formulario de WhatsApp.
+// Agendar una cita. WHATSAPP: número internacional sin "+" (PENDIENTE: número real).
 export const WHATSAPP_CITA = '570000000000'
 export const CALENDLY_CITA = ''
 export const URL_CITA = CALENDLY_CITA ||
@@ -24,15 +25,27 @@ export const URL_CITA = CALENDLY_CITA ||
 /** Enlace de WhatsApp con un mensaje armado desde el formulario de cita. */
 export const whatsappCon = (mensaje: string) => `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(mensaje)}`
 
-// Segundos sin interacción antes de volver al modo espera (stand)
-export const SEGUNDOS_INACTIVIDAD = 20
+// --- Kiosco ---
+export const SEGUNDOS_INACTIVIDAD = 30        // vuelve al inicio sin interacción
+export const SEGUNDOS_REINICIO_LOGO = 3       // mantener presionado el logo para reiniciar
 
-// Colores del mapa en RGB (deck.gl necesita arreglos). Mantener en sintonía con estilos.css
+// Duración de cada paso del flujo guiado en modo automático (segundos): ~55 s por vuelta
+export const DURACION_PASOS = { problema: 10, accion: 15, resultado: 15, supuestos: 5, metodo: 10 }
+
+// --- Colores (en sintonía con estilos.css). Accesibles: azul / naranja, nunca solo color ---
 export const COLORES = {
-  deficit: [255, 99, 99] as [number, number, number],
-  superavit: [46, 204, 138] as [number, number, number],
-  equilibrio: [92, 104, 125] as [number, number, number],
-  acento: [96, 165, 250] as [number, number, number],
-  colegio: [255, 255, 255] as [number, number, number],
-  borde: [11, 15, 23] as [number, number, number],
+  azulOscuro: [20, 33, 61] as [number, number, number],      // #14213D
+  fondo: [246, 244, 238] as [number, number, number],        // #F6F4EE
+  naranja: [180, 86, 26] as [number, number, number],        // #B4561A
+  naranjaClaro: [232, 137, 61] as [number, number, number],  // #E8893D
+  azul: [47, 111, 181] as [number, number, number],          // #2F6FB5
 }
+
+/** Escala secuencial de % sin cupo (claro → naranja oscuro), con sus cortes para la leyenda. */
+export const ESCALA_SIN_CUPO: { hasta: number; color: [number, number, number]; etiqueta: string }[] = [
+  { hasta: 10, color: [244, 236, 222], etiqueta: '< 10%' },
+  { hasta: 20, color: [240, 202, 160], etiqueta: '10–20%' },
+  { hasta: 30, color: [232, 160, 98], etiqueta: '20–30%' },
+  { hasta: 40, color: [205, 113, 52], etiqueta: '30–40%' },
+  { hasta: 101, color: [150, 66, 18], etiqueta: '≥ 40%' },
+]

@@ -30,7 +30,7 @@ import shapely
 
 from engine.asignacion.aceptacion_diferida import pares_bloqueantes
 from engine.config import APP_NAME, DATA_PROCESSED, RAIZ
-from engine.simulador.config import NIVELES, ParametrosSimulador
+from engine.simulador.config import NIVELES, PRESETS, ParametrosSimulador
 from engine.simulador.datos import cargar_base, insuficiencia_upz
 from engine.simulador.escenario import Palancas, definir_zona_critica, simular
 from engine.simulador.familias import generar_familias
@@ -150,6 +150,9 @@ def main():
         "metricas": METRICAS,
         "niveles": list(NIVELES),
         "pesos": p.pesos,
+        "presets": [{"clave": c, "etiqueta": e, "descripcion": d,
+                     "escenario": Palancas(*niveles).id.split("_")[0]}
+                    for c, e, d, niveles in PRESETS],
         "colegio_nuevo": [{"clave": c.clave, "etiqueta": c.etiqueta, "proyecto": c.proyecto,
                            "upz": c.upz, "upz_nombre": c.upz_nombre, "localidad": c.localidad,
                            "lon": round(c.lon, 5), "lat": round(c.lat, 5), "cupos": p.cupos_colegio_nuevo}

@@ -4,7 +4,7 @@ export type Pestana = 'recorrido' | 'localidad' | 'agendar'
 
 const PESTANAS: { id: Pestana; etiqueta: string; icono: ReactNode }[] = [
   {
-    id: 'recorrido', etiqueta: 'Recorrido',
+    id: 'recorrido', etiqueta: 'Simulador',
     icono: <path d="M8 5.5v13l11-6.5z" />,
   },
   {

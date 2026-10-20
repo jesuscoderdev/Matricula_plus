@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource-variable/inter'
+// Tipografías del brief, empaquetadas localmente (sin Google Fonts)
+import '@fontsource-variable/space-grotesk'
+import '@fontsource-variable/public-sans'
 import './estilos.css'
 import App from './App'
 

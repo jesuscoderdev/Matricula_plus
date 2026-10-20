@@ -1,99 +1,90 @@
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import MapaBogota, { type FaseMapa } from './mapa/MapaBogota'
-import { cargarDatos, type Datos } from './datos'
-import { SEGUNDOS_INACTIVIDAD } from './config'
+import { cargarDatos, resultado, resultadoBase, type Datos, type Palancas } from './datos'
+import { DURACION_PASOS, SEGUNDOS_INACTIVIDAD } from './config'
 import { esTotem, leerModo } from './modo'
-import type { EscenaId, PropsEscena } from './escenas/tipos'
-import Espera from './escenas/Espera'
-import Problema from './escenas/Problema'
-import { AsignarHoy, AsignarMatricula } from './escenas/Asignar'
-import ComoLoHicimos from './escenas/ComoLoHicimos'
-import Cierre from './escenas/Cierre'
+import BarraProgreso, { PASOS, type PasoId } from './componentes/BarraProgreso'
+import { LogoReinicio } from './componentes/Marca'
+import type { PropsPaso } from './pasos/tipos'
+import { describirPalancas } from './pasos/tipos'
+import Espera from './pasos/Espera'
+import Problema from './pasos/Problema'
+import Accion from './pasos/Accion'
+import Resultado from './pasos/Resultado'
+import Supuestos from './pasos/Supuestos'
+import Metodo from './pasos/Metodo'
 import BarraInferior, { type Pestana } from './movil/BarraInferior'
 import MiLocalidad from './movil/MiLocalidad'
 import DetalleUPZ from './movil/DetalleUPZ'
 import AgendarCita from './movil/AgendarCita'
 
-const ESCENAS: Record<EscenaId, ComponentType<PropsEscena>> = {
-  espera: Espera, problema: Problema, hoy: AsignarHoy, matricula: AsignarMatricula, como: ComoLoHicimos, cierre: Cierre,
+type Vista = 'espera' | PasoId
+const PANTALLAS: Record<Vista, ComponentType<PropsPaso>> = {
+  espera: Espera, problema: Problema, accion: Accion, resultado: Resultado, supuestos: Supuestos, metodo: Metodo,
 }
+const PALANCAS_INICIALES: Palancas = { preset: 'cercania', colegioNuevo: null, jornadaUnica: false }
 
-// Qué muestra el mapa detrás de cada escena y cuánto espacio dejan libre los textos
-const MAPA: Record<EscenaId, { fase: FaseMapa; arriba: number; abajo: number }> = {
-  espera: { fase: 'espera', arriba: 0.3, abajo: 0.2 },
-  problema: { fase: 'problema', arriba: 0.42, abajo: 0.2 },
-  hoy: { fase: 'hoy', arriba: 0.44, abajo: 0.16 },
-  matricula: { fase: 'matricula', arriba: 0.44, abajo: 0.24 },
-  como: { fase: 'matricula', arriba: 0.44, abajo: 0.24 },
-  cierre: { fase: 'matricula', arriba: 0.44, abajo: 0.24 },
-}
-
-// Recorrido automático (?modo=auto): ~50 s por vuelta
-const DURACION_AUTO: Record<EscenaId, number> = {
-  espera: 7, problema: 7, hoy: 9, matricula: 10, como: 9, cierre: 8,
-}
-const SIGUIENTE: Record<EscenaId, EscenaId> = {
-  espera: 'problema', problema: 'hoy', hoy: 'matricula', matricula: 'como', como: 'cierre', cierre: 'espera',
-}
+// Modo automático: en cada vuelta se "mueven" otras palancas durante el paso Acción
+const GUIONES: { segundo: number; cambio: Partial<Palancas> }[][] = [
+  [{ segundo: 3, cambio: { preset: 'equidad' } }, { segundo: 7, cambio: { colegioNuevo: 'tibabuyes' } }],
+  [{ segundo: 3, cambio: { preset: 'familias' } }, { segundo: 7, cambio: { jornadaUnica: true } }],
+  [{ segundo: 3, cambio: { preset: 'equidad' } }, { segundo: 7, cambio: { colegioNuevo: 'ciudad_bolivar' } },
+   { segundo: 11, cambio: { colegioNuevo: 'tibabuyes' } }],
+]
 
 export default function App() {
   const modo = useMemo(leerModo, [])
   const [datos, setDatos] = useState<Datos | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [escena, setEscena] = useState<EscenaId>('espera')
-  const [localidad, setLocalidad] = useState<string>('')
+  const [vista, setVista] = useState<Vista>('espera')
+  const [palancas, setPalancas] = useState<Palancas>(PALANCAS_INICIALES)
   const [vuelta, setVuelta] = useState(0)
   // Solo celular
   const [pestana, setPestana] = useState<Pestana>('recorrido')
+  const [localidad, setLocalidad] = useState('Suba')
   const [upz, setUpz] = useState<string | null>(null)
 
   useEffect(() => {
     document.documentElement.dataset.modo = modo
-    cargarDatos()
-      .then((d) => { setDatos(d); setLocalidad(d.resumen.localidad_foco) })
-      .catch((e) => setError(String(e.message ?? e)))
+    cargarDatos().then(setDatos).catch((e) => setError(String(e.message ?? e)))
   }, [modo])
 
-  // Localidades que rotan en modo auto: las que más niños dejan sin cupo hoy
-  const rotacion = useMemo(() => {
-    if (!datos) return []
-    return [...datos.resumen.localidades].sort((a, b) => b.hoy.sin_cupo - a.hoy.sin_cupo).slice(0, 4).map((l) => l.localidad)
-  }, [datos])
+  const reiniciar = useCallback(() => {
+    setPalancas(PALANCAS_INICIALES)
+    setVista('espera')
+    setPestana('recorrido')
+    setUpz(null)
+  }, [])
+  const ir = useCallback((v: Vista) => (v === 'espera' ? reiniciar() : setVista(v)), [reiniciar])
+  const cambiarPalancas = useCallback((c: Partial<Palancas>) => setPalancas((p) => ({ ...p, ...c })), [])
 
-  const ir = useCallback((e: EscenaId) => {
-    if (e === 'espera' && datos && esTotem(modo)) setLocalidad(datos.resumen.localidad_foco)
-    setEscena(e)
-  }, [datos, modo])
+  // Kiosco táctil: sin interacción en N segundos, vuelve al inicio
+  useEffect(() => {
+    if (modo !== 'stand' || vista === 'espera') return
+    let id = window.setTimeout(reiniciar, SEGUNDOS_INACTIVIDAD * 1000)
+    const tocar = () => { window.clearTimeout(id); id = window.setTimeout(reiniciar, SEGUNDOS_INACTIVIDAD * 1000) }
+    window.addEventListener('pointerdown', tocar)
+    return () => { window.clearTimeout(id); window.removeEventListener('pointerdown', tocar) }
+  }, [modo, vista, reiniciar])
 
-  // Modo auto: avanza solo y cambia de localidad en cada vuelta
+  // Modo automático: recorre los 5 pasos con sus tiempos y mueve palancas en el paso Acción
   useEffect(() => {
     if (modo !== 'auto' || !datos) return
-    const id = setTimeout(() => {
-      const sig = SIGUIENTE[escena]
-      if (sig === 'espera') {
-        const v = vuelta + 1
-        setVuelta(v)
-        setLocalidad(rotacion[v % rotacion.length])
-      }
-      setEscena(sig)
-    }, DURACION_AUTO[escena] * 1000)
-    return () => clearTimeout(id)
-  }, [modo, escena, datos, vuelta, rotacion])
-
-  // Modo stand: si nadie toca la pantalla en N segundos, vuelve al modo espera
-  useEffect(() => {
-    if (modo !== 'stand' || escena === 'espera') return
-    let id = setTimeout(() => ir('espera'), SEGUNDOS_INACTIVIDAD * 1000)
-    const reiniciar = () => {
-      clearTimeout(id)
-      id = setTimeout(() => ir('espera'), SEGUNDOS_INACTIVIDAD * 1000)
+    const orden: Vista[] = ['espera', ...PASOS.map((p) => p.id)]
+    const dur = vista === 'espera' ? 5 : DURACION_PASOS[vista]
+    const timers: number[] = []
+    if (vista === 'accion') {
+      for (const g of GUIONES[vuelta % GUIONES.length]) timers.push(window.setTimeout(() => cambiarPalancas(g.cambio), g.segundo * 1000))
     }
-    window.addEventListener('pointerdown', reiniciar)
-    return () => { clearTimeout(id); window.removeEventListener('pointerdown', reiniciar) }
-  }, [modo, escena, ir])
+    timers.push(window.setTimeout(() => {
+      const sig = orden[(orden.indexOf(vista) + 1) % orden.length]
+      if (sig === 'espera') { setVuelta((v) => v + 1); setPalancas(PALANCAS_INICIALES) }
+      setVista(sig)
+    }, dur * 1000))
+    return () => timers.forEach((t) => window.clearTimeout(t))
+  }, [modo, vista, datos, vuelta, cambiarPalancas])
 
-  // El tótem no debe abrir menús contextuales ni hacer zoom con gestos
+  // El tótem no abre menús contextuales ni hace zoom con gestos
   useEffect(() => {
     if (!esTotem(modo)) return
     const bloquear = (e: Event) => e.preventDefault()
@@ -102,61 +93,52 @@ export default function App() {
     return () => { window.removeEventListener('contextmenu', bloquear); window.removeEventListener('gesturestart', bloquear) }
   }, [modo])
 
+  const base = useMemo(() => (datos ? resultadoBase(datos) : null), [datos])
+  const actual = useMemo(() => (datos ? resultado(datos, palancas) : null), [datos, palancas])
+
   if (error) return <div className="app"><div className="mensaje-error">{error}</div></div>
-  if (!datos) return <div className="app"><div className="cargando">Cargando…</div></div>
+  if (!datos || !base || !actual) return <div className="app"><div className="cargando">Cargando…</div></div>
 
-  const Escena = ESCENAS[escena]
-  const m = MAPA[escena]
-  const puedeTocarMapa = modo !== 'auto' && (escena === 'problema' || escena === 'hoy' || escena === 'matricula')
-
-  const recorrido = (
-    <>
-      <MapaBogota
-        datos={datos}
-        fase={m.fase}
-        localidad={localidad}
-        margenArriba={m.arriba}
-        margenAbajo={m.abajo}
-        onTocarLocalidad={puedeTocarMapa ? setLocalidad : undefined}
-      />
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={escena}
-          className="capa-escena"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
-        >
-          <Escena datos={datos} localidad={localidad} modo={modo} ir={ir} alAgendar={() => setPestana('agendar')} />
-        </motion.div>
-      </AnimatePresence>
-    </>
+  const Pantalla = PANTALLAS[vista]
+  const supuestosCortos = `Familias sintéticas, sin datos personales · ${datos.indice.supuestos.corte} · distancia en línea recta`
+  const flujo = (
+    <div className="flujo">
+      <div className="barra-superior">
+        <LogoReinicio alReiniciar={reiniciar} />
+        {vista !== 'espera' && <BarraProgreso actual={vista} ir={modo === 'auto' ? undefined : ir} />}
+      </div>
+      <div className="flujo__cuerpo">
+        <AnimatePresence mode="wait">
+          <motion.div key={vista} className="capa-paso" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            <Pantalla datos={datos} modo={modo} palancas={palancas} cambiarPalancas={cambiarPalancas}
+                      base={base} actual={actual} ir={ir} alAgendar={() => setPestana('agendar')} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      {/* Supuestos siempre visibles */}
+      <div className="pie-supuestos">{supuestosCortos}{datos.indice.fuente === 'sintetica' && ' · DATOS SINTÉTICOS'}</div>
+    </div>
   )
 
-  const sello = datos.resumen.fuente === 'sintetica' && <div className="sello">Datos sintéticos</div>
+  if (esTotem(modo)) return <div className="app">{flujo}</div>
 
-  // --- Tótem: solo el recorrido, pantalla completa ---
-  if (esTotem(modo)) return <div className="app">{recorrido}{sello}</div>
-
-  // --- Celular: recorrido + "Mi localidad" + "Agendar", con barra inferior ---
-  const cambiarPestana = (p: Pestana) => {
-    setPestana(p)
-    setUpz(null)
-  }
+  // --- Celular: simulador + "Mi localidad" + "Agendar", con barra inferior ---
   return (
     <div className="app app--celular">
       <main className="vista">
-        {pestana === 'recorrido' && <>{recorrido}{sello}</>}
+        {pestana === 'recorrido' && flujo}
         {pestana === 'localidad' && !upz && (
-          <MiLocalidad datos={datos} localidad={localidad} setLocalidad={setLocalidad} onVerUpz={setUpz} />
+          <MiLocalidad datos={datos} localidad={localidad} setLocalidad={setLocalidad} base={base} actual={actual}
+                       resumenPolitica={describirPalancas(datos, palancas)} onVerUpz={setUpz} />
         )}
         {pestana === 'localidad' && upz && (
-          <DetalleUPZ key={upz} datos={datos} codigo={upz} onVolver={() => setUpz(null)} onVerUpz={setUpz} />
+          <DetalleUPZ key={upz} datos={datos} codigo={upz} base={base} actual={actual}
+                      onVolver={() => setUpz(null)} onVerUpz={setUpz} />
         )}
         {pestana === 'agendar' && <AgendarCita />}
       </main>
-      <BarraInferior actual={pestana} cambiar={cambiarPestana} />
+      <BarraInferior actual={pestana} cambiar={(p) => { setPestana(p); setUpz(null) }} />
     </div>
   )
 }

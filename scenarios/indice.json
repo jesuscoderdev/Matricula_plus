@@ -31,6 +31,26 @@
    "alto": 3.0
   }
  },
+ "presets": [
+  {
+   "clave": "cercania",
+   "etiqueta": "Cercanía",
+   "descripcion": "Primero quien vive más cerca",
+   "escenario": "ca-hb-vb"
+  },
+  {
+   "clave": "familias",
+   "etiqueta": "Familias",
+   "descripcion": "Primero quien tiene hermanos ahí",
+   "escenario": "cm-ha-vb"
+  },
+  {
+   "clave": "equidad",
+   "etiqueta": "Equidad",
+   "descripcion": "Primero las familias vulnerables",
+   "escenario": "cm-hm-va"
+  }
+ ],
  "colegio_nuevo": [
   {
    "clave": "tibabuyes",

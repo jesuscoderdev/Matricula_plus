@@ -1,55 +1,61 @@
 import { useMemo } from 'react'
-import MapaBogota from '../mapa/MapaBogota'
-import { conSigno, decimal, entero, type Datos } from '../datos'
-import Comparacion, { ETIQUETA_ESTADO } from './Comparacion'
+import MapaSimulador from '../mapa/MapaSimulador'
+import { decimal, entero, type Bbox, type Datos, type Resultado } from '../datos'
 
 interface Props {
   datos: Datos
   codigo: string
+  base: Resultado
+  actual: Resultado
   onVolver: () => void
   onVerUpz: (codigo: string) => void
 }
 
-/** Detalle de una UPZ: balance, comparación de escenarios y sus colegios. */
-export default function DetalleUPZ({ datos, codigo, onVolver, onVerUpz }: Props) {
-  const u = datos.upz.features.find((f) => f.properties.codigo === codigo)!.properties
-  const colegios = useMemo(
-    () => datos.colegios.filter((c) => c.upz === codigo).sort((a, b) => b.cupos - a.cupos),
-    [datos, codigo],
-  )
+/** Detalle de una UPZ: cupos de nuevos, demanda de residentes, % sin cupo y sus colegios. */
+export default function DetalleUPZ({ datos, codigo, base, actual, onVolver, onVerUpz }: Props) {
+  const f = datos.upz.features.find((x) => x.properties.codigo === codigo)!
+  const u = f.properties
+  const sedes = useMemo(() => datos.colegios.features
+    .filter((c) => c.properties.tipo === 'sede' && c.properties.upz === codigo)
+    .map((c) => c.properties).sort((a, b) => b.cupos - a.cupos), [datos, codigo])
+  const bbox = useMemo<Bbox>(() => {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
+    const rec = (c: any) => { if (typeof c[0] === 'number') { x0 = Math.min(x0, c[0]); y0 = Math.min(y0, c[1]); x1 = Math.max(x1, c[0]); y1 = Math.max(y1, c[1]) } else c.forEach(rec) }
+    rec(f.geometry.coordinates)
+    const m = 0.01   // margen para ver las UPZ vecinas
+    return [[x0 - m, y0 - m], [x1 + m, y1 + m]]
+  }, [f])
+  const i = datos.posUpz[codigo]
   return (
     <div className="pantalla">
       <header className="pantalla__cabeza">
         <button className="volver" onClick={onVolver}>‹ {u.localidad}</button>
         <h1 className="titulo titulo--chico">{u.nombre}</h1>
-        <span className={`etiqueta-estado etiqueta-estado--${u.estado}`}>{ETIQUETA_ESTADO[u.estado]}</span>
+        {u.zona_critica && <span className="etiqueta-zona">Zona crítica</span>}
       </header>
-
       <div className="mapa-caja mapa-caja--baja">
-        <MapaBogota datos={datos} fase="problema" localidad={u.localidad} upzSeleccionada={codigo}
-                    margenArriba={0.02} margenAbajo={0.02} onTocarUpz={onVerUpz} interactivo />
+        <MapaSimulador datos={datos} porUpz={actual.porUpz} encuadre={bbox} upzSeleccionada={codigo} onTocarUpz={onVerUpz} interactivo />
       </div>
-
       <section className="bloque">
         <div className="cifras">
-          <div><b>{entero(u.demanda)}</b><span>solicitudes</span></div>
-          <div><b>{entero(u.oferta)}</b><span>cupos</span></div>
-          <div><b className={u.balance < 0 ? 'texto-deficit' : 'texto-superavit'}>{conSigno(u.balance)}</b><span>balance</span></div>
+          <div><b>{entero(u.demanda)}</b><span>niños piden cupo</span></div>
+          <div><b>{entero(u.cupos)}</b><span>cupos en la UPZ</span></div>
+          <div><b>{entero(Math.round(100 * u.cupos_por_solicitud))}</b><span>cupos por cada 100</span></div>
         </div>
-        <Comparacion hoy={datos.hoy.kpis.por_upz[codigo]} mat={datos.matricula.kpis.por_upz[codigo]} />
+        <div className="cifras cifras--dos">
+          <div><b>{decimal(base.porUpz[i] ?? 0)}%</b><span>sin cupo hoy</span></div>
+          <div><b>{decimal(actual.porUpz[i] ?? 0)}%</b><span>sin cupo con tu política</span></div>
+        </div>
+        <p className="nota">Los niños también usan cupos de UPZ vecinas: por eso el % sin cupo no es igual a la falta de cupos dentro de la UPZ.</p>
       </section>
-
       <section className="bloque">
-        <h2 className="bloque__titulo">Colegios oficiales ({colegios.length})</h2>
-        {colegios.length === 0 && <div className="vacio">No hay sedes oficiales en esta UPZ.</div>}
+        <h2 className="bloque__titulo">Colegios oficiales ({sedes.length})</h2>
+        {sedes.length === 0 && <div className="nota">No hay sedes oficiales en esta UPZ.</div>}
         <ul className="lista">
-          {colegios.map((c) => (
-            <li key={c.id} className="lista__item lista__item--colegio">
-              <span className="lista__nombre">{c.nombre}<small>DANE {c.dane} · Saber 11 sim. {decimal(c.calidad)}</small></span>
-              <span className="lista__dato">
-                {entero(c.cupos)} cupos
-                <small>ocupados hoy {entero(c.ocupados_hoy)} · con M+ {entero(c.ocupados_matricula)}</small>
-              </span>
+          {sedes.map((s) => (
+            <li key={s.id} className="lista__item">
+              <span className="lista__nombre">{s.nombre}</span>
+              <span className="lista__dato">{entero(s.cupos)} cupos de nuevos</span>
             </li>
           ))}
         </ul>

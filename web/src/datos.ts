@@ -1,147 +1,97 @@
 /**
- * Tipos y carga de los JSON precalculados por el pipeline (public/data).
- * Nada se simula en el navegador: solo se leen y se cruzan los resultados.
+ * Datos precalculados por `python -m engine.build_scenarios` (public/simulador).
+ * El navegador NO simula: solo busca el escenario de la combinación de palancas elegida.
  */
 
-export type Estado = 'deficit' | 'superavit' | 'equilibrio'
+export type Nivel = 'bajo' | 'medio' | 'alto'
+export type ClaveMetrica =
+  | 'pct_primera_opcion' | 'pct_sin_cupo' | 'distancia_prom_km'
+  | 'pct_vulnerables_sin_cupo' | 'pct_sin_cupo_zona_critica'
 
-export interface Kpi {
-  estudiantes: number
-  asignados: number
-  sin_cupo: number
-  pct_sin_cupo: number
-  pct_primera_opcion: number
-  pct_top3: number
-  tiempo_prom_min: number | null
-  distancia_prom_km: number | null
-  viajes_largos: number
-  pct_viajes_largos: number
-  cupos: number
-  ocupados: number
-  cupos_ociosos: number
+export interface Preset { clave: string; etiqueta: string; descripcion: string; escenario: string }
+export interface UbicacionNueva {
+  clave: string; etiqueta: string; proyecto: string; upz: string; upz_nombre: string
+  localidad: string; lon: number; lat: number; cupos: number
 }
 
-export interface Muestra {
-  lon: number[]
-  lat: number[]
-  upz: string[]
-  categoria: string[]
-  sede: number[]        // −1 = sin cupo
-  tiempo_min: number[]
-  opcion: number[]      // 0 = fuera de lista o sin cupo
-}
-
-export interface Escenario {
-  escenario: 'hoy' | 'matricula'
-  titulo: string
-  kpis: { global: Kpi; por_localidad: Record<string, Kpi>; por_upz: Record<string, Kpi> }
-  muestra: Muestra
-}
-
-export interface Colegio {
-  id: number
-  dane: string
-  nombre: string
-  localidad: string
-  upz: string
-  lon: number
-  lat: number
-  cupos: number
-  calidad: number
-  ocupados_hoy: number
-  ocupados_matricula: number
-}
-
-export interface PropsUpz {
-  codigo: string
-  nombre: string
-  localidad: string
-  demanda: number
-  oferta: number
-  balance: number
-  balance_pct: number
-  estado: Estado
-  n_sedes: number
-  sin_cupo_hoy: number
-  sin_cupo_matricula: number
-  tiempo_hoy: number | null
-  tiempo_matricula: number | null
-}
-
-export interface PropsLocalidad {
-  codigo: string
-  nombre: string
-  demanda: number
-  oferta: number
-  balance: number
-  balance_pct: number
-  estado: Estado
-}
-
-export interface Feature<P> {
-  type: 'Feature'
-  properties: P
-  geometry: { type: 'Polygon' | 'MultiPolygon'; coordinates: any }
-}
-export interface FC<P> {
-  type: 'FeatureCollection'
-  features: Feature<P>[]
-}
-
-export interface ResumenLocalidad {
-  localidad: string
-  estado: Estado
-  demanda: number
-  oferta: number
-  balance: number
-  hoy: Kpi
-  matricula: Kpi
-}
-
-export interface Resumen {
+export interface Indice {
   app: string
   generado: string
-  fuente: 'sintetica' | 'real'
-  nota: string
-  factor_expansion_muestra: number
-  /** solicitudes reales por estudiante simulado: los conteos ya vienen expandidos */
-  escala_real: number
-  totales: { estudiantes: number; muestra_simulada: number; sedes: number; cupos: number; upz: number; localidades: number; priorizados: number }
-  hoy: Kpi
-  matricula: Kpi
-  delta: Record<'sin_cupo' | 'pct_primera_opcion' | 'pct_top3' | 'tiempo_prom_min' | 'viajes_largos' | 'cupos_ociosos', number>
-  localidad_foco: string
-  localidad_mayor_superavit: string
-  localidades: ResumenLocalidad[]
-  upz_mayor_deficit: { codigo: string; nombre: string; localidad: string; balance: number }[]
-  supuestos: Record<string, unknown>
+  fuente: 'real' | 'sintetica'
+  metricas: ClaveMetrica[]
+  presets: Preset[]
+  colegio_nuevo: UbicacionNueva[]
+  zona_critica: { codigo: string; nombre: string }[]
+  upz: string[]
+  base: Record<ClaveMetrica, number> & { estudiantes: number; sin_cupo: number }
+  base_por_upz: number[]
+  supuestos: Record<string, string>
+  parametros: Record<string, unknown>
 }
+
+/** Escenario compacto: m = métricas en el orden de indice.metricas, s = estudiantes sin cupo, u = % sin cupo por UPZ */
+export interface EscenarioCompacto { m: number[]; s: number; u: number[] }
+
+export interface PropsUpz {
+  codigo: string; nombre: string; localidad: string
+  cupos: number; demanda: number; cupos_por_solicitud: number
+  zona_critica: boolean; pct_sin_cupo_base: number
+}
+export interface PropsColegio {
+  id: number; nombre: string; upz: string; localidad: string; cupos: number
+  tipo: 'sede' | 'colegio_nuevo'; clave: string | null
+}
+export interface Feature<P, G = any> { type: 'Feature'; properties: P; geometry: G }
+export interface FC<P, G = any> { type: 'FeatureCollection'; features: Feature<P, G>[] }
 
 export type Bbox = [[number, number], [number, number]]
 
 export interface Datos {
-  resumen: Resumen
+  indice: Indice
+  escenarios: Record<string, EscenarioCompacto>
   upz: FC<PropsUpz>
-  localidades: FC<PropsLocalidad>
-  colegios: Colegio[]
-  hoy: Escenario
-  matricula: Escenario
-  // Derivados
-  localidadDeUpz: Record<string, string>
-  bboxLocalidad: Record<string, Bbox>
+  colegios: FC<PropsColegio, { type: 'Point'; coordinates: [number, number] }>
   bboxCiudad: Bbox
-  /** localidad de residencia de cada estudiante de la muestra */
-  localidadMuestra: string[]
+  bboxZonaCritica: Bbox
+  posUpz: Record<string, number>          // código → posición en indice.upz
 }
 
-async function json<T>(nombre: string): Promise<T> {
-  const r = await fetch(`./data/${nombre}`)
-  if (!r.ok) throw new Error(`No se pudo cargar ${nombre} (${r.status}). ¿Corriste python pipeline/run.py?`)
+/** Palancas tal como las ve el visitante */
+export interface Palancas {
+  preset: string                 // clave de Preset
+  colegioNuevo: string | null    // clave de UbicacionNueva o null
+  jornadaUnica: boolean
+}
+
+export function idEscenario(d: Datos, p: Palancas): string {
+  const pesos = d.indice.presets.find((x) => x.clave === p.preset)!.escenario
+  return `${pesos}_${p.colegioNuevo ?? 'ninguno'}_${p.jornadaUnica ? 'ju' : 'sinju'}`
+}
+
+export interface Resultado {
+  metricas: Record<ClaveMetrica, number>
+  sinCupo: number
+  porUpz: number[]
+}
+
+export function resultado(d: Datos, p: Palancas): Resultado {
+  const e = d.escenarios[idEscenario(d, p)]
+  const metricas = Object.fromEntries(d.indice.metricas.map((k, i) => [k, e.m[i]])) as Record<ClaveMetrica, number>
+  return { metricas, sinCupo: e.s, porUpz: e.u }
+}
+
+export function resultadoBase(d: Datos): Resultado {
+  const metricas = Object.fromEntries(d.indice.metricas.map((k) => [k, d.indice.base[k]])) as Record<ClaveMetrica, number>
+  return { metricas, sinCupo: d.indice.base.sin_cupo, porUpz: d.indice.base_por_upz }
+}
+
+async function json<T>(ruta: string): Promise<T> {
+  const r = await fetch(ruta)
+  if (!r.ok) throw new Error(`No se pudo cargar ${ruta} (${r.status}). ¿Corriste python -m engine.build_scenarios?`)
   return r.json()
 }
 
-/** Caja envolvente de cualquier geometría (Polygon / MultiPolygon). */
-function bboxDe(geoms: Feature<unknown>['geometry'][]): Bbox {
+function bboxDe(geoms: any[]): Bbox {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
   const recorrer = (c: any) => {
     if (typeof c[0] === 'number') {
@@ -153,32 +103,27 @@ function bboxDe(geoms: Feature<unknown>['geometry'][]): Bbox {
 }
 
 export async function cargarDatos(): Promise<Datos> {
-  const [resumen, upz, localidades, colegios, hoy, matricula] = await Promise.all([
-    json<Resumen>('resumen.json'),
-    json<FC<PropsUpz>>('upz.geojson'),
-    json<FC<PropsLocalidad>>('localidades.geojson'),
-    json<Colegio[]>('colegios.json'),
-    json<Escenario>('escenario_hoy.json'),
-    json<Escenario>('escenario_matricula.json'),
+  const [todos, upz, colegios] = await Promise.all([
+    json<{ indice: Indice; escenarios: Record<string, EscenarioCompacto> }>('./simulador/todos.json'),
+    json<FC<PropsUpz>>('./simulador/upz.geojson'),
+    json<FC<PropsColegio, { type: 'Point'; coordinates: [number, number] }>>('./simulador/colegios.geojson'),
   ])
-  const localidadDeUpz: Record<string, string> = {}
-  upz.features.forEach((f) => (localidadDeUpz[f.properties.codigo] = f.properties.localidad))
-  const bboxLocalidad: Record<string, Bbox> = {}
-  localidades.features.forEach((f) => (bboxLocalidad[f.properties.nombre] = bboxDe([f.geometry])))
+  const posUpz = Object.fromEntries(todos.indice.upz.map((c, i) => [c, i]))
+  const zona = upz.features.filter((f) => f.properties.zona_critica)
   return {
-    resumen, upz, localidades, colegios, hoy, matricula,
-    localidadDeUpz,
-    bboxLocalidad,
-    bboxCiudad: bboxDe(localidades.features.map((f) => f.geometry)),
-    localidadMuestra: hoy.muestra.upz.map((u) => localidadDeUpz[u]),
+    ...todos, upz, colegios, posUpz,
+    bboxCiudad: bboxDe(upz.features.map((f) => f.geometry)),
+    bboxZonaCritica: bboxDe(zona.map((f) => f.geometry)),
   }
 }
 
 // --- Formato de números (es-CO) ---
 const fmtEntero = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 })
 const fmtDecimal = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+const fmtDos = new Intl.NumberFormat('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 export const entero = (n: number) => fmtEntero.format(Math.round(n))
 export const decimal = (n: number) => fmtDecimal.format(n)
+export const dosDecimales = (n: number) => fmtDos.format(n)
 /** "+12" / "−3" con signo tipográfico */
 export const conSigno = (n: number, f: (n: number) => string = entero) =>
   (n > 0 ? '+' : n < 0 ? '−' : '±') + f(Math.abs(n))

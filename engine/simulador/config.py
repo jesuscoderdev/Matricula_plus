@@ -13,6 +13,14 @@ PESOS = {
     "vulnerabilidad": {"bajo": 0.0, "medio": 1.5, "alto": 3.0},
 }
 
+# Presets de prioridad que ve el visitante (el brief pide máximo 3 controles visibles).
+# (clave, etiqueta, descripción corta, niveles de cercanía / hermanos / vulnerabilidad)
+PRESETS = [
+    ("cercania", "Cercanía", "Primero quien vive más cerca", ("alto", "bajo", "bajo")),
+    ("familias", "Familias", "Primero quien tiene hermanos ahí", ("medio", "alto", "bajo")),
+    ("equidad", "Equidad", "Primero las familias vulnerables", ("medio", "medio", "alto")),
+]
+
 # Ubicaciones del colegio nuevo: proyectos REALES de la SED (dataset "Colegios oficiales
 # nuevos y en restitución", 05.2026). (clave, etiqueta corta, texto a buscar en el nombre del proyecto)
 UBICACIONES_NUEVO = [

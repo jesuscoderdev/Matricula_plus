@@ -186,7 +186,7 @@ def exportar(datos, pob, asig_hoy, asig_mat, kpis_hoy, kpis_mat, n_flujo, s, cop
     _guardar("resumen.json", resumen)
 
     # Copia al front (si ya existe /web)
-    if copiar_web and WEB_DATA.parents[1].exists():
+    if copiar_web and WEB_DATA.exists():  # el recorrido narrativo ya no lo usa la app web
         WEB_DATA.mkdir(parents=True, exist_ok=True)
         for archivo in DATA_PROCESSED.glob("*.*json"):
             shutil.copy2(archivo, WEB_DATA / archivo.name)

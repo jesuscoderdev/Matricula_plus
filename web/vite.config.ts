@@ -11,7 +11,7 @@ export default defineConfig({
       injectRegister: 'auto',
       includeAssets: ['iconos/*.png', 'logo-proliferante.svg'],
       manifest: {
-        name: 'Matrícula+ · Asignación inteligente de cupos',
+        name: 'Matrícula+ · ¿Dónde cabe cada niño?',
         short_name: 'Matrícula+',
         description: 'Simulación de asignación de cupos escolares oficiales en Bogotá — Proliferante',
         lang: 'es-CO',
@@ -19,8 +19,8 @@ export default defineConfig({
         scope: './',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0b0f17',
-        theme_color: '#0b0f17',
+        background_color: '#f6f4ee',
+        theme_color: '#14213d',
         icons: [
           { src: 'iconos/icono-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'iconos/icono-512.png', sizes: '512x512', type: 'image/png' },
@@ -31,6 +31,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,woff2,png,svg,json,geojson}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         navigateFallback: 'index.html',
+        // La vista previa de desarrollo no debe caer en la app
+        navigateFallbackDenylist: [/_previa-stand/],
         cleanupOutdatedCaches: true,
       },
     }),
