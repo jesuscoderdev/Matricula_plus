@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import BotonGrande from '../componentes/BotonGrande'
-import { LogoEmpresa } from '../componentes/Marca'
+import Proli from '../componentes/Proli'
 import { APP_NAME, CALENDLY_CITA, EMPRESA, whatsappCon } from '../config'
 
 /**
@@ -26,7 +26,7 @@ export default function AgendarCita() {
   return (
     <div className="pantalla">
       <header className="pantalla__cabeza">
-        <LogoEmpresa />
+        <Proli tamano={5} globo={<>Hola, soy <b>Proli</b> de Proliferante.</>} />
         <h1 className="titulo titulo--chico">Agendar una cita</h1>
         <p className="subtitulo">Te mostramos {APP_NAME} con los datos de tu entidad.</p>
       </header>

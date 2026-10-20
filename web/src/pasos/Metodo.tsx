@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import BotonGrande from '../componentes/BotonGrande'
-import { LogoEmpresa } from '../componentes/Marca'
+import Proli from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
 import { esTotem } from '../modo'
 import { describirPalancas, type PropsPaso } from './tipos'
@@ -17,7 +17,6 @@ export default function Metodo({ datos, palancas, ir, modo, alAgendar }: PropsPa
   return (
     <div className="pantalla-paso">
       <header className="cabeza">
-        <LogoEmpresa />
         <h1 className="titulo">El método Proliferante</h1>
       </header>
       <ol className="metodo">
@@ -29,6 +28,7 @@ export default function Metodo({ datos, palancas, ir, modo, alAgendar }: PropsPa
         ))}
       </ol>
       <div className="cierre">
+        <Proli tamano={8} globo={<>¿Lo vemos con los datos de tu entidad?<br /><b>Agenda una cita.</b></>} />
         <QrCita />
       </div>
       <footer className="pie-acciones">

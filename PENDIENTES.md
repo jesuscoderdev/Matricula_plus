@@ -9,7 +9,9 @@ precálculo de 324 escenarios, interfaz de 5 pasos y kiosco). Evento: 3 y 4 de n
       `demo-offline.html` con `cd web && npm run build:archivo`.
 - [ ] **Número de WhatsApp o enlace de Calendly** para el botón "Agendar" del celular: `WHATSAPP_CITA` /
       `CALENDLY_CITA` en `web/src/config.ts`. Ahora hay un número de prueba (`570000000000`).
-- [ ] **Logo de Proliferante** en SVG: ponlo en `web/public/` y su ruta en `LOGO_IMAGEN` (`web/src/config.ts`).
+- [x] **Marca Proliferante:** se usa a **Proli** (`web/src/assets/proli.webp`, tomado de
+      `Proliferante_web/.../public/assets/brand/`) en la espera, el paso 5 y Agendar cita.
+      El logo oficial (`logo.webp`, wordmark morado) también está en esa carpeta, por si se quiere agregar.
 - [ ] **Hardware del tótem:** ¿Windows o Android? ¿Táctil? ¿Resolución exacta? Probar `totem\lanzar-totem.bat`
       en el equipo real. No se ha ejecutado completo porque abre Chrome en kiosco; sí se probó la URL que arma.
 

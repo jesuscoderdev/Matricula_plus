@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import BotonGrande from '../componentes/BotonGrande'
 import MapaSimulador from '../mapa/MapaSimulador'
+import Proli from '../componentes/Proli'
 import { TITULO_SIMULADOR } from '../config'
 import { entero } from '../datos'
 import type { PropsPaso } from './tipos'
@@ -36,6 +37,9 @@ export default function Espera({ datos, base, ir, modo }: PropsPaso) {
       </header>
       <div className="mapa-zona">
         <MapaSimulador datos={datos} porUpz={base.porUpz} respirar />
+        <div className="mapa-zona__proli">
+          <Proli tamano={6.5} lado="derecha" globo={<>¡Hola! Soy <b>Proli</b>.<br />¿Probamos una política?</>} />
+        </div>
       </div>
       <footer className="pie-acciones">
         {modo !== 'auto' && <BotonGrande latir onClick={() => ir('problema')}>Tocar para empezar</BotonGrande>}

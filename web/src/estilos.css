@@ -340,3 +340,18 @@ body {
 .app--celular .pantalla-paso { overflow-y: auto; overscroll-behavior: contain; }
 .app--celular .mapa-zona { flex: none; min-height: 15rem; }
 .app--celular .mapa-zona--accion { min-height: 13rem; }
+
+/* ---------------- Proli, la mascota de Proliferante ---------------- */
+.proli { display: flex; align-items: center; gap: 0.6rem; }
+.proli--derecha { flex-direction: row-reverse; }
+.proli__img { width: auto; display: block; transform-origin: 50% 90%; user-select: none; -webkit-user-drag: none; }
+.proli__globo {
+  position: relative; background: var(--superficie); border: 2px solid var(--azul-oscuro);
+  border-radius: 1rem; padding: 0.5rem 0.75rem; font-size: 0.95rem; line-height: 1.25; max-width: 12rem;
+  box-shadow: 0 0.2rem 0.6rem rgba(20, 33, 61, 0.12);
+}
+.proli__globo b { font-family: var(--f-titulo); }
+.proli--izquierda .proli__globo { border-bottom-left-radius: 0.2rem; }
+.proli--derecha .proli__globo { border-bottom-right-radius: 0.2rem; }
+.mapa-zona__proli { position: absolute; right: 0.4rem; bottom: 0.4rem; pointer-events: none; }
+.cierre { gap: 1rem; flex-wrap: wrap; }

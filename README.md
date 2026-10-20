@@ -94,6 +94,7 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
   `--naranja-claro #E8893D`, `--azul #2F6FB5`). Tipografías Space Grotesk y Public Sans incluidas localmente.
 - `engine/simulador/config.py`: totales de nuevos, % de hermanos y vulnerables, pesos de prioridad, presets,
   ubicaciones y cupos del colegio nuevo, reducción por jornada única, zona crítica y semilla.
+- **Proli**, la mascota de Proliferante (`web/src/assets/proli.webp`), aparece en la espera, en el método y en Agendar.
 - Logo: pon el archivo en `web/public/` y su ruta en `LOGO_IMAGEN` (`web/src/config.ts`). Vacío = nombre en texto.
   Con `QR_IMAGEN` y `LOGO_IMAGEN` vacíos no se pide ningún archivo, así no hay errores en consola.
 
