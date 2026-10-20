@@ -9,9 +9,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from asignacion.aceptacion_diferida import aceptacion_diferida
-from asignacion.flujo_minimo import flujo_costo_minimo
-from estudiantes import NIVEL_GENERAL, Poblacion
+from engine.asignacion.aceptacion_diferida import aceptacion_diferida
+from engine.asignacion.flujo_minimo import flujo_costo_minimo
+from engine.estudiantes import NIVEL_GENERAL, Poblacion
 
 
 def escenario_hoy(pob: Poblacion, capacidad: np.ndarray, s) -> np.ndarray:

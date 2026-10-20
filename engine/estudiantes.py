@@ -11,9 +11,9 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from fuentes import Datos
-from fuentes.sintetica import _puntos_en
-from geo import matriz_distancias, tiempo_viaje_min
+from engine.fuentes import Datos
+from engine.fuentes.sintetica import _puntos_en
+from engine.geo import matriz_distancias, tiempo_viaje_min
 
 # Niveles de prioridad (menor = más prioridad). El nivel 0 (hermanos) es
 # específico de la sede donde estudia el hermano; en otras sedes cuenta el nivel base.

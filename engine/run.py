@@ -1,25 +1,21 @@
 """
-Pipeline completo: datos → población → escenarios → KPIs → JSON.
+Recorrido narrativo "hoy vs Matrícula+": datos → población → escenarios → KPIs → JSON.
 
-Uso:
-    python pipeline/run.py                       # datos sintéticos (por defecto)
-    python pipeline/run.py --fuente real         # datos reales (etapa 4)
-    python pipeline/run.py --estudiantes 20000 --semilla 7
+Uso (desde la raíz del proyecto):
+    python -m engine.run                         # datos sintéticos (por defecto)
+    python -m engine.run --fuente real           # datos reales
+    python -m engine.run --estudiantes 20000 --semilla 7
 """
 import argparse
-import sys
 import time
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from config import APP_NAME, DATA_PROCESSED, Supuestos  # noqa: E402
-from fuentes import cargar  # noqa: E402
-from estudiantes import generar_poblacion  # noqa: E402
-from asignacion.escenarios import escenario_hoy, escenario_matricula  # noqa: E402
-from asignacion.aceptacion_diferida import pares_bloqueantes  # noqa: E402
-from kpis import calcular_kpis  # noqa: E402
-from exportar import exportar  # noqa: E402
+from engine.config import APP_NAME, DATA_PROCESSED, Supuestos
+from engine.fuentes import cargar
+from engine.estudiantes import generar_poblacion
+from engine.asignacion.escenarios import escenario_hoy, escenario_matricula
+from engine.asignacion.aceptacion_diferida import pares_bloqueantes
+from engine.kpis import calcular_kpis
+from engine.exportar import exportar
 
 
 def main():

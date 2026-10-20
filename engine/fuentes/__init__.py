@@ -27,9 +27,9 @@ class Datos:
 
 def cargar(fuente: str, supuestos) -> Datos:
     if fuente == "sintetica":
-        from fuentes.sintetica import generar
+        from engine.fuentes.sintetica import generar
         return generar(supuestos)
     if fuente == "real":
-        from fuentes.real import cargar_real
+        from engine.fuentes.real import cargar_real
         return cargar_real(supuestos)
     raise ValueError(f"Fuente desconocida: {fuente!r} (usa 'sintetica' o 'real')")

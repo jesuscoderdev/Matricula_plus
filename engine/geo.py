@@ -1,7 +1,7 @@
 """Utilidades geográficas: distancias y aproximación de tiempo de viaje."""
 import numpy as np
 
-from config import Supuestos
+from engine.config import Supuestos
 
 # Kilómetros por grado en la latitud de Bogotá (~4.6° N)
 KM_POR_GRADO_LAT = 110.57

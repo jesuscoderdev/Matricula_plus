@@ -19,9 +19,9 @@ import geopandas as gpd
 import shapely
 from shapely.geometry import Polygon, MultiPoint
 
-from config import DATA_RAW
-from fuentes import Datos
-from geo import KM_POR_GRADO_LAT, KM_POR_GRADO_LON
+from engine.config import DATA_RAW
+from engine.fuentes import Datos
+from engine.geo import KM_POR_GRADO_LAT, KM_POR_GRADO_LON
 
 # Silueta simplificada del área urbana de Bogotá (lon, lat)
 SILUETA = Polygon([

@@ -17,7 +17,8 @@ optimización de red por tiempo de viaje.
 ```
 data/raw/            # descargas reales (etapa 4) y copia "cruda" de los sintéticos
 data/processed/      # JSON finales que consume el front
-pipeline/            # Python: datos, simulación, KPIs, exportación, tests
+engine/              # Python: datos, recorrido narrativo y simulador de palancas
+tests/               # pytest
 web/                 # app Vite + React + deck.gl (PWA)
 totem/               # lanzador del tótem en Windows (Chrome en kiosco)
 ```
@@ -29,12 +30,12 @@ Requiere Python 3.11+.
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # Windows  (macOS/Linux: source .venv/bin/activate)
-pip install -r pipeline/requirements.txt
+pip install -r requirements.txt
 
-python pipeline/run.py                     # datos sintéticos (por defecto)
-python pipeline/run.py --fuente real       # datos reales (etapa 4)
-python pipeline/run.py --estudiantes 20000 --semilla 7
-pytest pipeline/tests                      # tests del algoritmo
+python -m engine.run                     # datos sintéticos (por defecto)
+python -m engine.run --fuente real       # datos reales (etapa 4)
+python -m engine.run --estudiantes 20000 --semilla 7
+pytest tests                      # tests del algoritmo
 ```
 
 `run.py` regenera todo en ~10 s, verifica que la asignación de Matrícula+ sea estable
@@ -61,7 +62,7 @@ Se sobremuestrean ×3 los niños que hoy quedan sin cupo para que se vean en el 
 Requiere Node 20+.
 
 ```bash
-python pipeline/run.py          # genera los JSON y los copia a web/public/data
+python -m engine.run          # genera los JSON y los copia a web/public/data
 cd web
 npm install
 npm run dev                     # desarrollo con recarga en caliente
@@ -184,7 +185,7 @@ deja el promedio como dato secundario.
 ### Supuestos de tiempo de viaje
 `distancia en red = línea recta × 1,35`. El tiempo es lo más rápido entre caminar (4,5 km/h)
 y transporte público (13 km/h puerta a puerta + 8 min de espera). Un "viaje largo" es
-uno de más de 40 min. Todos los supuestos están en `pipeline/config.py` y se exportan en
+uno de más de 40 min. Todos los supuestos están en `engine/config.py` y se exportan en
 `resumen.json → supuestos`.
 
 ### KPIs (global, por localidad y por UPZ de residencia)
@@ -200,7 +201,7 @@ copia "cruda" en `data/raw/sintetica/` con la forma de los datasets reales.
 ## Datos reales (`--fuente real`)
 
 ```bash
-python pipeline/run.py --fuente real     # descarga lo que falte a data/raw/real/ y regenera todo
+python -m engine.run --fuente real     # descarga lo que falte a data/raw/real/ y regenera todo
 ```
 
 ### Qué trae cada dataset (descargados el 20-10-2026)

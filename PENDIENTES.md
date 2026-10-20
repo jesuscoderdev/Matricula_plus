@@ -8,8 +8,8 @@ Estado al 20-10-2026: las 4 etapas están listas y probadas en Chrome (celular 3
 
 - [ ] **Decidir con qué datos se presenta.** Hoy la app muestra datos reales; los resultados y
       hallazgos están en el README, sección "Datos reales". Para cambiar:
-      `python pipeline/run.py --fuente real` o `--fuente sintetica`, y después `cd web && npm run build`.
-      ⚠️ `python pipeline/run.py` sin flag usa **sintéticos** y sobrescribe lo que muestra la app.
+      `python -m engine.run --fuente real` o `--fuente sintetica`, y después `cd web && npm run build`.
+      ⚠️ `python -m engine.run` sin flag usa **sintéticos** y sobrescribe lo que muestra la app.
       Cambios de narrativa con datos reales:
       - La localidad foco pasa a ser **Suba** (−4.838 cupos). Bosa, Kennedy y Engativá tienen superávit a nivel de localidad.
       - Hay pocos niños sin cupo (724 de 776.068), porque la demanda pública está registrada donde se pide el cupo y no donde vive el niño.
@@ -44,7 +44,7 @@ Estado al 20-10-2026: las 4 etapas están listas y probadas en Chrome (celular 3
 - [ ] **Límites oficiales de UPZ:** el dataset del portal tiene acceso restringido y hoy se usan los polígonos
       del dataset de aprobación escolar de la SED. Conviene confirmar que coinciden con los oficiales.
 - [ ] **Validar los parámetros del cupo garantizado** con la SED: costo por posición en la lista (8 min),
-      fuera de lista (45 min), penalización de viajes > 40 min (×6) y radio (8 km). Están en `pipeline/config.py`.
+      fuera de lista (45 min), penalización de viajes > 40 min (×6) y radio (8 km). Están en `engine/config.py`.
 - [ ] **Escenario de política adicional:** abrir N cupos en las UPZ con déficit, o ruta escolar, para
       mostrar "dónde invertir".
 

@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 
-from estudiantes import Poblacion
+from engine.estudiantes import Poblacion
 
 
 def opcion_obtenida(pob: Poblacion, asignacion: np.ndarray) -> np.ndarray:

@@ -9,8 +9,8 @@ import itertools
 import numpy as np
 import pytest
 
-from asignacion.aceptacion_diferida import aceptacion_diferida, pares_bloqueantes
-from asignacion.flujo_minimo import flujo_costo_minimo
+from engine.asignacion.aceptacion_diferida import aceptacion_diferida, pares_bloqueantes
+from engine.asignacion.flujo_minimo import flujo_costo_minimo
 
 
 def instancia_aleatoria(rng, n_est, n_sedes, max_lista=4):
@@ -63,7 +63,7 @@ def test_detecta_par_bloqueante():
 
 def test_hermano_tiene_prioridad():
     # El estudiante 2 tiene un hermano en la sede 0: su clave es la mejor ahí.
-    from estudiantes import NIVEL_GENERAL, NIVEL_HERMANO
+    from engine.estudiantes import NIVEL_GENERAL, NIVEL_HERMANO
     n = 3
     prefs = [[0], [0], [0]]
     claves = [[NIVEL_GENERAL * n + 0], [NIVEL_GENERAL * n + 1], [NIVEL_HERMANO * n + 2]]
@@ -117,10 +117,10 @@ def test_flujo_respeta_radio_y_capacidad():
 
 def test_pipeline_completo_estable():
     """Integración: población sintética pequeña → escenario Matrícula+ estable."""
-    from config import Supuestos
-    from estudiantes import generar_poblacion
-    from fuentes.sintetica import generar
-    from asignacion.escenarios import escenario_hoy, escenario_matricula
+    from engine.config import Supuestos
+    from engine.estudiantes import generar_poblacion
+    from engine.fuentes.sintetica import generar
+    from engine.asignacion.escenarios import escenario_hoy, escenario_matricula
 
     s = Supuestos(n_estudiantes=3000, n_sedes_objetivo=60)
     datos = generar(s, guardar_crudos=False)

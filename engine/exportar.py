@@ -6,9 +6,9 @@ from datetime import date
 import numpy as np
 import shapely
 
-from config import APP_NAME, DATA_PROCESSED, WEB_DATA
-from estudiantes import CATEGORIAS
-from kpis import opcion_obtenida
+from engine.config import APP_NAME, DATA_PROCESSED, WEB_DATA
+from engine.estudiantes import CATEGORIAS
+from engine.kpis import opcion_obtenida
 
 DECIMALES = 5            # ~1 m de precisión, suficiente para el mapa
 TOLERANCIA_SIMPLIFICAR = 0.0004

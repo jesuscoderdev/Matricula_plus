@@ -2,7 +2,8 @@
 Carga de datos reales (Datos Abiertos Bogotá / IDECA / SED / Catastro).
 
 Datasets (se descargan solos a data/raw/real/ si no están):
-  - Oferta de cupos, sector oficial (03.2025): un punto por SEDE con cupos por nivel (OTotal).
+  - Oferta de cupos, sector oficial (03.2025): un punto por SEDE con cupos por nivel (se usan los
+    regulares: preescolar a media + aceleración; `OTotal` incluye educación de adultos).
   - Demanda de cupos, sector oficial (03.2025): un punto por INSTITUCIÓN (DANE12_EST) con solicitudes (DTotal).
   - Colegios (Catastro, MapServer infraestructuraeducativa/0): sedes con nombre, DANE de sede y sector.
   - UPZ: polígonos del dataset "Tasa de aprobación escolar en colegios oficiales por UPZ" (SED 2024),
@@ -21,9 +22,9 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from config import DATA_RAW
-from fuentes import Datos
-from fuentes.sintetica import LOCALIDADES
+from engine.config import DATA_RAW
+from engine.fuentes import Datos
+from engine.fuentes.sintetica import LOCALIDADES
 
 CARPETA = DATA_RAW / "real"
 
@@ -32,6 +33,10 @@ URLS = {
     "demanda_032025.geojson": "https://datosabiertos.bogota.gov.co/dataset/dffe1a92-12db-4571-8808-96a8e4964815/resource/9a1b247a-a74a-4729-b3a3-c2aa4d114ce1/download/demandacupos_032025.geojson",
     "upz_aprobacion_2024.geojson": "https://datosabiertos.bogota.gov.co/dataset/6a8b409c-3bdc-4cd6-a436-38c43801d5b0/resource/d0d29c00-8e6f-4c76-85b5-efea36c0f1ae/download/taprobacionofupz2024.geojson",
     "localidades.geojson": "https://datosabiertos.bogota.gov.co/dataset/856cb657-8ca3-4ee8-857f-37211173b1f8/resource/497b8756-0927-4aee-8da9-ca4e32ca3a8a/download/loca.json",
+    "proyeccion_upz.ods": "https://datosabiertos.bogota.gov.co/dataset/0f1fb76a-1595-43d5-9257-0abcc3db908a/resource/96583ea9-9c0b-40c3-9797-156d173eb734/download/202503_upz_proyeccion_retroproyeccion_poblacion_2005_2035.ods",
+    "colegios_nuevos_052026.geojson": "https://datosabiertos.bogota.gov.co/dataset/5f1dd10a-2c5a-4e6c-84cc-eb5beade9ac6/resource/017f306f-5bd6-4def-ad2e-272b91042745/download/colegiosnuevos_restitucion_052026.geojson",
+    "matricula_total_042025.geojson": "https://datosabiertos.bogota.gov.co/dataset/02e88fbc-5081-443f-ac5e-4071191c8703/resource/a712dfb0-7fdb-4828-8b8f-916d3f29e34c/download/matriculatotal_042025.geojson",
+    "jornada_unica_032025.geojson": "https://datosabiertos.bogota.gov.co/dataset/4e1dea84-98b9-4b56-9eef-49b02e0b2a75/resource/07ad78d2-2c67-47a1-ba45-024aa4f830aa/download/matriculajunica03_2025.geojson",
 }
 URL_COLEGIOS = ("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/educacion/"
                 "infraestructuraeducativa/MapServer/0/query")
@@ -116,12 +121,15 @@ def _reparto_entero(valores: np.ndarray, total: int) -> np.ndarray:
 
 
 # ---------------------------------------------------------------- carga
-def cargar_real(s) -> Datos:
-    descargar()
-    rng = np.random.default_rng(s.semilla)
+# Columnas de cupos REGULARES. `OTotal` también incluye educación de adultos (`Educacion_`),
+# que no compite por cupo escolar: sin ella el total cuadra con la SED (784.632 vs 785.191).
+CUPOS_REGULARES = ["OPreescola", "OPrimaria", "OSecundari", "OMedia", "Aceleracio"]
 
-    # --- UPZ urbanas (las UPR rurales tienen código numérico) ---
+
+def cargar_geografia():
+    """UPZ urbanas y localidades (sin Sumapaz, recortadas al área urbana)."""
     upz = gpd.read_file(CARPETA / "upz_aprobacion_2024.geojson").to_crs(4326)
+    # Las UPR rurales tienen código numérico; solo se usan las UPZ urbanas
     upz = upz[upz["COD_UPZ"].astype(str).str.startswith("UPZ")].copy()
     # Algunas UPZ vienen en varios polígonos: una fila por código
     upz["geometry"] = upz.geometry.make_valid()
@@ -141,17 +149,23 @@ def cargar_real(s) -> Datos:
         "cod_localidad": upz["cod_localidad"].values,
     }, geometry=upz.geometry.make_valid().values, crs="EPSG:4326")
 
-    # --- Localidades recortadas al área urbana (unión de sus UPZ) ---
     localidades = upz.dissolve(by="cod_localidad", as_index=False)[["cod_localidad", "geometry"]]
     localidades = gpd.GeoDataFrame({
         "codigo": localidades["cod_localidad"].values,
         "nombre": [NOMBRE_LOCALIDAD[c] for c in localidades["cod_localidad"]],
     }, geometry=localidades.geometry.values, crs="EPSG:4326").sort_values("codigo").reset_index(drop=True)
+    return upz, localidades
 
-    # --- Oferta: un punto por sede ---
+
+def cargar_oferta_demanda(upz, verbose=True):
+    """
+    Sedes oficiales urbanas con su capacidad regular y la demanda de su institución
+    repartida entre sus sedes en proporción a la oferta. Devuelve (oferta, d_inst, demanda_perdida).
+    """
     oferta = gpd.read_file(CARPETA / "oferta_032025.geojson").to_crs(4326)
     oferta["DANE12_EST"] = oferta["DANE12_EST"].astype(str)
-    oferta = oferta[oferta["OTotal"] > 0].reset_index(drop=True)
+    oferta["cupos_regulares"] = oferta[CUPOS_REGULARES].sum(axis=1)
+    oferta = oferta[oferta["cupos_regulares"] > 0].reset_index(drop=True)
 
     # Nombre y DANE de la sede: punto más cercano de la misma institución en la capa de colegios
     colegios = gpd.read_file(CARPETA / "colegios.geojson")
@@ -164,44 +178,76 @@ def cargar_real(s) -> Datos:
     misma = cerca["DANE12_EST_left"] == cerca["DANE12_EST_right"]
     oferta["dane_sede"] = np.where(misma, cerca["DANE12_SED"].astype(str), oferta["DANE12_EST"])
     oferta["nombre_sede"] = np.where(misma, cerca["NOMBRE_SED"].fillna(""), "")
+    oferta["nombre"] = [
+        f"{_titulo(est)} - {_titulo(sed)}" if sed and _normalizar(sed) not in _normalizar(est) else _titulo(est)
+        for est, sed in zip(oferta["NOMBRE_EST"], oferta["nombre_sede"])
+    ]
 
     # UPZ de cada sede (las que caen fuera de las UPZ urbanas, p. ej. rurales, se descartan)
     oferta = gpd.sjoin(oferta, upz[["codigo", "localidad", "geometry"]], how="left", predicate="within")
     oferta = oferta[~oferta.index.duplicated(keep="first")]
     fuera = oferta["codigo"].isna()
-    if fuera.any():
+    if fuera.any() and verbose:
         print(f"  {int(fuera.sum())} sedes fuera de las UPZ urbanas (rurales) se descartan "
-              f"({int(oferta.loc[fuera, 'OTotal'].sum()):,} cupos)")
+              f"({int(oferta.loc[fuera, 'cupos_regulares'].sum()):,} cupos)")
     oferta = oferta[~fuera].reset_index(drop=True)
+    oferta["lon"], oferta["lat"] = oferta.geometry.x, oferta.geometry.y
 
-    # --- Demanda por institución → repartida entre sus sedes según su oferta ---
+    # Demanda por institución → repartida entre sus sedes según su oferta
     demanda = gpd.read_file(CARPETA / "demanda_032025.geojson")
     demanda["DANE12_EST"] = demanda["DANE12_EST"].astype(str)
     d_inst = demanda.groupby("DANE12_EST")["DTotal"].sum()
-    o_inst = oferta.groupby("DANE12_EST")["OTotal"].transform("sum")
-    oferta["demanda"] = oferta["DANE12_EST"].map(d_inst).fillna(0) * oferta["OTotal"] / o_inst
+    o_inst = oferta.groupby("DANE12_EST")["cupos_regulares"].transform("sum")
+    oferta["demanda"] = oferta["DANE12_EST"].map(d_inst).fillna(0) * oferta["cupos_regulares"] / o_inst
     sin_oferta = set(d_inst.index) - set(oferta["DANE12_EST"])
     demanda_perdida = float(d_inst.reindex(list(sin_oferta)).sum()) if sin_oferta else 0.0
+    return oferta, d_inst, demanda_perdida
+
+
+def poblacion_escolar_upz(upz, anio: int = 2026, frac_15_19: float = 0.6) -> pd.Series:
+    """
+    Población en edad escolar (≈ 5 a 17 años) por UPZ, de las proyecciones SDP/DANE.
+    Los quinquenios 5-9 y 10-14 cuentan completos; de 15-19 se toma `frac_15_19` (15, 16 y 17 años).
+    """
+    x = pd.read_excel(CARPETA / "proyeccion_upz.ods", engine="odf", sheet_name="Hoja1", header=4)
+    x = x[x["AÑO"] == anio]
+    cols = [c for c in x.columns if str(c).endswith(("_5-9", "_10-14"))]
+    cols_15 = [c for c in x.columns if str(c).endswith("_15-19")]
+    x = x.assign(edad_escolar=x[cols].sum(axis=1) + frac_15_19 * x[cols_15].sum(axis=1))
+    # "009" → "UPZ9" (mismo código que los polígonos)
+    x["codigo"] = "UPZ" + x["Código UPZ"].astype(str).str.lstrip("0")
+    pob = x.groupby("codigo")["edad_escolar"].sum()
+    return pob.reindex(upz["codigo"]).fillna(0.0)
+
+
+def colegios_nuevos(upz) -> gpd.GeoDataFrame:
+    """Proyectos de colegios nuevos y en restitución de la SED (sin cupos en el dataset)."""
+    n = gpd.read_file(CARPETA / "colegios_nuevos_052026.geojson").to_crs(4326)
+    n = gpd.sjoin(n, upz[["codigo", "nombre", "localidad", "geometry"]], how="left", predicate="within")
+    return n.rename(columns={"NOMBRE_PROYECTO": "proyecto", "TIPO_PROYECTO": "tipo", "nombre": "upz_nombre"})
+
+
+def cargar_real(s) -> Datos:
+    descargar()
+    rng = np.random.default_rng(s.semilla)
+    upz, localidades = cargar_geografia()
+    oferta, d_inst, demanda_perdida = cargar_oferta_demanda(upz)
 
     # --- Escalado a la muestra de solicitudes ---
     total_dem = oferta["demanda"].sum()
     factor = s.n_estudiantes / total_dem
     dem_upz_real = oferta.groupby("codigo")["demanda"].sum().reindex(upz["codigo"]).fillna(0.0)
     demanda_upz = pd.Series(_reparto_entero(dem_upz_real.to_numpy() * factor, s.n_estudiantes), index=upz["codigo"].values)
-    total_cupos = int(round(oferta["OTotal"].sum() * factor))
-    cupos = _reparto_entero(oferta["OTotal"].to_numpy() * factor, total_cupos)
+    total_cupos = int(round(oferta["cupos_regulares"].sum() * factor))
+    cupos = _reparto_entero(oferta["cupos_regulares"].to_numpy() * factor, total_cupos)
 
-    nombres = [
-        f"{_titulo(est)} - {_titulo(sed)}" if sed and _normalizar(sed) not in _normalizar(est) else _titulo(est)
-        for est, sed in zip(oferta["NOMBRE_EST"], oferta["nombre_sede"])
-    ]
     sedes = pd.DataFrame({
         "dane": oferta["dane_sede"].values,
-        "nombre": nombres,
+        "nombre": oferta["nombre"].values,
         "localidad": oferta["localidad"].values,
         "upz": oferta["codigo"].values,
-        "lon": oferta.geometry.x.values,
-        "lat": oferta.geometry.y.values,
+        "lon": oferta["lon"].values,
+        "lat": oferta["lat"].values,
         "cupos": cupos,
     })
     sedes = sedes[sedes["cupos"] > 0].reset_index(drop=True)
@@ -219,12 +265,12 @@ def cargar_real(s) -> Datos:
 
 def _imprimir_resumen(oferta, d_inst, demanda_perdida, upz, sedes, factor):
     print("  ── Datos reales (SED 03.2025) ──")
-    print(f"  Oferta:  {len(oferta):,} sedes · {int(oferta['OTotal'].sum()):,} cupos "
+    print(f"  Oferta:  {len(oferta):,} sedes · {int(oferta['cupos_regulares'].sum()):,} cupos regulares "
           f"(preescolar {int(oferta['OPreescola'].sum()):,} · primaria {int(oferta['OPrimaria'].sum()):,} · "
           f"secundaria {int(oferta['OSecundari'].sum()):,} · media {int(oferta['OMedia'].sum()):,})")
     print(f"  Demanda: {len(d_inst):,} instituciones · {int(d_inst.sum()):,} solicitudes"
           + (f" ({int(demanda_perdida):,} sin sede urbana con oferta, descartadas)" if demanda_perdida else ""))
     print(f"  UPZ urbanas: {len(upz)} · sedes con cupos tras escalar: {len(sedes)} · factor de escala ×{factor:.4f}")
-    bal = (oferta.groupby("localidad")["OTotal"].sum() - oferta.groupby("localidad")["demanda"].sum()).sort_values()
+    bal = (oferta.groupby("localidad")["cupos_regulares"].sum() - oferta.groupby("localidad")["demanda"].sum()).sort_values()
     print("  Balance real por localidad (cupos − solicitudes): "
           + ", ".join(f"{k} {int(v):+,}" for k, v in bal.items()))
