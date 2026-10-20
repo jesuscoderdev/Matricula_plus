@@ -33,7 +33,7 @@ from engine.config import APP_NAME, DATA_PROCESSED, RAIZ
 from engine.simulador.config import NIVELES, PRESETS, ParametrosSimulador
 from engine.simulador.datos import cargar_base, insuficiencia_upz
 from engine.simulador.escenario import Palancas, definir_zona_critica, simular
-from engine.simulador.familias import generar_familias
+from engine.simulador.familias import DECIMALES, generar_familias
 
 DIR_ESCENARIOS = RAIZ / "scenarios"
 DIR_SIM = DATA_PROCESSED / "simulador"
@@ -85,6 +85,43 @@ def exportar_capas(base, fam, p, m_base):
     pd.DataFrame({"lon": fam.lon.round(5), "lat": fam.lat.round(5), "upz": fam.upz,
                   "vulnerable": fam.vulnerable, "sede_hermano": fam.sede_hermano}) \
         .to_parquet(DIR_SIM / "familias.parquet", index=False)
+
+
+def exportar_familias_web(base, fam, p) -> dict:
+    """
+    Familias para que el navegador vuelva a correr el algoritmo y ANIME el proceso
+    (orden de llegada y rondas de la asignación diferida) en la localidad que elija el visitante.
+    Preferencias base + solo las familias cuyas preferencias cambian con cada colegio nuevo.
+    """
+    n, S = fam.n, fam.n_sedes
+    pos_upz = {c: i for i, c in enumerate(base.upz["codigo"])}
+
+    def prefs_dist(cand):
+        pr = fam.preferencias(cand, p.n_opciones)
+        cols = fam.columnas(cand)
+        d = np.round(fam.dist[np.arange(n)[:, None], cols[pr]].astype(np.float64), DECIMALES)
+        return pr, d
+
+    pr0, d0 = prefs_dist(None)
+    variantes = {}
+    for k, clave in enumerate(base.candidatos["clave"]):
+        pr, d = prefs_dist(k)
+        cambian = np.flatnonzero((pr != pr0).any(axis=1))
+        variantes[clave] = {"familias": cambian.tolist(), "prefs": pr[cambian].ravel().tolist(),
+                            "dist": d[cambian].ravel().tolist()}
+    return {
+        "n": int(n), "n_sedes": int(S), "opciones": p.n_opciones,
+        "estudiantes_por_familia": p.estudiantes_por_familia,
+        "lon": np.round(fam.lon, 5).tolist(), "lat": np.round(fam.lat, 5).tolist(),
+        "upz": [pos_upz[u] for u in fam.upz],
+        "vulnerable": "".join("1" if v else "0" for v in fam.vulnerable),
+        "hermano": fam.sede_hermano.tolist(),
+        "desempate": fam.desempate.tolist(),
+        "prefs": pr0.ravel().tolist(), "dist": d0.ravel().tolist(),
+        "variantes": variantes,
+        # Mismo orden aleatorio que usa la línea base (mecanismos.orden_llegada)
+        "llegada": np.random.default_rng(p.semilla).permutation(n).tolist(),
+    }
 
 
 def main():
@@ -173,13 +210,17 @@ def main():
             "colegio_nuevo": f"Colegio nuevo: +{miles(p.cupos_colegio_nuevo)} cupos en un proyecto real de la SED.",
         },
         "parametros": {k: v for k, v in p.como_dict().items() if k not in ("pesos", "ubicaciones_nuevo")},
+        "pesos_presets": {c: {"cercania": p.pesos["cercania"][n[0]], "hermanos": p.pesos["hermanos"][n[1]],
+                              "vulnerabilidad": p.pesos["vulnerabilidad"][n[2]]} for c, _, _, n in PRESETS},
     }
     _guardar(DIR_ESCENARIOS / "indice.json", indice, indent=1)
     _guardar(DIR_ESCENARIOS / "todos.json", {"indice": indice, "escenarios": todos})
+    _guardar(DIR_ESCENARIOS / "familias.json", exportar_familias_web(base, fam, p))
 
     if not args.sin_copiar_web and (RAIZ / "web").exists():
         DIR_WEB.mkdir(parents=True, exist_ok=True)
         shutil.copy2(DIR_ESCENARIOS / "todos.json", DIR_WEB / "todos.json")
+        shutil.copy2(DIR_ESCENARIOS / "familias.json", DIR_WEB / "familias.json")
         for f in ("upz.geojson", "colegios.geojson"):
             shutil.copy2(DIR_SIM / f, DIR_WEB / f)
 

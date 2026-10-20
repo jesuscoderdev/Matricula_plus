@@ -6,8 +6,11 @@ un simulador de asignación de cupos en colegios oficiales de Bogotá, construid
 Muestra el **método Proliferante**: datos abiertos → modelo → simulación → decisión → aprendizaje.
 El visitante lo entiende y lo usa en unos 60 segundos y termina en un QR para agendar una cita.
 
-- **Problema:** con orden de llegada, 36.810 niños nuevos no quedan en ninguno de sus 3 colegios, y hay 88
-  cupos por cada 100 solicitudes.
+- **Problema, en vivo:** el visitante toca su localidad y ve **cómo se asigna hoy**: las familias llegan una por una,
+  los colegios se llenan y quien llega tarde se queda sin cupo (en Bogotá, 36.810 niños nuevos).
+- **El proceso, en vivo:** con su política, ve la **asignación diferida por rondas** en su localidad: todas piden a la vez,
+  cada colegio se queda con las de más prioridad y las rechazadas piden su siguiente opción, hasta que nadie cambia.
+  El navegador corre el mismo algoritmo que Python (~10 ms) y da exactamente el mismo resultado (`npm run verificar`).
 - **Acción:** 3 palancas: a quién priorizar (Cercanía / Familias / Equidad), dónde construir un colegio nuevo
   (5 proyectos reales de la SED) y jornada única.
 - **Resultado:** 5 métricas con su cambio frente a hoy, y el mapa de UPZ recoloreado al instante.
@@ -50,6 +53,7 @@ cd web && npm install && cd ..
 python -m engine.build_scenarios       # descarga lo que falte a data/raw/real/ y precalcula todo (~1–3 min)
 python -m engine.build_scenarios --fuente sintetica   # sin internet: datos sintéticos con las mismas proporciones
 pytest tests                           # 314 tests
+cd web && npm run verificar            # el motor del navegador da lo mismo que Python (36 escenarios + base)
 ```
 
 Si la descarga falla, `build_scenarios` usa automáticamente el modo sintético para no bloquear el trabajo.

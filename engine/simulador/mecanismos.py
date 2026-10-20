@@ -11,7 +11,7 @@ Mecanismos de asignación del simulador.
 import numpy as np
 
 from engine.asignacion.aceptacion_diferida import aceptacion_diferida
-from engine.simulador.familias import Familias
+from engine.simulador.familias import DECIMALES, Familias
 
 
 def capacidades(cupos_sedes: np.ndarray, cupos_nuevo: int | None, jornada_unica: bool,
@@ -29,7 +29,7 @@ def claves_prioridad(fam: Familias, prefs: np.ndarray, candidato: int | None,
                      w_cercania: float, w_hermanos: float, w_vuln: float, peso_desempate: float) -> np.ndarray:
     """Clave de cada (familia, opción): menor = más prioridad (es −puntaje)."""
     cols = fam.columnas(candidato)
-    d = fam.dist[np.arange(len(prefs))[:, None], cols[prefs]].astype(np.float64)
+    d = np.round(fam.dist[np.arange(len(prefs))[:, None], cols[prefs]].astype(np.float64), DECIMALES)
     hermano = prefs == fam.sede_hermano[:, None]       # el colegio nuevo nunca es la sede del hermano
     puntaje = (-w_cercania * d + w_hermanos * hermano + w_vuln * fam.vulnerable[:, None]
                + peso_desempate * fam.desempate[:, None])

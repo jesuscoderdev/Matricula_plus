@@ -54,6 +54,10 @@ Simulador de asignación de cupos en colegios oficiales de Bogotá, construido c
 6. **Algoritmo.** Asignación diferida (Gale-Shapley) con propuesta de los estudiantes. Es estable (cero pares
    bloqueantes, verificado en cada uno de los 324 escenarios), respeta la capacidad y es reproducible con
    la misma semilla.
+6b. **El proceso en la pantalla.** El navegador vuelve a correr el algoritmo (asignación diferida por rondas,
+   `web/src/motor.ts`) para animarlo en la localidad elegida. Usa las mismas distancias y desempates redondeados
+   a 4 decimales que Python, y `npm run verificar` comprueba que el resultado coincide en los 36 escenarios de la
+   interfaz y en la línea base. Cada punto del mapa es una familia sintética (10 niños).
 7. **Línea base ("hoy").** Orden de llegada: un orden aleatorio con semilla, y cada familia toma su primera
    opción con cupo disponible.
 8. **Palancas.**

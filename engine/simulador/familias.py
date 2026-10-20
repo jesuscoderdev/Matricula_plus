@@ -17,6 +17,10 @@ from engine.geo import matriz_distancias
 from engine.simulador.config import ParametrosSimulador
 from engine.simulador.datos import Base
 
+# La web vuelve a correr el algoritmo en el navegador: distancias y desempates se redondean a
+# 4 decimales en ambos lados, así JavaScript y Python dan exactamente la misma asignación.
+DECIMALES = 4
+
 
 @dataclass
 class Familias:
@@ -92,5 +96,5 @@ def generar_familias(base: Base, p: ParametrosSimulador) -> Familias:
     sede_hermano = np.where(tiene_hermano, elegida, -1)
 
     return Familias(lon=lon, lat=lat, upz=np.array(upz), vulnerable=vulnerable,
-                    sede_hermano=sede_hermano, desempate=rng.random(n), dist=dist, ruido=ruido,
+                    sede_hermano=sede_hermano, desempate=np.round(rng.random(n), DECIMALES), dist=dist, ruido=ruido,
                     n_sedes=n_sedes)

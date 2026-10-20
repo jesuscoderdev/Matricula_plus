@@ -1,7 +1,9 @@
 /**
  * Datos precalculados por `python -m engine.build_scenarios` (public/simulador).
- * El navegador NO simula: solo busca el escenario de la combinación de palancas elegida.
+ * Las cifras de Bogotá salen de los escenarios precalculados; el proceso de una localidad
+ * se vuelve a correr y se anima en el navegador con `motor.ts` (mismo resultado que Python).
  */
+import type { DatosFamilias } from './motor'
 
 export type Nivel = 'bajo' | 'medio' | 'alto'
 export type ClaveMetrica =
@@ -27,6 +29,7 @@ export interface Indice {
   base_por_upz: number[]
   supuestos: Record<string, string>
   parametros: Record<string, unknown>
+  pesos_presets: Record<string, { cercania: number; hermanos: number; vulnerabilidad: number }>
 }
 
 /** Escenario compacto: m = métricas en el orden de indice.metricas, s = estudiantes sin cupo, u = % sin cupo por UPZ */
@@ -54,6 +57,13 @@ export interface Datos {
   bboxCiudad: Bbox
   bboxZonaCritica: Bbox
   posUpz: Record<string, number>          // código → posición en indice.upz
+  familias: DatosFamilias
+  /** capacidad de nuevos de cada sede existente (en el orden del motor) */
+  cuposSedes: number[]
+  localidades: string[]
+  bboxLocalidad: Record<string, Bbox>
+  /** localidad de cada UPZ, en el orden de indice.upz */
+  localidadDeUpz: string[]
 }
 
 /** Palancas tal como las ve el visitante */
@@ -106,33 +116,41 @@ function bboxDe(geoms: any[]): Bbox {
 declare const __EMBEBIDO__: boolean
 
 type Crudos = [{ indice: Indice; escenarios: Record<string, EscenarioCompacto> }, FC<PropsUpz>,
-  FC<PropsColegio, { type: 'Point'; coordinates: [number, number] }>]
+  FC<PropsColegio, { type: 'Point'; coordinates: [number, number] }>, DatosFamilias]
 
 async function leerCrudos(): Promise<Crudos> {
   if (__EMBEBIDO__) {
     // Datos incrustados en el HTML (file:// no permite fetch). En el build normal este bloque se elimina.
-    const [t, u, c] = await Promise.all([
+    const [t, u, c, f] = await Promise.all([
       import('../public/simulador/todos.json?raw'),
       import('../public/simulador/upz.geojson?raw'),
       import('../public/simulador/colegios.geojson?raw'),
+      import('../public/simulador/familias.json?raw'),
     ])
-    return [JSON.parse(t.default), JSON.parse(u.default), JSON.parse(c.default)]
+    return [JSON.parse(t.default), JSON.parse(u.default), JSON.parse(c.default), JSON.parse(f.default)]
   }
   return Promise.all([
     json<Crudos[0]>('./simulador/todos.json'),
     json<Crudos[1]>('./simulador/upz.geojson'),
     json<Crudos[2]>('./simulador/colegios.geojson'),
+    json<Crudos[3]>('./simulador/familias.json'),
   ])
 }
 
 export async function cargarDatos(): Promise<Datos> {
-  const [todos, upz, colegios] = await leerCrudos()
+  const [todos, upz, colegios, familias] = await leerCrudos()
   const posUpz = Object.fromEntries(todos.indice.upz.map((c, i) => [c, i]))
   const zona = upz.features.filter((f) => f.properties.zona_critica)
+  const locDeCodigo = Object.fromEntries(upz.features.map((f) => [f.properties.codigo, f.properties.localidad]))
+  const localidades = [...new Set(upz.features.map((f) => f.properties.localidad))].sort((a, b) => a.localeCompare(b, 'es'))
+  const bboxLocalidad = Object.fromEntries(localidades.map((l) =>
+    [l, bboxDe(upz.features.filter((f) => f.properties.localidad === l).map((f) => f.geometry))]))
   return {
-    ...todos, upz, colegios, posUpz,
+    ...todos, upz, colegios, posUpz, familias, localidades, bboxLocalidad,
     bboxCiudad: bboxDe(upz.features.map((f) => f.geometry)),
     bboxZonaCritica: bboxDe(zona.map((f) => f.geometry)),
+    cuposSedes: colegios.features.filter((f) => f.properties.tipo === 'sede').map((f) => f.properties.cupos),
+    localidadDeUpz: todos.indice.upz.map((c) => locDeCodigo[c]),
   }
 }
 

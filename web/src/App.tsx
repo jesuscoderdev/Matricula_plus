@@ -8,6 +8,7 @@ import { LogoReinicio } from './componentes/Marca'
 import Intro from './componentes/Intro'
 import type { PropsPaso } from './pasos/tipos'
 import { describirPalancas } from './pasos/tipos'
+import { useSimHoy, useSimPolitica } from './simulacion'
 import Espera from './pasos/Espera'
 import Problema from './pasos/Problema'
 import Accion from './pasos/Accion'
@@ -25,13 +26,16 @@ const PANTALLAS: Record<Vista, ComponentType<PropsPaso>> = {
 }
 const PALANCAS_INICIALES: Palancas = { preset: 'cercania', colegioNuevo: null, jornadaUnica: false }
 
-// Modo automático: en cada vuelta se "mueven" otras palancas durante el paso Acción
-const GUIONES: { segundo: number; cambio: Partial<Palancas> }[][] = [
-  [{ segundo: 3, cambio: { preset: 'equidad' } }, { segundo: 7, cambio: { colegioNuevo: 'tibabuyes' } }],
-  [{ segundo: 3, cambio: { preset: 'familias' } }, { segundo: 7, cambio: { jornadaUnica: true } }],
-  [{ segundo: 3, cambio: { preset: 'equidad' } }, { segundo: 7, cambio: { colegioNuevo: 'ciudad_bolivar' } },
-   { segundo: 11, cambio: { colegioNuevo: 'tibabuyes' } }],
+// Modo automático: en cada vuelta se elige otra localidad y se "mueven" otras palancas.
+// En Problema se toca la localidad; en Acción se cambian las palancas y se aprieta ▶ Asignar.
+const GUIONES: { localidad: string; cambios: { segundo: number; cambio: Partial<Palancas> }[] }[] = [
+  { localidad: 'Suba', cambios: [{ segundo: 2, cambio: { preset: 'equidad' } }, { segundo: 4, cambio: { colegioNuevo: 'tibabuyes' } }] },
+  { localidad: 'Kennedy', cambios: [{ segundo: 2, cambio: { preset: 'familias' } }, { segundo: 4, cambio: { jornadaUnica: true } }] },
+  { localidad: 'Ciudad Bolívar', cambios: [{ segundo: 2, cambio: { preset: 'equidad' } }, { segundo: 4, cambio: { colegioNuevo: 'ciudad_bolivar' } }] },
+  { localidad: 'Bosa', cambios: [{ segundo: 2, cambio: { preset: 'equidad' } }, { segundo: 4, cambio: { colegioNuevo: 'bosa' } }] },
 ]
+const SEGUNDO_ELEGIR_LOCALIDAD = 1.5
+const SEGUNDO_ASIGNAR = 5.5
 
 export default function App() {
   const modo = useMemo(leerModo, [])
@@ -44,7 +48,8 @@ export default function App() {
   const [intro, setIntro] = useState(true)
   // Solo celular
   const [pestana, setPestana] = useState<Pestana>('recorrido')
-  const [localidad, setLocalidad] = useState('Suba')
+  const [localidad, setLocalidad] = useState<string | null>(null)
+  const [disparoAuto, setDisparoAuto] = useState(0)
   const [upz, setUpz] = useState<string | null>(null)
 
   useEffect(() => {
@@ -54,6 +59,7 @@ export default function App() {
 
   const reiniciar = useCallback(() => {
     setPalancas(PALANCAS_INICIALES)
+    setLocalidad(null)
     setVista('espera')
     setPestana('recorrido')
     setUpz(null)
@@ -76,12 +82,17 @@ export default function App() {
     const orden: Vista[] = ['espera', ...PASOS.map((p) => p.id)]
     const dur = vista === 'espera' ? 5 : DURACION_PASOS[vista]
     const timers: number[] = []
+    const guion = GUIONES[vuelta % GUIONES.length]
+    if (vista === 'problema') {
+      timers.push(window.setTimeout(() => setLocalidad(guion.localidad), SEGUNDO_ELEGIR_LOCALIDAD * 1000))
+    }
     if (vista === 'accion') {
-      for (const g of GUIONES[vuelta % GUIONES.length]) timers.push(window.setTimeout(() => cambiarPalancas(g.cambio), g.segundo * 1000))
+      for (const g of guion.cambios) timers.push(window.setTimeout(() => cambiarPalancas(g.cambio), g.segundo * 1000))
+      timers.push(window.setTimeout(() => setDisparoAuto((x) => x + 1), SEGUNDO_ASIGNAR * 1000))
     }
     timers.push(window.setTimeout(() => {
       const sig = orden[(orden.indexOf(vista) + 1) % orden.length]
-      if (sig === 'espera') { setVuelta((v) => v + 1); setPalancas(PALANCAS_INICIALES) }
+      if (sig === 'espera') { setVuelta((v) => v + 1); setPalancas(PALANCAS_INICIALES); setLocalidad(null) }
       setVista(sig)
     }, dur * 1000))
     return () => timers.forEach((t) => window.clearTimeout(t))
@@ -98,11 +109,14 @@ export default function App() {
 
   const base = useMemo(() => (datos ? resultadoBase(datos) : null), [datos])
   const actual = useMemo(() => (datos ? resultado(datos, palancas) : null), [datos, palancas])
+  // El proceso corrido en el navegador (para animarlo en la localidad)
+  const hoy = useSimHoy(datos)
+  const politica = useSimPolitica(datos, palancas)
 
   // La animación de entrada va siempre en la misma posición del árbol, así no se reinicia
   // cuando terminan de cargar los datos.
   const entrada = intro && <Intro alTerminar={() => setIntro(false)} />
-  if (error || !datos || !base || !actual) {
+  if (error || !datos || !base || !actual || !hoy || !politica) {
     return (
       <div className="app">
         <>{error ? <div className="mensaje-error">{error}</div> : !intro && <div className="cargando">Cargando…</div>}</>
@@ -124,7 +138,9 @@ export default function App() {
           <motion.div key={vista} className="capa-paso" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
             <Pantalla datos={datos} modo={modo} palancas={palancas} cambiarPalancas={cambiarPalancas}
-                      base={base} actual={actual} ir={ir} alAgendar={() => setPestana('agendar')} />
+                      base={base} actual={actual} hoy={hoy} politica={politica}
+                      localidad={localidad} elegirLocalidad={setLocalidad} disparoAuto={disparoAuto}
+                      ir={ir} alAgendar={() => setPestana('agendar')} />
           </motion.div>
         </AnimatePresence>
       </div>
@@ -142,7 +158,7 @@ export default function App() {
       <main className="vista">
         {pestana === 'recorrido' && flujo}
         {pestana === 'localidad' && !upz && (
-          <MiLocalidad datos={datos} localidad={localidad} setLocalidad={setLocalidad} base={base} actual={actual}
+          <MiLocalidad datos={datos} localidad={localidad ?? 'Suba'} setLocalidad={setLocalidad} base={base} actual={actual}
                        resumenPolitica={describirPalancas(datos, palancas)} onVerUpz={setUpz} />
         )}
         {pestana === 'localidad' && upz && (

@@ -32,8 +32,9 @@ export const whatsappCon = (mensaje: string) => `https://wa.me/${WHATSAPP_CITA}?
 export const SEGUNDOS_INACTIVIDAD = 30        // vuelve al inicio sin interacción
 export const SEGUNDOS_REINICIO_LOGO = 3       // mantener presionado el logo para reiniciar
 
-// Duración de cada paso del flujo guiado en modo automático (segundos): ~55 s por vuelta
-export const DURACION_PASOS = { problema: 10, accion: 15, resultado: 15, supuestos: 5, metodo: 10 }
+// Duración de cada paso del flujo guiado en modo automático (segundos): ~65 s por vuelta
+// Problema y Acción incluyen la animación del proceso en la localidad
+export const DURACION_PASOS = { problema: 14, accion: 21, resultado: 12, supuestos: 5, metodo: 8 }
 
 // --- Colores (en sintonía con estilos.css). Accesibles: azul / naranja, nunca solo color ---
 export const COLORES = {

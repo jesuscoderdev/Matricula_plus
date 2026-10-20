@@ -413,5 +413,22 @@
   "n_upz_zona_critica": 10,
   "semilla": 20261103,
   "desempate_peso": 0.01
+ },
+ "pesos_presets": {
+  "cercania": {
+   "cercania": 2.0,
+   "hermanos": 0.0,
+   "vulnerabilidad": 0.0
+  },
+  "familias": {
+   "cercania": 1.0,
+   "hermanos": 5.0,
+   "vulnerabilidad": 0.0
+  },
+  "equidad": {
+   "cercania": 1.0,
+   "hermanos": 2.5,
+   "vulnerabilidad": 3.0
+  }
  }
 }

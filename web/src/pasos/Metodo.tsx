@@ -10,7 +10,7 @@ export default function Metodo({ datos, palancas, ir, modo, alAgendar }: PropsPa
   const etapas = [
     { t: 'Datos abiertos', d: 'Oferta y demanda SED, colegios, UPZ y población por edad' },
     { t: 'Modelo', d: 'Familias sintéticas y asignación diferida' },
-    { t: 'Simulación', d: `${Object.keys(datos.escenarios).length} escenarios precalculados` },
+    { t: 'Simulación', d: `El proceso corre en vivo en tu localidad · ${Object.keys(datos.escenarios).length} escenarios para Bogotá` },
     { t: 'Decisión', d: describirPalancas(datos, palancas) },
     { t: 'Aprendizaje', d: 'Medir, comparar y ajustar la política' },
   ]
