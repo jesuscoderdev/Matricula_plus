@@ -627,7 +627,7 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-.cabecera > .boton-tema { margin-left: auto; }
+.cabecera > .boton-tema:not(.boton-atras) { margin-left: auto; }
 .cabecera__extra + .boton-tema { margin-left: 0; }
 /* Simula una familia en pantallas chicas: duelo y viaje más compactos */
 .duelo__destino b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

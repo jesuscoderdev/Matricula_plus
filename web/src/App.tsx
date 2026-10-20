@@ -84,8 +84,13 @@ export default function App() {
   useEffect(() => { setAsignado(false) }, [palancas, supuestos])
   useEffect(() => { setTerminado(false) }, [vista, localidad, asignado, reproduccion])
 
+  // Historial para "← Atrás": las vistas por las que pasó el visitante (sin la actual)
+  const pila = useRef<Vista[]>([])
+  const vistaRef = useRef(vista)
+  vistaRef.current = vista
   const reiniciar = useCallback(() => {
     if (!datos) return
+    pila.current = []
     setPalancas(palancasIniciales(datos)); setSupuestos(supuestosIniciales(datos))
     setLocalidad(null); setVista('portada'); setAlcance('localidad'); setColoreo('pol')
     setUpz(null); setCaso(casoInicial()); setCual('matricula'); setEligiendoPunto(false)
@@ -94,8 +99,35 @@ export default function App() {
     if (v === 'portada') return reiniciar()
     if (v === 'accion') setLocalidad((l) => l ?? 'Suba')
     setEligiendoPunto(false)
+    if (vistaRef.current !== v) pila.current.push(vistaRef.current)
     setVista(v)
   }, [reiniciar])
+  /**
+   * Un paso atrás: primero deshace el paso dentro de la vista (elegir punto, familia, UPZ,
+   * localidad) y luego vuelve a la vista anterior; sin historial, al capítulo anterior.
+   */
+  const atras = useCallback(() => {
+    if (eligiendoPunto) return setEligiendoPunto(false)
+    if (vista === 'caso' && caso.lon != null) return setCaso(casoInicial())
+    if (vista === 'explorar' && upz) return setUpz(null)
+    if (vista === 'problema' && localidad) return setLocalidad(null)
+    const i = ORDEN.indexOf(vista)
+    setVista(pila.current.pop() ?? (i > 0 ? ORDEN[i - 1] : 'portada'))
+  }, [eligiendoPunto, vista, caso.lon, upz, localidad])
+  // El "atrás" del celular o del navegador hace lo mismo que el botón; en la portada sí sale
+  const refAtras = useRef(atras)
+  refAtras.current = atras
+  useEffect(() => {
+    if (esTotem(modo)) return
+    history.pushState({ matricula: true }, '')
+    const alVolver = () => {
+      if (vistaRef.current === 'portada') return history.back()
+      refAtras.current()
+      history.pushState({ matricula: true }, '')
+    }
+    window.addEventListener('popstate', alVolver)
+    return () => window.removeEventListener('popstate', alVolver)
+  }, [modo])
   const cambiarPalancas = useCallback((c: Partial<Palancas>) => setPalancas((p) => (p ? { ...p, ...c } : p)), [])
   const cambiarSupuestos = useCallback((c: Partial<Supuestos>) => setSupuestos((s) => (s ? { ...s, ...c } : s)), [])
   const asignar = useCallback(() => { setAsignado(true); setReproduccion((x) => x + 1) }, [])
@@ -264,6 +296,13 @@ export default function App() {
     <div className="app">
       {vista !== 'portada' && (
         <header className="cabecera">
+          {modo !== 'auto' && (
+            <button type="button" className="boton-tema boton-atras" onClick={atras} title="Atrás" aria-label="Atrás">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 12H5M11 6l-6 6 6 6" />
+              </svg>
+            </button>
+          )}
           <LogoReinicio alReiniciar={reiniciar} />
           <nav className="capitulos" aria-label="Capítulos">
             {CAPITULOS.map((c, i) => (
