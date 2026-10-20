@@ -127,6 +127,18 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
   logo oficial de Proliferante (`web/src/assets/logo-proliferante.webp`) va en la portada.
 - Con `QR_IMAGEN` vacío no se pide ningún archivo, así no hay errores en consola.
 
+## Seguridad y carga
+- **Sitio 100% estático:** sin servidor, sin base de datos, sin claves ni datos personales (familias sintéticas).
+  El formulario de cita no envía nada: arma un mensaje que el visitante manda desde su propio WhatsApp.
+- **Cabeceras** en `web/vercel.json`: CSP estricta (solo recursos propios, sin `eval`, sin iframes de terceros),
+  HSTS, `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` (sin cámara, micrófono ni ubicación),
+  COOP/CORP. `npm run preview` aplica las mismas (sin HSTS, porque va por http) para probarlas en local.
+- `npm audit --omit=dev`: 0 vulnerabilidades. `web/.vercelignore` deja fuera `demo-offline.html` y los builds locales.
+- **Carga:** un esqueleto con la forma de la app aparece desde el primer instante (en `index.html`, antes del
+  JavaScript) y se mantiene mientras cargan los datos; si fallan, muestra el error y **Reintentar**. El logo hace
+  de cargador: se encoge a **M+** y se abre cada vez que algo se recalcula o cambia de capítulo, y alterna
+  Matrícula+ ↔ M+ cada 5,3 s (`SEGUNDOS_ANIMACION_LOGO`).
+
 ## Criterios del brief
 
 | Criterio | Estado |

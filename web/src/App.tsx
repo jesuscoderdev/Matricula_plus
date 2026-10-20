@@ -6,8 +6,9 @@ import type { ColegioNuevo, Supuestos } from './motor'
 import { DURACION_PASOS, EMPRESA, SEGUNDOS_INACTIVIDAD } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import MapaEscena from './mapa/MapaEscena'
-import { LogoReinicio } from './componentes/Marca'
+import { LogoReinicio, pulsoLogo } from './componentes/Marca'
 import Intro from './componentes/Intro'
+import Esqueleto from './componentes/Esqueleto'
 import { CAPITULOS, numeroDe, type Capitulo, type PropsCapitulo, type Vista } from './capitulos/tipos'
 import Portada from './capitulos/Portada'
 import Problema from './capitulos/Problema'
@@ -52,10 +53,12 @@ export default function App() {
   const [caso, setCaso] = useState<EstadoCaso>(casoInicial)
   const [vuelta, setVuelta] = useState(0)
 
+  const [intento, setIntento] = useState(0)
   useEffect(() => {
+    setError(null)
     cargarDatos().then((d) => { setDatos(d); setSupuestos(supuestosIniciales(d)); setPalancas(palancasIniciales(d)) })
       .catch((e) => setError(String(e.message ?? e)))
-  }, [])
+  }, [intento])
   useEffect(() => { document.documentElement.dataset.modo = modo }, [modo])
   useEffect(() => {
     if (!modoAutomatico()) return
@@ -68,6 +71,13 @@ export default function App() {
   // Cada capítulo empieza arriba
   const refPanel = useRef<HTMLElement>(null)
   useEffect(() => { refPanel.current?.scrollTo({ top: 0 }) }, [vista, localidad])
+
+  // El logo hace de cargador: se encoge a "M+" y se abre cada vez que algo cambia o se recalcula
+  const primerPulso = useRef(true)
+  useEffect(() => {
+    if (primerPulso.current) { primerPulso.current = false; return }
+    pulsoLogo()
+  }, [vista, localidad, palancas, supuestos, reproduccion, caso.lon, caso.lat])
 
   // Cualquier cambio de reglas o supuestos invalida la asignación animada
   useEffect(() => { setAsignado(false) }, [palancas, supuestos])
@@ -205,7 +215,7 @@ export default function App() {
   if (error || !datos || !r || !supuestos || !palancas || !propsMapa) {
     return (
       <div className="app">
-        {error ? <div className="mensaje-error">{error}</div> : !intro && <div className="cargando">Cargando Bogotá…</div>}
+        <Esqueleto error={error} reintentar={() => setIntento((x) => x + 1)} />
         {entrada}
       </div>
     )

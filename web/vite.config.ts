@@ -4,6 +4,13 @@ import { VitePWA } from 'vite-plugin-pwa'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import fs from 'node:fs'
 
+// Las mismas cabeceras de seguridad de producción (vercel.json) en `npm run preview`, para probarlas en local.
+// Sin HSTS ni upgrade-insecure-requests: la vista previa va por http (también desde el celular en la red local).
+const cabecerasSeguridad: Record<string, string> = Object.fromEntries(
+  JSON.parse(fs.readFileSync('vercel.json', 'utf-8')).headers[0].headers
+    .filter((h: { key: string }) => h.key !== 'Strict-Transport-Security')
+    .map((h: { key: string; value: string }) => [h.key, h.value.replace(/;\s*upgrade-insecure-requests/, '')]))
+
 /** En el HTML de doble clic no hay carpeta de íconos: el favicon va incrustado y se quita el de Apple. */
 const iconosIncrustados = () => ({
   name: 'iconos-incrustados',
@@ -40,8 +47,8 @@ export default defineConfig(({ mode }) => {
             scope: './',
             display: 'standalone',
             orientation: 'portrait',
-            background_color: '#f6f4ee',
-            theme_color: '#14213d',
+            background_color: '#fbfaf7',
+            theme_color: '#16132b',
             icons: [
               { src: 'iconos/icono-192.png', sizes: '192x192', type: 'image/png' },
               { src: 'iconos/icono-512.png', sizes: '512x512', type: 'image/png' },
@@ -60,6 +67,7 @@ export default defineConfig(({ mode }) => {
     ],
     // En el build "archivo" los datos van incrustados (ver datos.ts)
     define: { __EMBEBIDO__: JSON.stringify(archivo) },
+    preview: { headers: cabecerasSeguridad },
     // Rutas relativas: el build funciona servido desde cualquier carpeta
     base: './',
     build: archivo

@@ -1,0 +1,5 @@
+node_modules
+dist
+dist-archivo
+demo-offline.html
+tsconfig.tsbuildinfo

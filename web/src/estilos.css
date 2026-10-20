@@ -100,7 +100,11 @@ h1, h2, h3, p { margin: 0; }
 .cabecera__extra { margin-left: auto; display: flex; gap: 0.35rem; }
 .marca-app { font-family: var(--f-display); font-weight: 600; font-size: 1.25rem; letter-spacing: -0.03em; color: var(--tinta); white-space: nowrap; }
 .marca-app__mas { color: var(--violeta); font-family: var(--f-ui); font-weight: 800; margin-left: 0.04em; }
-.logo-reinicio { position: relative; touch-action: none; flex: none; border: 0; background: none; padding: 0.2rem 0; min-width: 6.4rem; text-align: left; }
+.logo-reinicio { position: relative; touch-action: none; flex: none; border: 0; background: none; padding: 0.2rem 0; }
+.marca-app--animada { display: inline-grid; }
+.marca-app--animada > * { grid-area: 1 / 1; }
+.marca-app__molde { visibility: hidden; }
+.marca-app__vivo { justify-self: center; white-space: nowrap; }
 .marca-app__letra { display: inline-block; overflow: hidden; vertical-align: bottom; white-space: pre; }
 .marca-app__mas { display: inline-block; }
 .logo-reinicio::after {
@@ -431,6 +435,9 @@ h1, h2, h3, p { margin: 0; }
 .contador-ninos button { width: 2.2rem; height: 2.2rem; border-radius: 50%; border: 1px solid var(--linea-2); background: var(--blanco); font-size: 1.1rem; }
 .contador-ninos output { font-family: var(--f-mono); font-size: 1.2rem; min-width: 1.5rem; text-align: center; }
 
+.esq__error { margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; font-size: 0.85rem; }
+.esq__error b { color: var(--naranja-osc); }
+.esq__error span { font-family: var(--f-mono); font-size: 0.7rem; color: var(--suave); }
 .cargando, .mensaje-error { margin: auto; font-family: var(--f-mono); color: var(--suave); padding: 2rem; text-align: center; }
 .mensaje-error { color: var(--naranja-osc); }
 
