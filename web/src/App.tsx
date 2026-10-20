@@ -154,7 +154,10 @@ export default function App() {
         </AnimatePresence>
       </div>
       {/* Supuestos siempre visibles */}
-      <div className="pie-supuestos">{supuestosCortos}{datos.indice.fuente === 'sintetica' && ' · DATOS SINTÉTICOS'}</div>
+      <div className="pie-supuestos">
+        <span className="pie-supuestos__marca">Proliferante · GovTech 2026</span>
+        <span>{supuestosCortos}{datos.indice.fuente === 'sintetica' && ' · DATOS SINTÉTICOS'}</span>
+      </div>
     </div>
   )
 

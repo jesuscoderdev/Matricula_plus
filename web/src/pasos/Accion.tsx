@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import BotonGrande from '../componentes/BotonGrande'
+import { kickerDe } from '../componentes/BarraProgreso'
 import { Interruptor, Opciones } from '../componentes/Controles'
 import MapaProceso, { type FaseProceso } from '../mapa/MapaProceso'
 import { APP_NAME } from '../config'
@@ -44,6 +45,7 @@ export default function Accion({ datos, palancas, cambiarPalancas, ir, modo, loc
   return (
     <div className="pantalla-paso">
       <header className="cabeza cabeza--compacta">
+        <span className="kicker">{kickerDe('accion')} · {loc}</span>
         <h1 className="titulo">Asigna con {APP_NAME} en {loc}</h1>
       </header>
       <div className="mapa-zona mapa-zona--proceso">

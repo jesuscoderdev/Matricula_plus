@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import BotonGrande from '../componentes/BotonGrande'
+import { kickerDe } from '../componentes/BarraProgreso'
 import type { PropsPaso } from './tipos'
 
 const ORDEN = ['familias', 'corte', 'cupos', 'distancia', 'opciones', 'colegio_nuevo', 'jornada_unica']
@@ -10,6 +11,7 @@ export default function Supuestos({ datos, ir, modo }: PropsPaso) {
   return (
     <div className="pantalla-paso">
       <header className="cabeza">
+        <span className="kicker">{kickerDe('supuestos')}</span>
         <h1 className="titulo">Lo que supusimos</h1>
         <p className="subtitulo">Es una simulación para comparar políticas, no una predicción.</p>
       </header>

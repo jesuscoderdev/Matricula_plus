@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import BotonGrande from '../componentes/BotonGrande'
+import { kickerDe } from '../componentes/BarraProgreso'
 import MapaSimulador, { LeyendaSinCupo } from '../mapa/MapaSimulador'
 import MapaProceso from '../mapa/MapaProceso'
 import GuiaProceso from '../componentes/GuiaProceso'
@@ -28,6 +29,7 @@ export default function Problema({ datos, base, ir, modo, localidad, elegirLocal
     return (
       <div className="pantalla-paso">
         <header className="cabeza">
+          <span className="kicker">{kickerDe('problema')}</span>
           <h1 className="titulo">Faltan cupos donde viven los niños</h1>
           <p className="subtitulo">Hoy <b>{entero(base.sinCupo)}</b> niños nuevos no quedan en ninguno de sus 3 colegios.
             Hay <b>{por100}</b> cupos por cada 100 que piden.</p>
@@ -36,7 +38,7 @@ export default function Problema({ datos, base, ir, modo, localidad, elegirLocal
           <MapaSimulador datos={datos} porUpz={base.porUpz} interactivo={modo !== 'auto'}
                          onTocarUpz={modo === 'auto' ? undefined : (c) => elegirLocalidad(datos.localidadDeUpz[datos.posUpz[c]])} />
           <LeyendaSinCupo />
-          <div className="mapa-zona__aviso">👆 Toca tu localidad</div>
+          <div className="mapa-zona__aviso">Toca tu localidad en el mapa</div>
         </div>
         <div className="chips chips--paso" role="list">
           {datos.localidades.map((l) => (
@@ -50,6 +52,7 @@ export default function Problema({ datos, base, ir, modo, localidad, elegirLocal
   return (
     <div className="pantalla-paso">
       <header className="cabeza cabeza--compacta">
+        <span className="kicker">{kickerDe('problema')} · {localidad}</span>
         <h1 className="titulo">Así se asigna hoy en {localidad}</h1>
         {resumen && <p className="subtitulo"><b>{entero(resumen.demanda)}</b> niños nuevos viven aquí y piden cupo ·
           hay <b>{entero(resumen.cupos)}</b> cupos en sus colegios.</p>}

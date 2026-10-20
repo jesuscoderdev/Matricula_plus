@@ -25,6 +25,7 @@ export default function Espera({ datos, base, ir, modo }: PropsPaso) {
   return (
     <div className="pantalla-paso pantalla-paso--espera" onClick={() => modo !== 'auto' && ir('problema')}>
       <header className="cabeza">
+        <span className="kicker">Proliferante · Demo de educación · GovTech 2026</span>
         <h1 className="titulo titulo--portada">{TITULO_SIMULADOR}</h1>
         <div className="frase-caja">
           <AnimatePresence mode="wait">

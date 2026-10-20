@@ -20,14 +20,15 @@ export default function Inicio({ datos, base, alRecorrido, alExplorar, alAgendar
   const par = datos.indice.parametros as { cupos_nuevos_total: number; demanda_nuevos_total: number }
   const por100 = Math.round((100 * par.cupos_nuevos_total) / par.demanda_nuevos_total)
   const accesos = [
-    { icono: '▶', titulo: 'Recorrido guiado', texto: 'Elige tu localidad y mira cómo se asignan los cupos hoy y con Matrícula+. Unos 60 segundos.', accion: alRecorrido, principal: true },
-    { icono: '🗺', titulo: 'Explorar el mapa', texto: 'Recorre Bogotá por localidad y UPZ: cupos, demanda y niños sin cupo.', accion: alExplorar },
-    { icono: '📅', titulo: 'Agendar una cita', texto: 'Lo probamos con los datos de tu entidad.', accion: alAgendar },
+    { icono: '01', titulo: 'Recorrido guiado', texto: 'Elige tu localidad y mira cómo se asignan los cupos hoy y con Matrícula+. Unos 60 segundos.', accion: alRecorrido, principal: true },
+    { icono: '02', titulo: 'Explorar el mapa', texto: 'Recorre Bogotá por localidad y UPZ: cupos, demanda y niños sin cupo.', accion: alExplorar },
+    { icono: '03', titulo: 'Agendar una cita', texto: 'Lo probamos con los datos de tu entidad.', accion: alAgendar },
   ]
   return (
     <div className="pantalla inicio">
       <section className="inicio__portada">
         <div className="inicio__textos">
+          <span className="kicker">Proliferante · Demo de educación · GovTech 2026</span>
           <NombreApp className="inicio__marca" />
           <h1 className="titulo inicio__titulo">{TITULO_SIMULADOR}</h1>
           <p className="subtitulo">Simulador de asignación de cupos en colegios oficiales de Bogotá, construido con datos abiertos.</p>
@@ -46,6 +47,7 @@ export default function Inicio({ datos, base, alRecorrido, alExplorar, alAgendar
             <span className="acceso__icono" aria-hidden="true">{a.icono}</span>
             <span className="acceso__titulo">{a.titulo}</span>
             <span className="acceso__texto">{a.texto}</span>
+            <span className="acceso__flecha" aria-hidden="true">→</span>
           </motion.button>
         ))}
       </section>

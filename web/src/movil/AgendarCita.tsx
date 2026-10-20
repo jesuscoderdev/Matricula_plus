@@ -27,6 +27,7 @@ export default function AgendarCita() {
     <div className="pantalla">
       <header className="pantalla__cabeza">
         <Proli tamano={5} globo={<>Hola, soy <b>Proli</b> de Proliferante.</>} />
+        <span className="kicker">Hablemos</span>
         <h1 className="titulo titulo--chico">Agendar una cita</h1>
         <p className="subtitulo">Te mostramos {APP_NAME} con los datos de tu entidad.</p>
       </header>

@@ -34,6 +34,7 @@ export default function MiLocalidad({ datos, localidad, setLocalidad, base, actu
   return (
     <div className="pantalla">
       <header className="pantalla__cabeza">
+        <span className="kicker">Explorar el mapa</span>
         <h1 className="titulo titulo--chico">Ver mi localidad</h1>
         <span className="detalle">Con tu política: {resumenPolitica}</span>
         <div className="chips" ref={chips}>

@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import BotonGrande from '../componentes/BotonGrande'
+import { kickerDe } from '../componentes/BarraProgreso'
 import Proli from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
 import { esTotem } from '../modo'
@@ -17,6 +18,7 @@ export default function Metodo({ datos, palancas, ir, modo, alAgendar }: PropsPa
   return (
     <div className="pantalla-paso">
       <header className="cabeza">
+        <span className="kicker">{kickerDe('metodo')}</span>
         <h1 className="titulo">El método Proliferante</h1>
       </header>
       <ol className="metodo">

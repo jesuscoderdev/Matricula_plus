@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import BotonGrande from '../componentes/BotonGrande'
+import { kickerDe } from '../componentes/BarraProgreso'
 import TarjetaMetrica from '../componentes/TarjetaMetrica'
 import { decimal, dosDecimales, entero } from '../datos'
 import { METRICAS, type InfoMetrica } from '../metricas'
@@ -38,6 +39,7 @@ export default function Resultado({ datos, palancas, base, actual, ir, modo, loc
   return (
     <div className="pantalla-paso">
       <header className="cabeza cabeza--compacta">
+        <span className="kicker">{kickerDe('resultado')}</span>
         <h1 className="titulo">Así cambia {loc}</h1>
         <p className="subtitulo">{describirPalancas(datos, palancas)} · comparado con el orden de llegada de hoy</p>
       </header>
