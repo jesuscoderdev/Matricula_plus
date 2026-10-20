@@ -1,0 +1,33 @@
+<!doctype html>
+<!--
+  Herramienta de desarrollo: muestra la app a un tamaño exacto escalado a la ventana.
+    _previa-stand.html                     → tótem 1080×1920, ?modo=stand
+    _previa-stand.html?modo=auto           → tótem en bucle
+    _previa-stand.html?modo=celular&w=390&h=844 → celular
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Previa de pantalla</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #222; overflow: hidden; }
+  iframe { border: 0; transform-origin: 0 0; position: absolute; top: 0; left: 50%; }
+</style>
+</head>
+<body>
+<iframe id="f"></iframe>
+<script>
+  const q = new URLSearchParams(location.search)
+  const modo = q.get('modo') || 'stand'
+  const W = +(q.get('w') || 1080), H = +(q.get('h') || 1920)
+  const f = document.getElementById('f')
+  f.style.width = W + 'px'; f.style.height = H + 'px'
+  f.src = modo === 'celular' ? './' : './?modo=' + modo
+  const ajustar = () => {
+    const s = Math.min(innerWidth / W, innerHeight / H)
+    f.style.transform = `translateX(${-W / 2 * s}px) scale(${s})`
+  }
+  addEventListener('resize', ajustar); ajustar()
+</script>
+</body>
+</html>

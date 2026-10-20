@@ -1,0 +1,8 @@
+numpy>=1.26
+pandas>=2.1
+shapely>=2.0
+geopandas>=1.0
+ortools>=9.10
+networkx>=3.2
+requests>=2.31
+pytest>=8.0
