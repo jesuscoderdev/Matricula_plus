@@ -6,15 +6,26 @@ un simulador de asignación de cupos en colegios oficiales de Bogotá, construid
 Muestra el **método Proliferante**: datos abiertos → modelo → simulación → decisión → aprendizaje.
 El visitante lo entiende y lo usa en unos 60 segundos y termina en un QR para agendar una cita.
 
-- **Problema, en vivo:** el visitante toca su localidad y ve **cómo se asigna hoy**: las familias llegan una por una,
-  los colegios se llenan y quien llega tarde se queda sin cupo (en Bogotá, 36.810 niños nuevos).
-- **El proceso, en vivo:** con su política, ve la **asignación diferida por rondas** en su localidad: todas piden a la vez,
-  cada colegio se queda con las de más prioridad y las rechazadas piden su siguiente opción, hasta que nadie cambia.
-  El navegador corre el mismo algoritmo que Python (~10 ms) y da exactamente el mismo resultado (`npm run verificar`).
-- **Acción:** 3 palancas: a quién priorizar (Cercanía / Familias / Equidad), dónde construir un colegio nuevo
-  (5 proyectos reales de la SED) y jornada única.
-- **Resultado:** 5 métricas con su cambio frente a hoy, y el mapa de UPZ recoloreado al instante.
-- **Supuestos** siempre a la vista, y **método + QR** al cierre.
+Un **atlas interactivo** en 5 capítulos, con un solo mapa que cambia de escena:
+
+1. **Problema, en vivo:** el visitante elige su localidad y ve **cómo se asigna hoy**: las familias llegan una por una,
+   los colegios se llenan, quien llega tarde no cabe y la SED **reubica** a quien puede en el colegio con cupo más cercano
+   (en Bogotá, 36.810 niños nuevos quedan fuera de sus opciones).
+2. **Acción:** decide las reglas (prioridad **Equilibrada** / Cercanía / Familias / Equidad, pesos finos en PC), un
+   **colegio nuevo** en uno de 5 proyectos reales de la SED **o en cualquier punto del mapa**, jornada única y cuántos
+   colegios puede pedir cada familia (3–5). Con ▶ Asignar ve la **asignación diferida por rondas** y la reubicación,
+   con pausa, ronda a ronda y velocidad. Al tocar una familia se ve su historia (hoy vs Matrícula+); al tocar un colegio, sus cupos.
+3. **Resultado:** la localidad, Bogotá y la **zona crítica de la SED** (Tibabuyes y El Rincón), con una frase de lectura,
+   dónde queda cada niño (1.ª opción / otra / reubicado / sin cupo) y las métricas con su cambio.
+4. **Supuestos editables:** % de vulnerables y de hermanos, cupos del colegio nuevo, distancia de reubicación, costo de
+   la jornada única y umbral de viaje largo. Todo se vuelve a simular en el navegador (~30 ms por simulación).
+5. **Método** Proliferante + Proli + QR para agendar una cita.
+
+Además: **Simula una familia** (dónde vive, cuántos niños, vulnerable, hermano, sus colegios y cuándo llega → dónde queda
+hoy y con Matrícula+, y por qué), **Explorar** UPZ por UPZ y **Agendar**. Los supuestos van siempre en el pie.
+
+El navegador corre el mismo algoritmo que Python y da exactamente el mismo resultado en la fase de asignación
+(`npm run verificar`: 48 escenarios + base).
 
 Recorrido de respaldo para el stand (60 s): [docs/recorrido-60s.gif](docs/recorrido-60s.gif)
 
@@ -72,13 +83,16 @@ Genera `scenarios/` y lo copia a `web/public/simulador/`.
 
 | URL | Para qué |
 |---|---|
-| `?modo=stand` | **Tótem táctil** vertical 1080×1920, sin scroll. Vuelve al inicio tras **30 s** sin interacción |
-| `?modo=auto` | **Tótem sin interacción:** recorre los 5 pasos solo (unos 60 s) y mueve las palancas con otra combinación en cada vuelta |
-| sin parámetro | Se adapta a la pantalla: **PC** si es ancha (mapa grande a la izquierda, panel a la derecha, navegación arriba) o **celular** (barra inferior). Empieza en la **pantalla de inicio**: Recorrido guiado · Explorar el mapa · Agendar |
+| `?modo=stand` | **Tótem táctil** vertical 1080×1920. Toca la portada para empezar; vuelve a la portada tras **30 s** sin interacción |
+| `?modo=auto` | **Tótem sin interacción:** recorre portada + 5 capítulos solo (unos 67 s), con otra localidad y otras palancas en cada vuelta |
+| sin parámetro | Se adapta a la pantalla: **PC** si es ancha (relato a la izquierda, mapa a la derecha) o **celular** (mapa arriba, relato abajo). Empieza en la **portada** |
 | `?modo=escritorio` / `?modo=celular` | Fuerza la vista de PC o de celular |
 | `_previa-stand.html` | Herramienta de desarrollo: muestra el tótem a 1080×1920 escalado a la ventana |
 
 **Reinicio oculto:** mantener presionado el logo **Matrícula+** durante 3 segundos.
+
+**Modo presentación (PC):** `←` `→` (o el control remoto de diapositivas, `RePág`/`AvPág`) cambian de capítulo,
+`Espacio` asigna en Acción, `Inicio` vuelve a la portada y `F` pone pantalla completa.
 
 Los mapas se pueden **arrastrar y hacer zoom** (rueda del mouse, pellizco o doble clic), salvo en `?modo=auto`.
 El botón **⤢ Centrar** los devuelve a la vista inicial.
@@ -104,13 +118,14 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
 ## Configuración
 - `web/src/config.ts`: nombre, **QR** (`QR_IMAGEN`, p. ej. `./qr-cita.png` en `web/public/`), WhatsApp/Calendly para
   la cita, tiempos del kiosco y del modo auto, y colores.
-- `web/src/estilos.css`: paleta (`--azul-oscuro #14213D`, `--fondo #F6F4EE`, `--naranja #B4561A`,
-  `--naranja-claro #E8893D`, `--azul #2F6FB5`). Tipografías Space Grotesk y Public Sans incluidas localmente.
+- `web/src/estilos.css`: diseño "atlas". Tinta `#16132B`, papel `#FBFAF7`, violeta Proliferante `#7F45EE`, verde Proli
+  `#8BC68E`, naranja (sin cupo) `#E0662A`, verde azulado (reubicados) `#268484`. Tipografías **Fraunces** (titulares),
+  **Inter Tight** (interfaz) e **IBM Plex Mono** (cifras), incluidas localmente.
 - `engine/simulador/config.py`: totales de nuevos, % de hermanos y vulnerables, pesos de prioridad, presets,
   ubicaciones y cupos del colegio nuevo, reducción por jornada única, zona crítica y semilla.
-- **Proli**, la mascota de Proliferante (`web/src/assets/proli.webp`), aparece en la espera, en el método y en Agendar.
-- Logo: pon el archivo en `web/public/` y su ruta en `LOGO_IMAGEN` (`web/src/config.ts`). Vacío = nombre en texto.
-  Con `QR_IMAGEN` y `LOGO_IMAGEN` vacíos no se pide ningún archivo, así no hay errores en consola.
+- **Proli**, la mascota (`web/src/assets/proli.webp`), aparece en la portada del tótem, en el método y en Agendar; el
+  logo oficial de Proliferante (`web/src/assets/logo-proliferante.webp`) va en la portada.
+- Con `QR_IMAGEN` vacío no se pide ningún archivo, así no hay errores en consola.
 
 ## Criterios del brief
 
@@ -119,7 +134,7 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
 | Capacidad cuadra con la SED (785.191, error < 1%) | ✅ 784.632 (−0,07%), con un test |
 | Ningún colegio supera su capacidad · cero pares bloqueantes · misma semilla = mismo resultado · casos a mano | ✅ tests, más la verificación de estabilidad en los 324 escenarios |
 | Precálculo en < 10 min | ✅ ~1–3 min |
-| Respuesta del frontend < 200 ms | ✅ ~40 ms (medido) |
+| Respuesta del frontend < 200 ms | ✅ ~30 ms por simulación completa (medido); se corren dos (hoy y la política) |
 | Funciona sin conexión | ✅ servidor apagado + service worker, y `demo-offline.html` desde `file://` |
 | 2 h sin errores en consola · recarga < 30 s | ver `PENDIENTES.md` |
 

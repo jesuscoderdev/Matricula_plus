@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react'
-import { APP_NAME, EMPRESA, LOGO_IMAGEN, SEGUNDOS_REINICIO_LOGO } from '../config'
+import { APP_NAME, EMPRESA, SEGUNDOS_REINICIO_LOGO } from '../config'
+import logoProliferante from '../assets/logo-proliferante.webp'
 
-/** Nombre de la app: "Matrícula" + el "+" en color de acento. */
+/** Nombre de la app: "Matrícula" en Fraunces + el "+" en violeta. */
 export function NombreApp({ className = '' }: { className?: string }) {
   const termina = APP_NAME.endsWith('+')
   return (
-    <span className={`nombre-app ${className}`}>
+    <span className={`marca-app ${className}`}>
       {termina ? APP_NAME.slice(0, -1) : APP_NAME}
-      {termina && <span className="nombre-app__mas">+</span>}
+      {termina && <span className="marca-app__mas">+</span>}
     </span>
   )
 }
@@ -38,12 +39,7 @@ export function LogoReinicio({ alReiniciar }: { alReiniciar: () => void }) {
   )
 }
 
-/**
- * Logo de la empresa: la imagen de LOGO_IMAGEN si está configurada;
- * si no (o si falla), el nombre como marca tipográfica.
- */
-export function LogoEmpresa() {
-  const [sinImagen, setSinImagen] = useState(!LOGO_IMAGEN)
-  if (sinImagen) return <span className="logo-texto">{EMPRESA.toLowerCase()}</span>
-  return <img className="logo-img" src={LOGO_IMAGEN} alt={EMPRESA} onError={() => setSinImagen(true)} />
+/** Logo oficial de Proliferante (empaquetado, funciona sin conexión). */
+export function LogoEmpresa({ className = '' }: { className?: string }) {
+  return <img className={`logo-empresa ${className}`} src={logoProliferante} alt={EMPRESA} draggable={false} />
 }

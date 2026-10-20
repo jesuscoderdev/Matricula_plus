@@ -49,50 +49,75 @@ Simulador de asignación de cupos en colegios oficiales de Bogotá, construido c
    | medio | 1,0 | 2,5 | 1,5 |
    | alto | 2,0 | 5,0 | 3,0 |
 
-   En pantalla se muestran 3 presets: **Cercanía** (alto / bajo / bajo), **Familias** (medio / alto / bajo)
-   y **Equidad** (medio / medio / alto). Los 27 niveles quedan precalculados de todas formas.
+   En pantalla se muestran 4 presets: **Equilibrada** (medio / medio / medio, la que se propone por defecto),
+   **Cercanía** (alto / bajo / bajo), **Familias** (medio / alto / bajo) y **Equidad** (medio / medio / alto).
+   En PC se pueden afinar los pesos en 5 niveles. Los 27 niveles quedan precalculados en Python de todas formas.
 6. **Algoritmo.** Asignación diferida (Gale-Shapley) con propuesta de los estudiantes. Es estable (cero pares
    bloqueantes, verificado en cada uno de los 324 escenarios), respeta la capacidad y es reproducible con
    la misma semilla.
 6b. **El proceso en la pantalla.** El navegador vuelve a correr el algoritmo (asignación diferida por rondas,
    `web/src/motor.ts`) para animarlo en la localidad elegida. Usa las mismas distancias y desempates redondeados
-   a 4 decimales que Python, y `npm run verificar` comprueba que el resultado coincide en los 36 escenarios de la
-   interfaz y en la línea base. Cada punto del mapa es una familia sintética (10 niños).
+   a 4 decimales que Python, y `npm run verificar` comprueba que la asignación coincide en los 48 escenarios de la
+   interfaz (4 presets × 6 colegios × 2 jornadas) y en la línea base, y que capacidad, unicidad y estabilidad se
+   cumplen también con supuestos editados. Cada punto del mapa es una familia sintética (10 niños).
 7. **Línea base ("hoy").** Orden de llegada: un orden aleatorio con semilla, y cada familia toma su primera
    opción con cupo disponible.
+7b. **Reubicación (como la SED).** Quien no queda en ninguna de sus opciones recibe un cupo libre cercano, hasta
+   **3 km** (editable). Hoy, en orden de llegada, el colegio con cupo más cercano. Con Matrícula+, una segunda
+   asignación diferida sobre los cupos libres (los 8 más cercanos dentro del radio) con la misma prioridad. Si no hay
+   cupo dentro del radio, el niño queda **sin cupo**. La reubicación solo corre en el navegador; Python valida la fase 1.
 8. **Palancas.**
    - *Colegio nuevo:* +1.200 cupos (el dataset no trae cupos) en uno de 5 proyectos reales de la SED:
      Ciudadela Cafam II (Tibabuyes), Theilard de Chardin (Suba), Indusel (Bosa Occidental), Boita (Timiza)
      y Hacienda Casa Blanca (Arborizadora).
    - *Jornada única:* −10% de capacidad en todas las sedes (configurable).
-9. **Zona crítica.** Las 10 UPZ con más niños sin cupo en la línea base: Calandaima, Tibabuyes, El Porvenir,
-   Tintal Sur, Ismael Perdomo, Patio Bonito, Engativá, Jerusalem, Diana Turbay y Marruecos. Es la misma en todos los escenarios.
+9. **Zona crítica.** Las UPZ con insuficiencia **muy alta** según el Estudio de insuficiencia SED 2025:
+   **Tibabuyes** y **El Rincón** (Suba). Es la misma en todos los escenarios.
 10. **Distancia** en línea recta entre la casa y el colegio.
 
+## Supuestos editables en la app
+En el capítulo 4 (y el número de opciones en Acción) se pueden cambiar, y todo se vuelve a simular:
+
+| Supuesto | Por defecto | Rango |
+|---|---|---|
+| Colegios que pide cada familia | 3 | 3–5 |
+| Familias vulnerables | 30% | 10–50% |
+| Con un hermano ya matriculado | 15% | 0–30% |
+| Cupos del colegio nuevo | 1.200 | 600–2.400 |
+| Distancia máxima de reubicación | 3 km | 1–5 km |
+| Cupos que cuesta la jornada única | 10% | 5–20% |
+| Qué es un viaje largo | > 2 km | 1–3 km |
+
+La vulnerabilidad y los hermanos se reasignan con números aleatorios fijos por familia (`u_vulnerable`,
+`u_hermano`), así que al subir un porcentaje las familias que ya lo eran lo siguen siendo. Con los valores por
+defecto el resultado es exactamente el de Python. **Simula una familia** agrega una familia más con los datos que
+elige el visitante y vuelve a correr las dos asignaciones completas.
+
 ## Métricas
-- % de niños asignados a su 1.ª opción
-- % de niños sin cupo en ninguna de sus 3 opciones
-- Distancia promedio casa–colegio (km, entre los asignados)
-- % de niños vulnerables sin cupo
-- % de niños de la zona crítica sin cupo
-- % sin cupo por UPZ (para colorear el mapa)
+- % fuera de sus opciones (no quedó en ninguna de las que pidió) — la métrica central
+- % en su 1.ª opción
+- % reubicados y % sin ningún cupo cercano (tras la reubicación)
+- % de vulnerables fuera de sus opciones
+- % de viajes de más de 2 km y distancia promedio casa–colegio
+- % fuera de sus opciones en la zona crítica, y por UPZ (para colorear el mapa)
 
-## Resultados principales (datos reales)
+## Resultados principales (datos reales, supuestos por defecto)
 
-| | 1.ª opción | Sin cupo | Distancia | Vulnerables sin cupo | Zona crítica sin cupo |
-|---|---|---|---|---|---|
-| Hoy (orden de llegada) | 53,3% | 23,2% | 0,64 km | 21,9% | 34,2% |
-| Equidad | 55,7% | 23,7% | 0,55 km | 0,7% | 35,3% |
-| Equidad + colegio en Tibabuyes | 55,9% | 23,3% | 0,55 km | 0,6% | 33,6% |
-| Con jornada única (pesos medios) | 50,0% | 29,2% | 0,55 km | 3,2% | 41,2% |
+| | 1.ª opción | Fuera de opciones | Reubicados | Sin cupo | Viajes > 2 km | Vulnerables fuera | Zona crítica fuera |
+|---|---|---|---|---|---|---|---|
+| Hoy (orden de llegada) | 53,3% | 23,2% | 9,5% | 13,7% | 6,3% | 21,9% | 21,7% |
+| Equilibrada | 54,7% | 23,7% | 9,8% | 13,9% | 3,0% | 2,0% | 20,0% |
+| Equidad | 55,7% | 23,7% | 9,8% | 13,9% | 3,1% | 0,6% | 20,3% |
+| Equilibrada + colegio en Tibabuyes | 55,0% | 23,2% | 10,1% | 13,1% | 3,0% | 2,0% | 12,4% |
+| Equilibrada + 5 opciones | 52,3% | 20,2% | 6,4% | 13,8% | 3,1% | 0,6% | 16,0% |
+| Equilibrada + jornada única | 50,0% | 29,2% | 6,5% | 22,7% | 1,3% | 3,2% | 25,5% |
 
 Lecturas:
-- **Las prioridades deciden *quién* queda sin cupo, no *cuántos*.** El total se mantiene en unos 23%.
-- **La ubicación del colegio nuevo importa.** Solo Tibabuyes está dentro de la zona crítica, y un colegio
-  de 1.200 cupos frente a unos 37.000 niños sin cupo mueve poco el total.
-- **Jornada única** cuesta unos 6 puntos más de niños sin cupo si no se amplía la capacidad.
-- El 23% sin cupo es mayor que el faltante estructural (11,7%): el resto son niños que no alcanzan cupos
-  libres dentro de sus 3 opciones.
+- **Las prioridades deciden *quién* cabe, no *cuántos*.** Fuera de sus opciones se mantiene en unos 23%, pero los
+  vulnerables fuera bajan de 21,9% a 2,0% y los viajes largos se reducen a la mitad.
+- **La capacidad decide cuántos.** Un colegio de 1.200 cupos en Tibabuyes baja la zona crítica de 21,7% a 12,4%;
+  la jornada única sin ampliar capacidad sube los niños sin cupo de 13,7% a 22,7%.
+- **Más opciones** (5 en vez de 3) bajan "fuera de sus opciones", pero no los niños sin cupo: el faltante es real.
 
 ## Limitaciones
 - **Ubicación de la demanda:** viene de proyecciones de población, no del lugar de residencia real de
@@ -105,6 +130,7 @@ Lecturas:
   acceso restringido.
 - **Hermanos y vulnerabilidad simulados** con porcentajes uniformes; no salen de datos por sede.
 - **La jornada única** se aplica como una reducción pareja del 10% en todas las sedes.
+- **Reubicación simplificada:** radio fijo en línea recta; la SED también considera jornada y nivel.
 - **Una sola semilla.** Con otra semilla las cifras cambian décimas de punto, no la dirección de los efectos.
 
 ## Reproducir

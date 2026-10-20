@@ -129,7 +129,7 @@ def test_metricas_en_rango(entorno):
     m = simular(base, fam, p, Palancas()).metricas
     for k in ("pct_primera_opcion", "pct_sin_cupo", "pct_vulnerables_sin_cupo", "pct_sin_cupo_zona_critica"):
         assert 0 <= m[k] <= 100
-    assert len(base.zona_critica) == p.n_upz_zona_critica
+    assert 1 <= len(base.zona_critica) <= len(p.zona_critica_nombres)
     assert set(m["por_upz"]) <= set(base.upz["codigo"])
 
 

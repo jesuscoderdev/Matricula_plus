@@ -32,24 +32,6 @@ export const whatsappCon = (mensaje: string) => `https://wa.me/${WHATSAPP_CITA}?
 export const SEGUNDOS_INACTIVIDAD = 30        // vuelve al inicio sin interacción
 export const SEGUNDOS_REINICIO_LOGO = 3       // mantener presionado el logo para reiniciar
 
-// Duración de cada paso del flujo guiado en modo automático (segundos): ~65 s por vuelta
-// Problema y Acción incluyen la animación del proceso en la localidad
-export const DURACION_PASOS = { problema: 14, accion: 21, resultado: 12, supuestos: 5, metodo: 8 }
-
-// --- Colores (en sintonía con estilos.css). Accesibles: azul / naranja, nunca solo color ---
-export const COLORES = {
-  azulOscuro: [20, 33, 61] as [number, number, number],      // #14213D
-  fondo: [246, 244, 238] as [number, number, number],        // #F6F4EE
-  naranja: [180, 86, 26] as [number, number, number],        // #B4561A
-  naranjaClaro: [232, 137, 61] as [number, number, number],  // #E8893D
-  azul: [47, 111, 181] as [number, number, number],          // #2F6FB5
-}
-
-/** Escala secuencial de % sin cupo (claro → naranja oscuro), con sus cortes para la leyenda. */
-export const ESCALA_SIN_CUPO: { hasta: number; color: [number, number, number]; etiqueta: string }[] = [
-  { hasta: 10, color: [244, 236, 222], etiqueta: '< 10%' },
-  { hasta: 20, color: [240, 202, 160], etiqueta: '10–20%' },
-  { hasta: 30, color: [232, 160, 98], etiqueta: '20–30%' },
-  { hasta: 40, color: [205, 113, 52], etiqueta: '30–40%' },
-  { hasta: 101, color: [150, 66, 18], etiqueta: '≥ 40%' },
-]
+// Duración de cada capítulo en modo automático (segundos): ~67 s por vuelta.
+// Problema y Acción incluyen la animación del proceso en la localidad.
+export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado: 12, laboratorio: 6, metodo: 8 }

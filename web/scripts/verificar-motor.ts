@@ -1,57 +1,118 @@
 /**
- * Verifica que el motor del navegador (src/motor.ts) dé EXACTAMENTE lo mismo que el motor de
- * Python en los 36 escenarios de la interfaz y en la línea base.
+ * Verifica el motor del navegador (src/motor.ts):
+ *  1. Con los supuestos por defecto, la FASE 1 da exactamente lo mismo que Python en los 48
+ *     escenarios de la interfaz (4 presets × 6 colegios × 2 jornadas) y en la línea base.
+ *  2. Propiedades que deben cumplirse siempre (también con supuestos editados): ningún colegio
+ *     supera su capacidad tras la reubicación, cada familia queda en un solo colegio y la fase 1
+ *     de la asignación diferida es estable.
  *
- * Uso:  npm run verificar        (node ejecuta TypeScript directamente)
+ * Uso:  npm run verificar
  */
 import fs from 'node:fs'
-import { capacidades, claves, diferidaPorRondas, metricas, ordenLlegada, preferencias, type DatosFamilias } from '../src/motor.ts'
+import { simular, type DatosFamilias, type Supuestos, type Politica, type Simulacion } from '../src/motor.ts'
 
 const dir = new URL('../public/simulador/', import.meta.url)
 const leer = (f: string) => JSON.parse(fs.readFileSync(new URL(f, dir), 'utf-8'))
 const todos = leer('todos.json')
 const f: DatosFamilias = leer('familias.json')
 const colegios = leer('colegios.geojson')
-
 const ind = todos.indice
 const par = ind.parametros
-const cuposSedes: number[] = colegios.features.filter((x: any) => x.properties.tipo === 'sede').map((x: any) => x.properties.cupos)
+const sedes = colegios.features.filter((x: any) => x.properties.tipo === 'sede')
+const ctx = { cuposSedes: sedes.map((x: any) => x.properties.cupos), posSedes: sedes.map((x: any) => x.geometry.coordinates) }
 const zona = new Set(ind.zona_critica.map((z: { codigo: string }) => ind.upz.indexOf(z.codigo)))
-const k = f.opciones
-
-function comparar(nombre: string, esperado: number[], p: ReturnType<typeof preferencias>, asign: Int32Array, opcion: Int8Array) {
-  const g = metricas(f, p, asign, opcion)
-  const z = metricas(f, p, asign, opcion, (i) => zona.has(f.upz[i]))
-  const obtenido = [g.pctPrimera, g.pctSinCupo, g.distanciaKm, g.pctVulnerablesSinCupo, z.pctSinCupo]
-  const tol = [0.006, 0.006, 0.002, 0.006, 0.006]   // los valores precalculados vienen redondeados
-  const ok = obtenido.every((v, j) => Math.abs(v - esperado[j]) <= tol[j])
-  if (!ok) console.log(`✗ ${nombre}\n   esperado ${esperado.join(' · ')}\n   obtenido ${obtenido.map((v) => v.toFixed(3)).join(' · ')}`)
-  return ok
+const SUP: Supuestos = {
+  opciones: par.n_opciones, pctVulnerable: par.pct_vulnerable, pctHermano: par.pct_hermano,
+  cuposColegioNuevo: par.cupos_colegio_nuevo, reduccionJornada: par.reduccion_jornada_unica,
+  radioReubicacionKm: 3, umbralViajeLargoKm: 2, pesoDesempate: par.desempate_peso,
 }
 
-let fallas = 0, t = 0
-
-// Línea base: orden de llegada, sin palancas
-{
-  const p = preferencias(f, null)
-  const cap = capacidades(cuposSedes, null, false, par.reduccion_jornada_unica, par.estudiantes_por_familia)
-  const r = ordenLlegada(p.prefs, cap, f.llegada, f.n, k)
-  if (!comparar('base', ind.metricas.map((m: string) => ind.base[m]), p, r.asign, r.opcion)) fallas++
+/** Métricas de la fase 1, igual que las calcula Python. */
+function fase1(sim: Simulacion) {
+  const k = sim.pref.k
+  let n = 0, prim = 0, sin = 0, vul = 0, vulSin = 0, nz = 0, zSin = 0, dSum = 0, asig = 0
+  for (let i = 0; i < f.n; i++) {
+    n++
+    const v = sim.at.vulnerable[i] === 1
+    const z = zona.has(f.upz[i])
+    if (v) vul++
+    if (z) nz++
+    if (sim.fase1[i] < 0) { sin++; if (v) vulSin++; if (z) zSin++; continue }
+    if (sim.opcion[i] === 0) prim++
+    asig++; dSum += sim.pref.dist[i * k + sim.opcion[i]]
+  }
+  return [100 * prim / n, 100 * sin / n, dSum / asig, 100 * vulSin / vul, 100 * zSin / nz]
 }
 
-for (const preset of ind.presets) {
-  for (const nuevo of [null, ...ind.colegio_nuevo.map((c: { clave: string }) => c.clave)]) {
-    for (const ju of [false, true]) {
-      const id = `${preset.escenario}_${nuevo ?? 'ninguno'}_${ju ? 'ju' : 'sinju'}`
-      const t0 = performance.now()
-      const p = preferencias(f, nuevo)
-      const cap = capacidades(cuposSedes, nuevo ? par.cupos_colegio_nuevo : null, ju, par.reduccion_jornada_unica, par.estudiantes_por_familia)
-      const cl = claves(f, p, ind.pesos_presets[preset.clave], par.desempate_peso)
-      const r = diferidaPorRondas(p.prefs, cl, cap, f.n, k)
-      t += performance.now() - t0
-      if (!comparar(`${id} (${r.rondas} rondas)`, todos.escenarios[id].m, p, r.asign, r.opcion)) fallas++
+let fallas = 0, tiempo = 0, corridas = 0
+function comparar(nombre: string, esperado: number[], sim: Simulacion) {
+  const ob = fase1(sim)
+  const tol = [0.006, 0.006, 0.002, 0.006, 0.006]
+  if (!ob.every((v, j) => Math.abs(v - esperado[j]) <= tol[j])) {
+    fallas++
+    console.log(`✗ ${nombre}\n   Python ${esperado.join(' · ')}\n   web    ${ob.map((v) => v.toFixed(3)).join(' · ')}`)
+  }
+}
+function propiedades(nombre: string, sim: Simulacion) {
+  const ocup = new Int32Array(sim.cap.length)
+  for (let i = 0; i < f.n; i++) {
+    if (sim.fase1[i] >= 0 && sim.fase2.asign[i] >= 0) { fallas++; console.log(`✗ ${nombre}: familia ${i} en dos colegios`); return }
+    const s = sim.fase1[i] >= 0 ? sim.fase1[i] : sim.fase2.asign[i]
+    if (s >= 0) ocup[s]++
+  }
+  for (let s = 0; s < sim.cap.length; s++) if (ocup[s] > sim.cap[s]) { fallas++; console.log(`✗ ${nombre}: colegio ${s} supera su capacidad`); return }
+  if (sim.traza) {
+    // Estabilidad de la fase 1: nadie prefiere un colegio que lo habría aceptado
+    const k = sim.pref.k
+    const peor = new Float64Array(sim.cap.length).fill(-Infinity)
+    const cuenta = new Int32Array(sim.cap.length)
+    const cl = (i: number, o: number) => {
+      const p = sim.politica.pesos, h = sim.pref.prefs[i * k + o] === sim.at.hermano[i] ? 1 : 0
+      return -(-p.cercania * sim.pref.dist[i * k + o] + p.hermanos * h + p.vulnerabilidad * sim.at.vulnerable[i] + SUP.pesoDesempate * f.desempate[i])
+    }
+    for (let i = 0; i < f.n; i++) if (sim.fase1[i] >= 0) { cuenta[sim.fase1[i]]++; peor[sim.fase1[i]] = Math.max(peor[sim.fase1[i]], cl(i, sim.opcion[i])) }
+    for (let i = 0; i < f.n; i++) {
+      const hasta = sim.fase1[i] >= 0 ? sim.opcion[i] : k
+      for (let o = 0; o < hasta; o++) {
+        const s = sim.pref.prefs[i * k + o]
+        if (s >= 0 && (cuenta[s] < sim.cap[s] || cl(i, o) < peor[s])) { fallas++; console.log(`✗ ${nombre}: par bloqueante (${i}, ${s})`); return }
+      }
     }
   }
 }
-console.log(fallas ? `✗ ${fallas} escenarios no coinciden` : `✓ Los 36 escenarios y la línea base coinciden con Python · ${(t / 36).toFixed(0)} ms por escenario en promedio`)
+
+// 1. Igual que Python
+const base = simular(f, ctx, SUP, { mecanismo: 'llegada', pesos: ind.pesos_presets.equilibrada, colegioNuevo: null, jornadaUnica: false })
+comparar('base', ind.metricas.map((m: string) => ind.base[m]), base)
+propiedades('base', base)
+for (const preset of ind.presets) {
+  for (const c of [null, ...ind.colegio_nuevo]) {
+    for (const ju of [false, true]) {
+      const pol: Politica = { mecanismo: 'diferida', pesos: ind.pesos_presets[preset.clave],
+        colegioNuevo: c ? { clave: c.clave, lon: c.lon, lat: c.lat } : null, jornadaUnica: ju }
+      const t0 = performance.now()
+      const sim = simular(f, ctx, SUP, pol)
+      tiempo += performance.now() - t0; corridas++
+      const id = `${preset.escenario}_${c?.clave ?? 'ninguno'}_${ju ? 'ju' : 'sinju'}`
+      comparar(`${id} (${sim.traza!.rondas} rondas)`, todos.escenarios[id].m, sim)
+      propiedades(id, sim)
+    }
+  }
+}
+// 2. Supuestos editados: solo propiedades (no hay referencia en Python)
+const editados: [string, Partial<Supuestos>, Partial<Politica>][] = [
+  ['5 opciones', { opciones: 5 }, {}],
+  ['4 opciones + 40% vulnerables', { opciones: 4, pctVulnerable: 0.4 }, {}],
+  ['colegio en un punto del mapa', {}, { colegioNuevo: { clave: null, lon: -74.12, lat: 4.62 } }],
+  ['jornada −15% y radio 5 km', { reduccionJornada: 0.15, radioReubicacionKm: 5 }, { jornadaUnica: true }],
+]
+for (const [nombre, s, p] of editados) {
+  for (const mecanismo of ['llegada', 'diferida'] as const) {
+    const sim = simular(f, ctx, { ...SUP, ...s }, { mecanismo, pesos: ind.pesos_presets.equilibrada, colegioNuevo: null, jornadaUnica: false, ...p })
+    propiedades(`${nombre} (${mecanismo})`, sim)
+  }
+}
+console.log(fallas
+  ? `✗ ${fallas} verificaciones fallaron`
+  : `✓ Fase 1 idéntica a Python en ${corridas} escenarios + base · capacidad, unicidad y estabilidad OK también con supuestos editados · ${(tiempo / corridas).toFixed(0)} ms por simulación completa`)
 process.exit(fallas ? 1 : 0)

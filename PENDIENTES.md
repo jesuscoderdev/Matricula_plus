@@ -1,17 +1,16 @@
 # Pendientes — Matrícula+ · ¿Dónde cabe cada niño?
 
-Estado al 20-10-2026: las fases 0 a 4 del brief están hechas (validación de datos, motor + tests,
-precálculo de 324 escenarios, interfaz de 5 pasos y kiosco). Evento: 3 y 4 de noviembre.
+Estado al 20-10-2026: las fases 0 a 4 del brief están hechas y la interfaz se rediseñó por completo (diseño "atlas",
+reubicación como la SED, Equilibrada por defecto, zona crítica SED, 3–5 opciones, supuestos editables, simula una
+familia, fichas de familia y colegio, modo presentación). Evento: 3 y 4 de noviembre.
 
 ## 1. Necesito de ustedes (bloquea el evento)
 - [ ] **Imagen del QR** para agendar cita: ponla en `web/public/` (p. ej. `qr-cita.png`) y su ruta en `QR_IMAGEN`
-      (`web/src/config.ts`). Mientras no esté, el paso 5 muestra un recuadro "QR" de aviso. Después de agregarla, regenera
+      (`web/src/config.ts`). Mientras no esté, el capítulo 5 muestra un recuadro "QR" de aviso. Después de agregarla, regenera
       `demo-offline.html` con `cd web && npm run build:archivo`.
 - [ ] **Número de WhatsApp o enlace de Calendly** para el botón "Agendar" del celular: `WHATSAPP_CITA` /
       `CALENDLY_CITA` en `web/src/config.ts`. Ahora hay un número de prueba (`570000000000`).
-- [x] **Marca Proliferante:** se usa a **Proli** (`web/src/assets/proli.webp`, tomado de
-      `Proliferante_web/.../public/assets/brand/`) en la espera, el paso 5 y Agendar cita.
-      El logo oficial (`logo.webp`, wordmark morado) también está en esa carpeta, por si se quiere agregar.
+- [x] **Marca Proliferante:** Proli y el logo oficial (`web/src/assets/`) en la portada, el método y Agendar.
 - [ ] **Hardware del tótem:** ¿Windows o Android? ¿Táctil? ¿Resolución exacta? Probar `totem\lanzar-totem.bat`
       en el equipo real. No se ha ejecutado completo porque abre Chrome en kiosco; sí se probó la URL que arma.
 
@@ -20,7 +19,8 @@ precálculo de 324 escenarios, interfaz de 5 pasos y kiosco). Evento: 3 y 4 de n
       consola (F12) y que la memoria no crezca. En el desarrollo se hizo una prueba más corta.
 - [ ] Que el táctil responda, que el mapa vaya fluido y que el texto se lea a 1–2 m con la luz del recinto.
 - [ ] Probar el reinicio oculto (mantener presionado el logo 3 s) en la pantalla táctil real.
-- [ ] Revisar los textos con comunicaciones: frases de la espera, títulos de los pasos y etiquetas de los presets.
+- [ ] Revisar los textos con comunicaciones: portada, títulos de los capítulos, frases de lectura y etiquetas de los presets.
+- [ ] En el tótem el relato tiene scroll en Acción y Resultado: decidir si se aceptan o se recortan textos tras verlo en la pantalla real.
 
 ### Procedimiento de la prueba de 2 horas
 1. `totem\lanzar-totem.bat auto`, o abrir `web/demo-offline.html?modo=auto` en Chrome, con el wifi apagado.
@@ -29,13 +29,12 @@ precálculo de 324 escenarios, interfaz de 5 pasos y kiosco). Evento: 3 y 4 de n
    Chrome) debe mantenerse estable, sin crecer de forma sostenida.
 
 ## 3. Mejoras posibles (si hay tiempo o después del evento)
-- [ ] **Colegio nuevo más visible:** hoy +1.200 cupos frente a unos 37.000 niños sin cupo mueve poco. Se podrían
-      simular varios colegios o más cupos (`cupos_colegio_nuevo` en `engine/simulador/config.py`).
+- [ ] **Varios colegios nuevos** a la vez (hoy uno; los cupos ya son editables en Supuestos).
 - [ ] **Saber 11 real** por sede (ICFES) para que las preferencias consideren calidad.
 - [ ] **Tiempos de viaje** con la red vial o el SITP, en lugar de la distancia en línea recta.
 - [ ] **Simular por nivel** (preescolar, primaria, secundaria, media).
 - [ ] **Jornada única** solo en las sedes que aún no la tienen (el dataset de matrícula en jornada única lo permite).
-- [ ] **Modo detallado** con los 27 niveles de pesos (ya están precalculados en `scenarios/`).
+- [ ] **Reubicación en Python** para validarla también contra el motor de referencia (hoy solo la fase 1).
 
 ## 4. Notas técnicas
 - `python -m engine.build_scenarios` regenera `scenarios/` y `web/public/simulador/`. Después hay que correr

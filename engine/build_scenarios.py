@@ -87,41 +87,59 @@ def exportar_capas(base, fam, p, m_base):
         .to_parquet(DIR_SIM / "familias.parquet", index=False)
 
 
-def exportar_familias_web(base, fam, p) -> dict:
+MAX_OPCIONES_WEB = 5   # la web deja elegir de 3 a 5 colegios por familia
+
+
+def _f32(a) -> str:
+    """Floats de 32 bits con el mínimo de dígitos que los identifica (la web usa Math.fround)."""
+    return ",".join(np.format_float_positional(np.float32(x), unique=True, trim="-") for x in np.ravel(a))
+
+
+def exportar_familias_web(base, fam, p) -> str:
     """
-    Familias para que el navegador vuelva a correr el algoritmo y ANIME el proceso
-    (orden de llegada y rondas de la asignación diferida) en la localidad que elija el visitante.
-    Preferencias base + solo las familias cuyas preferencias cambian con cada colegio nuevo.
+    Familias para que el navegador corra TODO el modelo en vivo (y deje editar los supuestos):
+      - las 5 sedes existentes con menor puntaje (distancia + ruido) de cada familia, con su puntaje
+        en float32 exacto y su distancia redondeada; con eso la web arma listas de 3 a 5 colegios
+        idénticas a las de Python;
+      - para cada colegio nuevo, las familias que podrían incluirlo en su lista, con su puntaje;
+      - los números aleatorios de los atributos (vulnerable, hermano) y el orden de llegada.
+    Devuelve el JSON como texto (los float32 se escriben a mano para no perder exactitud).
     """
-    n, S = fam.n, fam.n_sedes
+    n, S, K = fam.n, fam.n_sedes, MAX_OPCIONES_WEB
     pos_upz = {c: i for i, c in enumerate(base.upz["codigo"])}
+    puntaje = fam.dist[:, :S] + fam.ruido[:, :S]                       # float32, como en preferencias()
+    top = np.argpartition(puntaje, K - 1, axis=1)[:, :K]
+    orden = np.take_along_axis(puntaje, top, axis=1).argsort(axis=1, kind="stable")
+    top = np.take_along_axis(top, orden, axis=1)
+    top_p = np.take_along_axis(puntaje, top, axis=1)
+    filas = np.arange(n)[:, None]
+    top_d = np.round(fam.dist[filas, top].astype(np.float64), DECIMALES)
+    d_herm = np.round(fam.dist[np.arange(n), fam.hermano_elegida].astype(np.float64), DECIMALES)
 
-    def prefs_dist(cand):
-        pr = fam.preferencias(cand, p.n_opciones)
-        cols = fam.columnas(cand)
-        d = np.round(fam.dist[np.arange(n)[:, None], cols[pr]].astype(np.float64), DECIMALES)
-        return pr, d
-
-    pr0, d0 = prefs_dist(None)
-    variantes = {}
+    candidatos = {}
     for k, clave in enumerate(base.candidatos["clave"]):
-        pr, d = prefs_dist(k)
-        cambian = np.flatnonzero((pr != pr0).any(axis=1))
-        variantes[clave] = {"familias": cambian.tolist(), "prefs": pr[cambian].ravel().tolist(),
-                            "dist": d[cambian].ravel().tolist()}
-    return {
-        "n": int(n), "n_sedes": int(S), "opciones": p.n_opciones,
-        "estudiantes_por_familia": p.estudiantes_por_familia,
-        "lon": np.round(fam.lon, 5).tolist(), "lat": np.round(fam.lat, 5).tolist(),
-        "upz": [pos_upz[u] for u in fam.upz],
-        "vulnerable": "".join("1" if v else "0" for v in fam.vulnerable),
-        "hermano": fam.sede_hermano.tolist(),
-        "desempate": fam.desempate.tolist(),
-        "prefs": pr0.ravel().tolist(), "dist": d0.ravel().tolist(),
-        "variantes": variantes,
+        col = S + k
+        pc = fam.dist[:, col] + fam.ruido[:, col]
+        cerca = np.flatnonzero(pc < top_p[:, -1])                      # podría entrar en el top 5
+        candidatos[clave] = ('{"familias":' + json.dumps(cerca.tolist())
+                             + ',"puntaje":[' + _f32(pc[cerca]) + ']'
+                             + ',"dist":' + json.dumps(np.round(fam.dist[cerca, col].astype(np.float64), DECIMALES).tolist()) + '}')
+
+    partes = {
+        "n": json.dumps(int(n)), "n_sedes": json.dumps(int(S)), "max_opciones": json.dumps(K),
+        "estudiantes_por_familia": json.dumps(p.estudiantes_por_familia),
+        "lon": json.dumps(np.round(fam.lon, 5).tolist()), "lat": json.dumps(np.round(fam.lat, 5).tolist()),
+        "upz": json.dumps([pos_upz[u] for u in fam.upz]),
+        "u_vulnerable": json.dumps(fam.u_vulnerable.tolist()), "u_hermano": json.dumps(fam.u_hermano.tolist()),
+        "hermano_elegida": json.dumps(fam.hermano_elegida.tolist()), "hermano_dist": json.dumps(d_herm.tolist()),
+        "desempate": json.dumps(fam.desempate.tolist()),
+        "top": json.dumps(top.ravel().tolist()), "top_puntaje": "[" + _f32(top_p) + "]",
+        "top_dist": json.dumps(top_d.ravel().tolist()),
+        "candidatos": "{" + ",".join(f'"{c}":{v}' for c, v in candidatos.items()) + "}",
         # Mismo orden aleatorio que usa la línea base (mecanismos.orden_llegada)
-        "llegada": np.random.default_rng(p.semilla).permutation(n).tolist(),
+        "llegada": json.dumps(np.random.default_rng(p.semilla).permutation(n).tolist()),
     }
+    return "{" + ",".join(f'"{k}":{v}' for k, v in partes.items()) + "}"
 
 
 def main():
@@ -195,6 +213,8 @@ def main():
                            "lon": round(c.lon, 5), "lat": round(c.lat, 5), "cupos": p.cupos_colegio_nuevo}
                           for c in base.candidatos.itertuples()],
         "zona_critica": [{"codigo": c, "nombre": nombres[c]} for c in base.zona_critica],
+        "zona_critica_fuente": ("Insuficiencia muy alta según el Estudio de insuficiencia SED 2025"
+                                if p.zona_critica_nombres else "UPZ con más niños sin cupo en la línea base"),
         "upz": list(base.upz["codigo"]),
         "base": {k: m_base[k] for k in METRICAS + ["estudiantes", "sin_cupo"]},
         "base_por_upz": [m_base["por_upz"].get(c, 0.0) for c in base.upz["codigo"]],
@@ -215,7 +235,7 @@ def main():
     }
     _guardar(DIR_ESCENARIOS / "indice.json", indice, indent=1)
     _guardar(DIR_ESCENARIOS / "todos.json", {"indice": indice, "escenarios": todos})
-    _guardar(DIR_ESCENARIOS / "familias.json", exportar_familias_web(base, fam, p))
+    (DIR_ESCENARIOS / "familias.json").write_text(exportar_familias_web(base, fam, p), encoding="utf-8")
 
     if not args.sin_copiar_web and (RAIZ / "web").exists():
         DIR_WEB.mkdir(parents=True, exist_ok=True)

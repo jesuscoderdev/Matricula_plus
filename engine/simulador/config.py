@@ -16,6 +16,7 @@ PESOS = {
 # Presets de prioridad que ve el visitante (el brief pide máximo 3 controles visibles).
 # (clave, etiqueta, descripción corta, niveles de cercanía / hermanos / vulnerabilidad)
 PRESETS = [
+    ("equilibrada", "Equilibrada", "Pesan por igual cercanía, hermanos y vulnerabilidad", ("medio", "medio", "medio")),
     ("cercania", "Cercanía", "Primero quien vive más cerca", ("alto", "bajo", "bajo")),
     ("familias", "Familias", "Primero quien tiene hermanos ahí", ("medio", "alto", "bajo")),
     ("equidad", "Equidad", "Primero las familias vulnerables", ("medio", "medio", "alto")),
@@ -57,8 +58,9 @@ class ParametrosSimulador:
     cupos_colegio_nuevo: int = 1_200
     reduccion_jornada_unica: float = 0.10  # capacidad × (1 − 10%) en todas las sedes
 
-    # --- Zona crítica: las N UPZ con más niños sin cupo en la línea base (orden de llegada).
-    # Se fija una vez y es la misma en todos los escenarios.
+    # --- Zona crítica: las UPZ con insuficiencia "muy alta" según el Estudio de insuficiencia SED 2025.
+    # Si la lista queda vacía, se usan las N UPZ con más niños sin cupo en la línea base.
+    zona_critica_nombres: tuple = ("Tibabuyes", "El Rincón")
     n_upz_zona_critica: int = 10
 
     semilla: int = 20261103

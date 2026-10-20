@@ -33,6 +33,10 @@ class Familias:
     dist: np.ndarray             # familias × (sedes + candidatos), km en línea recta
     ruido: np.ndarray            # mismo tamaño que dist
     n_sedes: int                 # columnas de sedes existentes (después vienen los candidatos)
+    # Números aleatorios que definen los atributos (la web los usa para cambiar los porcentajes en vivo)
+    u_vulnerable: np.ndarray = None   # vulnerable = u < % vulnerables
+    u_hermano: np.ndarray = None      # tiene hermano = u < % con hermano
+    hermano_elegida: np.ndarray = None  # sede donde estudiaría el hermano (una de sus 5 más cercanas)
     # Las preferencias solo dependen del colegio nuevo: se calculan una vez por ubicación
     _cache: dict = field(default_factory=dict, repr=False)
 
@@ -88,8 +92,11 @@ def generar_familias(base: Base, p: ParametrosSimulador) -> Familias:
     dist = matriz_distancias(lon, lat, destinos_lon, destinos_lat)
     ruido = rng.uniform(0, p.ruido_km, dist.shape).astype(np.float32)
 
-    vulnerable = rng.random(n) < p.pct_vulnerable
-    tiene_hermano = rng.random(n) < p.pct_hermano
+    # Redondeados a 6 decimales: la web compara con los mismos números
+    u_vulnerable = np.round(rng.random(n), 6)
+    u_hermano = np.round(rng.random(n), 6)
+    vulnerable = u_vulnerable < p.pct_vulnerable
+    tiene_hermano = u_hermano < p.pct_hermano
     n_sedes = len(base.sedes)
     vecinas = np.argpartition(dist[:, :n_sedes], p.vecinos_hermano - 1, axis=1)[:, :p.vecinos_hermano]
     elegida = vecinas[np.arange(n), rng.integers(0, p.vecinos_hermano, n)]
@@ -97,4 +104,4 @@ def generar_familias(base: Base, p: ParametrosSimulador) -> Familias:
 
     return Familias(lon=lon, lat=lat, upz=np.array(upz), vulnerable=vulnerable,
                     sede_hermano=sede_hermano, desempate=np.round(rng.random(n), DECIMALES), dist=dist, ruido=ruido,
-                    n_sedes=n_sedes)
+                    n_sedes=n_sedes, u_vulnerable=u_vulnerable, u_hermano=u_hermano, hermano_elegida=elegida)

@@ -67,7 +67,13 @@ def simular(base: Base, fam: Familias, p: ParametrosSimulador, palancas: Palanca
 
 
 def definir_zona_critica(base: Base, fam: Familias, p: ParametrosSimulador) -> list:
-    """Las N UPZ con más niños sin cupo en la línea base (orden de llegada, sin palancas)."""
+    """
+    Zona crítica: las UPZ que el Estudio de insuficiencia SED 2025 marca como "muy alta"
+    (por nombre). Sin lista, las N UPZ con más niños sin cupo en la línea base.
+    """
+    if p.zona_critica_nombres:
+        nombres = base.upz.set_index("nombre")["codigo"]
+        return [str(nombres[n]) for n in p.zona_critica_nombres if n in nombres.index]
     r = simular(base, fam, p, Palancas(), mecanismo="orden_llegada")
     sin = r.asignacion < 0
     upz, conteo = np.unique(fam.upz[sin], return_counts=True)

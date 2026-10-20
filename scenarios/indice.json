@@ -33,6 +33,12 @@
  },
  "presets": [
   {
+   "clave": "equilibrada",
+   "etiqueta": "Equilibrada",
+   "descripcion": "Pesan por igual cercanía, hermanos y vulnerabilidad",
+   "escenario": "cm-hm-vm"
+  },
+  {
    "clave": "cercania",
    "etiqueta": "Cercanía",
    "descripcion": "Primero quien vive más cerca",
@@ -110,46 +116,15 @@
  ],
  "zona_critica": [
   {
-   "codigo": "UPZ79",
-   "nombre": "Calandaima"
-  },
-  {
    "codigo": "UPZ71",
    "nombre": "Tibabuyes"
   },
   {
-   "codigo": "UPZ86",
-   "nombre": "El Porvenir"
-  },
-  {
-   "codigo": "UPZ87",
-   "nombre": "Tintal Sur"
-  },
-  {
-   "codigo": "UPZ69",
-   "nombre": "Ismael Perdomo"
-  },
-  {
-   "codigo": "UPZ82",
-   "nombre": "Patio Bonito"
-  },
-  {
-   "codigo": "UPZ74",
-   "nombre": "Engativá"
-  },
-  {
-   "codigo": "UPZ70",
-   "nombre": "Jerusalem"
-  },
-  {
-   "codigo": "UPZ55",
-   "nombre": "Diana Turbay"
-  },
-  {
-   "codigo": "UPZ54",
-   "nombre": "Marruecos"
+   "codigo": "UPZ28",
+   "nombre": "El Rincón"
   }
  ],
+ "zona_critica_fuente": "Insuficiencia muy alta según el Estudio de insuficiencia SED 2025",
  "upz": [
   "UPZ1",
   "UPZ10",
@@ -269,7 +244,7 @@
   "pct_sin_cupo": 23.16,
   "distancia_prom_km": 0.638,
   "pct_vulnerables_sin_cupo": 21.9,
-  "pct_sin_cupo_zona_critica": 34.16,
+  "pct_sin_cupo_zona_critica": 21.67,
   "estudiantes": 158960,
   "sin_cupo": 36810
  },
@@ -410,11 +385,20 @@
   "frac_15_19": 0.6,
   "cupos_colegio_nuevo": 1200,
   "reduccion_jornada_unica": 0.1,
+  "zona_critica_nombres": [
+   "Tibabuyes",
+   "El Rincón"
+  ],
   "n_upz_zona_critica": 10,
   "semilla": 20261103,
   "desempate_peso": 0.01
  },
  "pesos_presets": {
+  "equilibrada": {
+   "cercania": 1.0,
+   "hermanos": 2.5,
+   "vulnerabilidad": 1.5
+  },
   "cercania": {
    "cercania": 2.0,
    "hermanos": 0.0,

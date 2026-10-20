@@ -24,6 +24,7 @@ export interface Indice {
   presets: Preset[]
   colegio_nuevo: UbicacionNueva[]
   zona_critica: { codigo: string; nombre: string }[]
+  zona_critica_fuente: string
   upz: string[]
   base: Record<ClaveMetrica, number> & { estudiantes: number; sin_cupo: number }
   base_por_upz: number[]
@@ -60,6 +61,8 @@ export interface Datos {
   familias: DatosFamilias
   /** capacidad de nuevos de cada sede existente (en el orden del motor) */
   cuposSedes: number[]
+  posSedes: [number, number][]
+  nombresSedes: string[]
   localidades: string[]
   bboxLocalidad: Record<string, Bbox>
   /** localidad de cada UPZ, en el orden de indice.upz */
@@ -150,6 +153,8 @@ export async function cargarDatos(): Promise<Datos> {
     bboxCiudad: bboxDe(upz.features.map((f) => f.geometry)),
     bboxZonaCritica: bboxDe(zona.map((f) => f.geometry)),
     cuposSedes: colegios.features.filter((f) => f.properties.tipo === 'sede').map((f) => f.properties.cupos),
+    posSedes: colegios.features.filter((f) => f.properties.tipo === 'sede').map((f) => f.geometry.coordinates),
+    nombresSedes: colegios.features.filter((f) => f.properties.tipo === 'sede').map((f) => f.properties.nombre),
     localidadDeUpz: todos.indice.upz.map((c) => locDeCodigo[c]),
   }
 }
