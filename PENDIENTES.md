@@ -1,56 +1,45 @@
-# Pendientes — Matrícula+
+# Pendientes — Matrícula+ · ¿Dónde cabe cada niño?
 
-Estado al 20-10-2026: las 4 etapas están listas y probadas en Chrome (celular 390×844, tótem
-1080×1920, modo auto y modo offline con el servidor apagado). La app web tiene cargados los
-**datos reales**. Evento: 3 y 4 de noviembre.
+Estado al 20-10-2026: las fases 0 a 4 del brief están hechas (validación de datos, motor + tests,
+precálculo de 324 escenarios, interfaz de 5 pasos y kiosco). Evento: 3 y 4 de noviembre.
 
 ## 1. Necesito de ustedes (bloquea el evento)
+- [ ] **Imagen del QR** para agendar cita: `web/public/qr-cita.png` (o cambia `QR_IMAGEN` en `web/src/config.ts`).
+      Mientras no esté, el paso 5 muestra un recuadro "QR" de aviso. Después de agregarla, regenera
+      `demo-offline.html` con `cd web && npm run build:archivo`.
+- [ ] **Número de WhatsApp o enlace de Calendly** para el botón "Agendar" del celular: `WHATSAPP_CITA` /
+      `CALENDLY_CITA` en `web/src/config.ts`. Ahora hay un número de prueba (`570000000000`).
+- [ ] **Logo de Proliferante** en SVG: `web/public/logo-proliferante.svg`.
+- [ ] **Hardware del tótem:** ¿Windows o Android? ¿Táctil? ¿Resolución exacta? Probar `totem\lanzar-totem.bat`
+      en el equipo real. No se ha ejecutado completo porque abre Chrome en kiosco; sí se probó la URL que arma.
 
-- [ ] **Decidir con qué datos se presenta.** Hoy la app muestra datos reales; los resultados y
-      hallazgos están en el README, sección "Datos reales". Para cambiar:
-      `python -m engine.run --fuente real` o `--fuente sintetica`, y después `cd web && npm run build`.
-      ⚠️ `python -m engine.run` sin flag usa **sintéticos** y sobrescribe lo que muestra la app.
-      Cambios de narrativa con datos reales:
-      - La localidad foco pasa a ser **Suba** (−4.838 cupos). Bosa, Kennedy y Engativá tienen superávit a nivel de localidad.
-      - Hay pocos niños sin cupo (724 de 776.068), porque la demanda pública está registrada donde se pide el cupo y no donde vive el niño.
-- [ ] **Número de WhatsApp o enlace de Calendly** para "Agendar cita": `WHATSAPP_CITA` / `CALENDLY_CITA`
-      en `web/src/config.ts`. Ahora hay un número de prueba (`570000000000`).
-- [ ] **Logo de Proliferante** en SVG: `web/public/logo-proliferante.svg`. Mientras no esté, se muestra el nombre en texto.
-- [ ] **Color de marca:** `--acento` en `web/src/estilos.css` (ahora azul `#60a5fa`) y `COLORES.acento` en `config.ts`.
-- [ ] **URL pública + QR:** cuando haya hosting (con HTTPS, para que la PWA funcione offline en los celulares), poner
-      `URL_APP` y `MOSTRAR_QR = true` en `web/src/config.ts`. El QR se genera localmente.
-- [ ] **Hardware del tótem:** ¿Windows o Android? ¿Resolución exacta? Según la respuesta:
-      - Windows: probar `totem\lanzar-totem.bat` (no se ha ejecutado; abre Chrome en kiosco) y configurar la pantalla en vertical sin suspensión.
-      - Android: elegir entre servir desde un portátil en la red local o desde una URL con HTTPS. Instrucciones en el README, sección "Tótem".
+## 2. Verificar antes del evento
+- [ ] **Prueba de 2 horas** en el equipo real: `?modo=auto` sin internet, revisando que no haya errores en
+      consola (F12) y que la memoria no crezca. En el desarrollo se hizo una prueba más corta.
+- [ ] Que el táctil responda, que el mapa vaya fluido y que el texto se lea a 1–2 m con la luz del recinto.
+- [ ] Probar el reinicio oculto (mantener presionado el logo 3 s) en la pantalla táctil real.
+- [ ] Revisar los textos con comunicaciones: frases de la espera, títulos de los pasos y etiquetas de los presets.
 
-## 2. Recomendado antes del evento
+### Procedimiento de la prueba de 2 horas
+1. `totem\lanzar-totem.bat auto`, o abrir `web/demo-offline.html?modo=auto` en Chrome, con el wifi apagado.
+2. Abrir la consola (F12) y dejarla en "Errores".
+3. A las 2 h: sin errores rojos y la app sigue recorriendo los pasos. La memoria (Administrador de tareas de
+   Chrome) debe mantenerse estable, sin crecer de forma sostenida.
 
-- [ ] **Probar en el tótem real:** que el táctil responda, que la animación de las líneas vaya fluida y que
-      el texto se lea a 1–2 m con la luz del recinto.
-- [ ] **Encuadre del mapa** en localidades de forma irregular (Suba queda pequeña, con mucho espacio
-      vacío) y mapa de la ciudad más grande en el modo espera. Es ajuste de `margenArriba`/`margenAbajo` en `App.tsx`.
-- [ ] **Revisar los textos** con alguien de comunicaciones: frases del modo espera, nota final de la
-      escena Matrícula+, tarjetas de "¿Cómo lo hicimos?".
-- [ ] **Probar la instalación PWA** en iPhone (Safari) y Android (Chrome) con la URL pública.
-- [ ] **Crear el repositorio git.** La carpeta todavía no es un repositorio.
+## 3. Mejoras posibles (si hay tiempo o después del evento)
+- [ ] **Colegio nuevo más visible:** hoy +1.200 cupos frente a unos 37.000 niños sin cupo mueve poco. Se podrían
+      simular varios colegios o más cupos (`cupos_colegio_nuevo` en `engine/simulador/config.py`).
+- [ ] **Saber 11 real** por sede (ICFES) para que las preferencias consideren calidad.
+- [ ] **Tiempos de viaje** con la red vial o el SITP, en lugar de la distancia en línea recta.
+- [ ] **Simular por nivel** (preescolar, primaria, secundaria, media).
+- [ ] **Jornada única** solo en las sedes que aún no la tienen (el dataset de matrícula en jornada única lo permite).
+- [ ] **Modo detallado** con los 27 niveles de pesos (ya están precalculados en `scenarios/`).
 
-## 3. Mejoras del modelo (después del evento o si hay tiempo)
-
-- [ ] **Demanda por lugar de residencia.** Es la limitación más grande con datos reales: hoy la demanda se
-      ubica en el colegio solicitado, lo que subestima el desajuste territorial. Pedir a la SED la demanda por UPZ de residencia.
-- [ ] **Calidad real:** reemplazar el puntaje simulado por el Saber 11 del ICFES (datos abiertos, por código DANE).
-- [ ] **Tiempos de viaje reales** con la red vial o SITP, en lugar de distancia × 1,35.
-- [ ] **Simular por nivel** (preescolar, primaria, secundaria, media) en vez del total agregado.
-- [ ] **Límites oficiales de UPZ:** el dataset del portal tiene acceso restringido y hoy se usan los polígonos
-      del dataset de aprobación escolar de la SED. Conviene confirmar que coinciden con los oficiales.
-- [ ] **Validar los parámetros del cupo garantizado** con la SED: costo por posición en la lista (8 min),
-      fuera de lista (45 min), penalización de viajes > 40 min (×6) y radio (8 km). Están en `engine/config.py`.
-- [ ] **Escenario de política adicional:** abrir N cupos en las UPZ con déficit, o ruta escolar, para
-      mostrar "dónde invertir".
-
-## 4. Detalles técnicos menores
-
-- `web/public/_previa-stand.html` es una herramienta de desarrollo y también se publica con el build. Es
-  inofensiva, pero se puede quitar del build final.
-- Si se cambian los JSON con la app ya instalada, la PWA se actualiza sola en la siguiente visita
-  (`registerType: autoUpdate`). En el tótem conviene recargar una vez después de cada build.
+## 4. Notas técnicas
+- `python -m engine.build_scenarios` regenera `scenarios/` y `web/public/simulador/`. Después hay que correr
+  `npm run build` (servidor/PWA) y `npm run build:archivo` (doble clic).
+- Con la app instalada como PWA, los cambios llegan en la siguiente visita (`autoUpdate`). En el tótem
+  conviene recargar una vez después de cada build.
+- `web/public/_previa-stand.html` es una herramienta de desarrollo y se publica con el build. Es inofensiva.
+- En la consola aparecen mensajes **DEBUG** de luma.gl ("uniform block reflection failed…"). Son informativos
+  de la librería del mapa, no errores.

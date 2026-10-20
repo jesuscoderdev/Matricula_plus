@@ -102,12 +102,31 @@ function bboxDe(geoms: any[]): Bbox {
   return [[x0, y0], [x1, y1]]
 }
 
-export async function cargarDatos(): Promise<Datos> {
-  const [todos, upz, colegios] = await Promise.all([
-    json<{ indice: Indice; escenarios: Record<string, EscenarioCompacto> }>('./simulador/todos.json'),
-    json<FC<PropsUpz>>('./simulador/upz.geojson'),
-    json<FC<PropsColegio, { type: 'Point'; coordinates: [number, number] }>>('./simulador/colegios.geojson'),
+// true solo en el build "archivo" (un HTML que se abre con doble clic): ver vite.config.ts
+declare const __EMBEBIDO__: boolean
+
+type Crudos = [{ indice: Indice; escenarios: Record<string, EscenarioCompacto> }, FC<PropsUpz>,
+  FC<PropsColegio, { type: 'Point'; coordinates: [number, number] }>]
+
+async function leerCrudos(): Promise<Crudos> {
+  if (__EMBEBIDO__) {
+    // Datos incrustados en el HTML (file:// no permite fetch). En el build normal este bloque se elimina.
+    const [t, u, c] = await Promise.all([
+      import('../public/simulador/todos.json?raw'),
+      import('../public/simulador/upz.geojson?raw'),
+      import('../public/simulador/colegios.geojson?raw'),
+    ])
+    return [JSON.parse(t.default), JSON.parse(u.default), JSON.parse(c.default)]
+  }
+  return Promise.all([
+    json<Crudos[0]>('./simulador/todos.json'),
+    json<Crudos[1]>('./simulador/upz.geojson'),
+    json<Crudos[2]>('./simulador/colegios.geojson'),
   ])
+}
+
+export async function cargarDatos(): Promise<Datos> {
+  const [todos, upz, colegios] = await leerCrudos()
   const posUpz = Object.fromEntries(todos.indice.upz.map((c, i) => [c, i]))
   const zona = upz.features.filter((f) => f.properties.zona_critica)
   return {

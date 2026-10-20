@@ -5,6 +5,7 @@ import { DURACION_PASOS, SEGUNDOS_INACTIVIDAD } from './config'
 import { esTotem, leerModo } from './modo'
 import BarraProgreso, { PASOS, type PasoId } from './componentes/BarraProgreso'
 import { LogoReinicio } from './componentes/Marca'
+import Intro from './componentes/Intro'
 import type { PropsPaso } from './pasos/tipos'
 import { describirPalancas } from './pasos/tipos'
 import Espera from './pasos/Espera'
@@ -39,6 +40,8 @@ export default function App() {
   const [vista, setVista] = useState<Vista>('espera')
   const [palancas, setPalancas] = useState<Palancas>(PALANCAS_INICIALES)
   const [vuelta, setVuelta] = useState(0)
+  // Animación de entrada al abrir la web
+  const [intro, setIntro] = useState(true)
   // Solo celular
   const [pestana, setPestana] = useState<Pestana>('recorrido')
   const [localidad, setLocalidad] = useState('Suba')
@@ -69,7 +72,7 @@ export default function App() {
 
   // Modo automático: recorre los 5 pasos con sus tiempos y mueve palancas en el paso Acción
   useEffect(() => {
-    if (modo !== 'auto' || !datos) return
+    if (modo !== 'auto' || !datos || intro) return
     const orden: Vista[] = ['espera', ...PASOS.map((p) => p.id)]
     const dur = vista === 'espera' ? 5 : DURACION_PASOS[vista]
     const timers: number[] = []
@@ -82,7 +85,7 @@ export default function App() {
       setVista(sig)
     }, dur * 1000))
     return () => timers.forEach((t) => window.clearTimeout(t))
-  }, [modo, vista, datos, vuelta, cambiarPalancas])
+  }, [modo, vista, datos, vuelta, cambiarPalancas, intro])
 
   // El tótem no abre menús contextuales ni hace zoom con gestos
   useEffect(() => {
@@ -96,8 +99,17 @@ export default function App() {
   const base = useMemo(() => (datos ? resultadoBase(datos) : null), [datos])
   const actual = useMemo(() => (datos ? resultado(datos, palancas) : null), [datos, palancas])
 
-  if (error) return <div className="app"><div className="mensaje-error">{error}</div></div>
-  if (!datos || !base || !actual) return <div className="app"><div className="cargando">Cargando…</div></div>
+  // La animación de entrada va siempre en la misma posición del árbol, así no se reinicia
+  // cuando terminan de cargar los datos.
+  const entrada = intro && <Intro alTerminar={() => setIntro(false)} />
+  if (error || !datos || !base || !actual) {
+    return (
+      <div className="app">
+        <>{error ? <div className="mensaje-error">{error}</div> : !intro && <div className="cargando">Cargando…</div>}</>
+        {entrada}
+      </div>
+    )
+  }
 
   const Pantalla = PANTALLAS[vista]
   const supuestosCortos = `Familias sintéticas, sin datos personales · ${datos.indice.supuestos.corte} · distancia en línea recta`
@@ -121,11 +133,12 @@ export default function App() {
     </div>
   )
 
-  if (esTotem(modo)) return <div className="app">{flujo}</div>
+  if (esTotem(modo)) return <div className="app"><>{flujo}</>{entrada}</div>
 
   // --- Celular: simulador + "Mi localidad" + "Agendar", con barra inferior ---
   return (
     <div className="app app--celular">
+      <>
       <main className="vista">
         {pestana === 'recorrido' && flujo}
         {pestana === 'localidad' && !upz && (
@@ -139,6 +152,8 @@ export default function App() {
         {pestana === 'agendar' && <AgendarCita />}
       </main>
       <BarraInferior actual={pestana} cambiar={(p) => { setPestana(p); setUpz(null) }} />
+      </>
+      {entrada}
     </div>
   )
 }

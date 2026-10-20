@@ -6,3 +6,4 @@ web/dist/
 data/raw/*
 !data/raw/.gitkeep
 totem/perfil-chrome/
+web/dist-archivo/

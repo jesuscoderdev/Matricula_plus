@@ -21,7 +21,7 @@ export default function BarraProgreso({ actual, ir }: { actual: PasoId; ir?: (p:
           tabIndex={k < i ? 0 : -1}
         >
           <span className="progreso__barra" />
-          <span className="progreso__texto">{k + 1}. {p.etiqueta}</span>
+          <span className="progreso__texto">{k + 1}<span className="progreso__nombre">. {p.etiqueta}</span></span>
         </button>
       ))}
     </nav>
