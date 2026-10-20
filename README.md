@@ -13,6 +13,8 @@ El visitante lo entiende y lo usa en unos 60 segundos y termina en un QR para ag
 - **Resultado:** 5 métricas con su cambio frente a hoy, y el mapa de UPZ recoloreado al instante.
 - **Supuestos** siempre a la vista, y **método + QR** al cierre.
 
+Recorrido de respaldo para el stand (60 s): [docs/recorrido-60s.gif](docs/recorrido-60s.gif)
+
 Supuestos, fuentes y limitaciones: [docs/supuestos.md](docs/supuestos.md) · Validación de datos:
 [docs/fase0-validacion-datos.md](docs/fase0-validacion-datos.md) · Lo que falta: [PENDIENTES.md](PENDIENTES.md)
 
@@ -86,13 +88,14 @@ Pon Windows en orientación vertical y desactiva la suspensión de pantalla.
 Browser) con pantalla completa, orientación vertical y pantalla siempre encendida.
 
 ## Configuración
-- `web/src/config.ts`: nombre, **QR** (`QR_IMAGEN`: pon `web/public/qr-cita.png`), WhatsApp/Calendly para
+- `web/src/config.ts`: nombre, **QR** (`QR_IMAGEN`, p. ej. `./qr-cita.png` en `web/public/`), WhatsApp/Calendly para
   la cita, tiempos del kiosco y del modo auto, y colores.
 - `web/src/estilos.css`: paleta (`--azul-oscuro #14213D`, `--fondo #F6F4EE`, `--naranja #B4561A`,
   `--naranja-claro #E8893D`, `--azul #2F6FB5`). Tipografías Space Grotesk y Public Sans incluidas localmente.
 - `engine/simulador/config.py`: totales de nuevos, % de hermanos y vulnerables, pesos de prioridad, presets,
   ubicaciones y cupos del colegio nuevo, reducción por jornada única, zona crítica y semilla.
-- Logo: `web/public/logo-proliferante.svg`. Si no está, se muestra el nombre en texto.
+- Logo: pon el archivo en `web/public/` y su ruta en `LOGO_IMAGEN` (`web/src/config.ts`). Vacío = nombre en texto.
+  Con `QR_IMAGEN` y `LOGO_IMAGEN` vacíos no se pide ningún archivo, así no hay errores en consola.
 
 ## Criterios del brief
 

@@ -4,12 +4,12 @@ Estado al 20-10-2026: las fases 0 a 4 del brief están hechas (validación de da
 precálculo de 324 escenarios, interfaz de 5 pasos y kiosco). Evento: 3 y 4 de noviembre.
 
 ## 1. Necesito de ustedes (bloquea el evento)
-- [ ] **Imagen del QR** para agendar cita: `web/public/qr-cita.png` (o cambia `QR_IMAGEN` en `web/src/config.ts`).
-      Mientras no esté, el paso 5 muestra un recuadro "QR" de aviso. Después de agregarla, regenera
+- [ ] **Imagen del QR** para agendar cita: ponla en `web/public/` (p. ej. `qr-cita.png`) y su ruta en `QR_IMAGEN`
+      (`web/src/config.ts`). Mientras no esté, el paso 5 muestra un recuadro "QR" de aviso. Después de agregarla, regenera
       `demo-offline.html` con `cd web && npm run build:archivo`.
 - [ ] **Número de WhatsApp o enlace de Calendly** para el botón "Agendar" del celular: `WHATSAPP_CITA` /
       `CALENDLY_CITA` en `web/src/config.ts`. Ahora hay un número de prueba (`570000000000`).
-- [ ] **Logo de Proliferante** en SVG: `web/public/logo-proliferante.svg`.
+- [ ] **Logo de Proliferante** en SVG: ponlo en `web/public/` y su ruta en `LOGO_IMAGEN` (`web/src/config.ts`).
 - [ ] **Hardware del tótem:** ¿Windows o Android? ¿Táctil? ¿Resolución exacta? Probar `totem\lanzar-totem.bat`
       en el equipo real. No se ha ejecutado completo porque abre Chrome en kiosco; sí se probó la URL que arma.
 

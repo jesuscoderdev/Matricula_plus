@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { APP_NAME, EMPRESA, SEGUNDOS_REINICIO_LOGO } from '../config'
+import { APP_NAME, EMPRESA, LOGO_IMAGEN, SEGUNDOS_REINICIO_LOGO } from '../config'
 
 /** Nombre de la app: "Matrícula" + el "+" en color de acento. */
 export function NombreApp({ className = '' }: { className?: string }) {
@@ -39,11 +39,11 @@ export function LogoReinicio({ alReiniciar }: { alReiniciar: () => void }) {
 }
 
 /**
- * Logo de la empresa. Si existe public/logo-proliferante.svg se usa;
- * si no, se muestra el nombre como marca tipográfica.
+ * Logo de la empresa: la imagen de LOGO_IMAGEN si está configurada;
+ * si no (o si falla), el nombre como marca tipográfica.
  */
 export function LogoEmpresa() {
-  const [sinImagen, setSinImagen] = useState(false)
+  const [sinImagen, setSinImagen] = useState(!LOGO_IMAGEN)
   if (sinImagen) return <span className="logo-texto">{EMPRESA.toLowerCase()}</span>
-  return <img className="logo-img" src="./logo-proliferante.svg" alt={EMPRESA} onError={() => setSinImagen(true)} />
+  return <img className="logo-img" src={LOGO_IMAGEN} alt={EMPRESA} onError={() => setSinImagen(true)} />
 }

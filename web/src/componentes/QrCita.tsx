@@ -7,7 +7,7 @@ import { MOSTRAR_QR_GENERADO, QR_IMAGEN, URL_CITA } from '../config'
  * genera uno local con URL_CITA cuando MOSTRAR_QR_GENERADO está activo; si no, un recuadro de aviso.
  */
 export default function QrCita() {
-  const [sinImagen, setSinImagen] = useState(false)
+  const [sinImagen, setSinImagen] = useState(!QR_IMAGEN)
   if (!sinImagen) {
     return (
       <figure className="qr">
@@ -19,7 +19,7 @@ export default function QrCita() {
   if (MOSTRAR_QR_GENERADO) return <Qr texto={URL_CITA} etiqueta="Escanea para agendar una cita" />
   return (
     <figure className="qr">
-      <div className="qr__img qr__img--pendiente">QR<br /><small>agrega {QR_IMAGEN.replace('./', 'web/public/')}</small></div>
+      <div className="qr__img qr__img--pendiente">QR<br /><small>configura QR_IMAGEN</small></div>
       <figcaption>Agenda una cita con nuestro equipo</figcaption>
     </figure>
   )

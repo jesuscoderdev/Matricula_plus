@@ -7,11 +7,14 @@ export const APP_NAME = 'Matrícula+'
 export const TITULO_SIMULADOR = '¿Dónde cabe cada niño?'
 export const EMPRESA = 'Proliferante'
 
-// --- QR del cierre ---
-// Imagen configurable: pon el archivo en web/public/ con este nombre (PNG o SVG).
-// Si no existe, se genera un QR local con URL_CITA (solo si MOSTRAR_QR_GENERADO es true).
-export const QR_IMAGEN = './qr-cita.png'
+// --- Imágenes configurables (en web/public/) ---
+// Vacío = no se pide ningún archivo (así no hay errores en consola si todavía no existe).
+// QR del cierre: p. ej. './qr-cita.png'. Sin imagen se genera uno local con URL_CITA si
+// MOSTRAR_QR_GENERADO es true; si no, se muestra un recuadro de aviso.
+export const QR_IMAGEN = ''
 export const MOSTRAR_QR_GENERADO = false
+// Logo de la empresa: p. ej. './logo-proliferante.svg'. Vacío = nombre en texto.
+export const LOGO_IMAGEN = ''
 
 // URL que codifica el QR de la app en el celular (vacía = URL actual sin parámetros)
 export const URL_APP = ''

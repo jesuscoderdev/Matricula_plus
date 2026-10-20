@@ -2,6 +2,18 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { viteSingleFile } from 'vite-plugin-singlefile'
+import fs from 'node:fs'
+
+/** En el HTML de doble clic no hay carpeta de íconos: el favicon va incrustado y se quita el de Apple. */
+const iconosIncrustados = () => ({
+  name: 'iconos-incrustados',
+  transformIndexHtml(html: string) {
+    const png = fs.readFileSync('public/iconos/favicon.png').toString('base64')
+    return html
+      .replace('href="./iconos/favicon.png"', `href="data:image/png;base64,${png}"`)
+      .replace(/\s*<link rel="apple-touch-icon"[^>]*>/, '')
+  },
+})
 
 // Dos builds:
 //  - normal (`npm run build`): PWA con service worker, para servir en http y funcionar offline
@@ -13,12 +25,12 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       archivo
-        ? viteSingleFile({ removeViteModuleLoader: true })
+        ? [viteSingleFile({ removeViteModuleLoader: true }), iconosIncrustados()]
         // PWA: el service worker precachea TODO (código, fuente, datos) para funcionar sin internet
         : VitePWA({
           registerType: 'autoUpdate',
           injectRegister: 'auto',
-          includeAssets: ['iconos/*.png', 'logo-proliferante.svg'],
+          includeAssets: ['iconos/*.png'],
           manifest: {
             name: 'Matrícula+ · ¿Dónde cabe cada niño?',
             short_name: 'Matrícula+',
