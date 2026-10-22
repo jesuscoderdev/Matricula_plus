@@ -10,7 +10,7 @@ Un **atlas interactivo** en 5 capítulos, con un solo mapa que cambia de escena:
 
 1. **Problema, en vivo:** el visitante elige su localidad y ve **cómo se asigna hoy**: las familias llegan una por una,
    los colegios se llenan, quien llega tarde no cabe y la SED **reubica** a quien puede en el colegio con cupo más cercano
-   (en Bogotá, 36.810 niños nuevos quedan fuera de sus opciones).
+   (en Bogotá, 37.460 niños nuevos quedan fuera de sus opciones).
 2. **Acción:** decide las reglas (prioridad **Equilibrada** / Cercanía / Familias / Equidad, pesos finos en PC), un
    **colegio nuevo** en uno de 5 proyectos reales de la SED **o en cualquier punto del mapa**, jornada única y cuántos
    colegios puede pedir cada familia (3–5). Con ▶ Asignar ve la **asignación diferida por rondas** y la reubicación,

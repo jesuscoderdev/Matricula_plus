@@ -7,7 +7,9 @@ Decisiones de modelado (aprobadas en la fase 0):
     Los cupos de nuevos se reparten entre sedes en proporción a su oferta regular (03.2025).
   - Las familias viven según la población de 5 a 17 años por UPZ (proyección SDP/DANE 2026),
     ajustada para que el total por localidad cuadre con la participación de cada localidad en
-    la demanda oficial.
+    la demanda oficial. Dentro de su UPZ, cada familia vive en una manzana residencial (estrato 1 a 6
+    de la estratificación de la SDP), elegida con probabilidad proporcional a su número de predios
+    (Catastro).
 """
 from dataclasses import dataclass
 
@@ -28,6 +30,7 @@ class Base:
     candidatos: pd.DataFrame       # clave, etiqueta, proyecto, upz, upz_nombre, localidad, lon, lat
     fuente: str
     zona_critica: list = None      # códigos de UPZ; se define con la línea base (ver escenario.py)
+    manzanas: gpd.GeoDataFrame = None  # manzanas residenciales: upz, peso, geometry (None = punto en la UPZ)
 
 
 def cargar_base(fuente: str, p: ParametrosSimulador, verbose: bool = True) -> Base:
@@ -37,7 +40,7 @@ def cargar_base(fuente: str, p: ParametrosSimulador, verbose: bool = True) -> Ba
 # ---------------------------------------------------------------- real
 def _base_real(p, verbose):
     from engine.fuentes.real import (cargar_geografia, cargar_oferta_demanda, colegios_nuevos,
-                                     descargar, poblacion_escolar_upz)
+                                     descargar, manzanas_residenciales, poblacion_escolar_upz)
     descargar()
     upz, localidades = cargar_geografia()
     oferta, _, _ = cargar_oferta_demanda(upz, verbose=verbose)
@@ -77,7 +80,8 @@ def _base_real(p, verbose):
                       "upz_nombre": r["upz_nombre"], "localidad": r["localidad"],
                       "lon": r.geometry.x, "lat": r.geometry.y})
     return Base(upz=upz[["codigo", "nombre", "localidad", "geometry"]], localidades=localidades,
-                sedes=sedes, demanda_upz=demanda_upz, candidatos=pd.DataFrame(filas), fuente="real")
+                sedes=sedes, demanda_upz=demanda_upz, candidatos=pd.DataFrame(filas), fuente="real",
+                manzanas=manzanas_residenciales(upz))
 
 
 # ---------------------------------------------------------------- sintética

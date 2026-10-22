@@ -220,7 +220,8 @@ def main():
         "base_por_upz": [m_base["por_upz"].get(c, 0.0) for c in base.upz["codigo"]],
         "supuestos": {
             "familias": f"Familias sintéticas, sin datos personales: 1 familia = {p.estudiantes_por_familia} estudiantes nuevos "
-                        f"({miles(fam.n)} familias), ubicadas según la población de 5 a 17 años por UPZ.",
+                        f"({miles(fam.n)} familias), repartidas según la población de 5 a 17 años por UPZ"
+                        + (" y ubicadas en manzanas residenciales (estratificación SDP)." if base.manzanas is not None else "."),
             "corte": p.anio_corte,
             "cupos": f"{miles(p.demanda_nuevos_total)} solicitudes y {miles(p.cupos_nuevos_total)} cupos de nuevos "
                      "(Estudio de insuficiencia SED 2025).",

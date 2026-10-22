@@ -5,7 +5,14 @@ Datasets (se descargan solos a data/raw/real/ si no están):
   - Oferta de cupos, sector oficial (03.2025): un punto por SEDE con cupos por nivel (se usan los
     regulares: preescolar a media + aceleración; `OTotal` incluye educación de adultos).
   - Demanda de cupos, sector oficial (03.2025): un punto por INSTITUCIÓN (DANE12_EST) con solicitudes (DTotal).
-  - Colegios (Catastro, MapServer infraestructuraeducativa/0): sedes con nombre, DANE de sede y sector.
+  - Colegios (Catastro, MapServer infraestructuraeducativa/0): sedes con nombre, DANE de sede, sector y
+    coordenada (es la que se usa para cada sede: ver `cargar_oferta_demanda`).
+  - Matrícula total, sector oficial (04.2025): mismos 747 puntos que la oferta, en el mismo orden, pero con el
+    DANE de SEDE (DANE12_SED); sirve para emparejar cada punto de oferta con su sede en Catastro.
+  - Estratificación socioeconómica por manzana (SDP, Decreto 532 de 2025): manzanas con estrato 1 a 6 =
+    manzanas residenciales; ahí viven las familias sintéticas (estrato 0 = sin uso residencial).
+  - Densidad predial por manzana (Catastro, MapServer catastro/densidadpredialmz/0, año 2026): número de
+    predios de cada manzana; es el peso para repartir las familias entre las manzanas residenciales.
   - UPZ: polígonos del dataset "Tasa de aprobación escolar en colegios oficiales por UPZ" (SED 2024),
     porque el dataset oficial de límites de UPZ tiene acceso restringido en el portal.
   - Localidades (IDECA): límites oficiales; se recortan al área urbana y se excluye Sumapaz.
@@ -37,12 +44,23 @@ URLS = {
     "colegios_nuevos_052026.geojson": "https://datosabiertos.bogota.gov.co/dataset/5f1dd10a-2c5a-4e6c-84cc-eb5beade9ac6/resource/017f306f-5bd6-4def-ad2e-272b91042745/download/colegiosnuevos_restitucion_052026.geojson",
     "matricula_total_042025.geojson": "https://datosabiertos.bogota.gov.co/dataset/02e88fbc-5081-443f-ac5e-4071191c8703/resource/a712dfb0-7fdb-4828-8b8f-916d3f29e34c/download/matriculatotal_042025.geojson",
     "jornada_unica_032025.geojson": "https://datosabiertos.bogota.gov.co/dataset/4e1dea84-98b9-4b56-9eef-49b02e0b2a75/resource/07ad78d2-2c67-47a1-ba45-024aa4f830aa/download/matriculajunica03_2025.geojson",
+    # Estratificación por manzana (SDP, corte 29.10.2025). Shapefile comprimido (13,7 MB; el GeoJSON pesa 83 MB)
+    "manzana_estratificacion.zip": "https://datosabiertos.bogota.gov.co/dataset/55467552-0af4-4524-a390-a2956035744e/resource/63dfac38-e729-4c7c-9935-fece39f176ea/download/manzanaestratificacion.zip",
 }
 URL_COLEGIOS = ("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/educacion/"
                 "infraestructuraeducativa/MapServer/0/query")
+URL_PREDIOS_MZ = ("https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/"
+                  "densidadpredialmz/MapServer/0/query")
+ANIO_PREDIOS = 2026
 SECTOR_OFICIAL = 2
 COD_SUMAPAZ = "20"
-DISTANCIA_MAX_SEDE_M = 300    # para emparejar un punto de oferta con su sede en la capa de colegios
+# Sedes donde la coordenada de la SED cuadra mejor con su dirección que la de Catastro (ver docs/supuestos.md,
+# "Ubicación de los colegios"): en esas se deja el punto de la SED. En las demás se usa el de Catastro.
+PREFERIR_PUNTO_SED = {
+    "111001100056",   # Colegio Jaime Hernando Garzón Forero (IED), sede principal (Catastro: TV 85 A; SED: TV 93 A)
+    "111001010910",   # Colegio Nacional Nicolás Esguerra (IED)
+}
+ESTRATOS_RESIDENCIALES = range(1, 7)   # estrato 0 = manzana sin uso residencial (parques, industria, etc.)
 
 
 # ---------------------------------------------------------------- descarga
@@ -80,6 +98,24 @@ def descargar(forzar: bool = False):
         gdf = gpd.GeoDataFrame.from_features(partes, crs="EPSG:4326").drop_duplicates("OBJECTID")
         gdf.to_file(ruta, driver="GeoJSON")
 
+    ruta = CARPETA / f"predios_manzana_{ANIO_PREDIOS}.csv"
+    if not ruta.exists() or forzar:
+        print(f"  descargando predios por manzana {ANIO_PREDIOS} (Catastro, paginado, sin geometría)…")
+        filas, offset = [], 0
+        while True:
+            r = requests.get(URL_PREDIOS_MZ, timeout=180, params={
+                "where": f"ANO = DATE '{ANIO_PREDIOS}-01-01'", "outFields": "MANCODIGO,N_PREDIOS",
+                "returnGeometry": "false", "f": "json",
+                "resultOffset": offset, "resultRecordCount": 2000, "orderByFields": "OBJECTID",
+            })
+            r.raise_for_status()
+            feats = r.json().get("features", [])
+            filas += [f["attributes"] for f in feats]
+            offset += len(feats)
+            if len(feats) < 2000:
+                break
+        pd.DataFrame(filas).to_csv(ruta, index=False)
+
 
 # ---------------------------------------------------------------- nombres
 def _normalizar(texto: str) -> str:
@@ -104,6 +140,19 @@ def _titulo(texto: str) -> str:
         else:
             palabras.append(p[:1].upper() + p[1:].lower())
     return " ".join(palabras)
+
+
+def _nombre_sede(est: str, sed: str) -> str:
+    """
+    'COLEGIO X (IED)' + 'SEDE A - LOS ALPES' → 'Colegio X (IED) - Sede A - los Alpes'. Si la sede repite el
+    nombre de la institución ('COLEGIO X (IED) - SEDE PRINCIPAL'), solo se agrega lo que sigue ('Sede Principal').
+    """
+    if not sed or _normalizar(sed) in _normalizar(est):
+        return _titulo(est)
+    if _normalizar(est) in _normalizar(sed):
+        resto = sed.split(" - ", 1)[1] if " - " in sed else ""
+        return f"{_titulo(est)} - {_titulo(resto)}" if resto else _titulo(est)
+    return f"{_titulo(est)} - {_titulo(sed)}"
 
 
 def _nombre_upz(nombre: str) -> str:
@@ -165,23 +214,35 @@ def cargar_oferta_demanda(upz, verbose=True):
     oferta = gpd.read_file(CARPETA / "oferta_032025.geojson").to_crs(4326)
     oferta["DANE12_EST"] = oferta["DANE12_EST"].astype(str)
     oferta["cupos_regulares"] = oferta[CUPOS_REGULARES].sum(axis=1)
+
+    # DANE de la sede: el dataset de matrícula (SED 04.2025) trae los mismos puntos en el mismo orden,
+    # con DANE12_SED. Se comprueba punto a punto antes de usarlo.
+    matricula = gpd.read_file(CARPETA / "matricula_total_042025.geojson").to_crs(4326)
+    alineados = (len(matricula) == len(oferta)
+                 and (matricula["DANE12_EST"].astype(str).to_numpy() == oferta["DANE12_EST"].to_numpy()).all()
+                 and (oferta.to_crs(3116).distance(matricula.to_crs(3116)) < 1).all())
+    if not alineados:
+        raise ValueError("Oferta y matrícula de la SED ya no traen los mismos puntos en el mismo orden: "
+                         "revisar el emparejamiento de sedes")
+    oferta["dane_sede"] = matricula["DANE12_SED"].astype(str).to_numpy()
     oferta = oferta[oferta["cupos_regulares"] > 0].reset_index(drop=True)
 
-    # Nombre y DANE de la sede: punto más cercano de la misma institución en la capa de colegios
+    # Nombre y coordenada de la sede: la capa de Colegios de Catastro, emparejada por DANE de sede.
     colegios = gpd.read_file(CARPETA / "colegios.geojson")
     colegios = colegios[(colegios["SECTOR"] == SECTOR_OFICIAL) & ~colegios.geometry.is_empty & colegios.geometry.notna()]
-    colegios["DANE12_EST"] = colegios["DANE12_EST"].astype(str)
-    o_m, c_m = oferta.to_crs(3116), colegios.to_crs(3116)
-    cerca = gpd.sjoin_nearest(o_m[["DANE12_EST", "geometry"]], c_m[["DANE12_EST", "DANE12_SED", "NOMBRE_SED", "geometry"]],
-                              how="left", max_distance=DISTANCIA_MAX_SEDE_M, distance_col="dist_m")
-    cerca = cerca[~cerca.index.duplicated(keep="first")]
-    misma = cerca["DANE12_EST_left"] == cerca["DANE12_EST_right"]
-    oferta["dane_sede"] = np.where(misma, cerca["DANE12_SED"].astype(str), oferta["DANE12_EST"])
-    oferta["nombre_sede"] = np.where(misma, cerca["NOMBRE_SED"].fillna(""), "")
-    oferta["nombre"] = [
-        f"{_titulo(est)} - {_titulo(sed)}" if sed and _normalizar(sed) not in _normalizar(est) else _titulo(est)
-        for est, sed in zip(oferta["NOMBRE_EST"], oferta["nombre_sede"])
-    ]
+    colegios = colegios.assign(DANE12_SED=colegios["DANE12_SED"].astype(str)).drop_duplicates("DANE12_SED").set_index("DANE12_SED")
+    en_catastro = oferta["dane_sede"].isin(colegios.index)
+    oferta["nombre_sede"] = oferta["dane_sede"].map(colegios["NOMBRE_SED"]).fillna("")
+    punto_cat = gpd.GeoSeries(oferta["dane_sede"].map(colegios.geometry), crs=colegios.crs).to_crs(4326)
+    dist_m = oferta.to_crs(3116).distance(punto_cat.to_crs(3116))
+    usar_cat = en_catastro & ~oferta["dane_sede"].isin(PREFERIR_PUNTO_SED)
+    if verbose:
+        q = dist_m[en_catastro].quantile([0.5, 0.9])
+        print(f"  Sedes SED vs Catastro (mismo DANE de sede, {int(en_catastro.sum())}/{len(oferta)}): "
+              f"mediana {q[0.5]:.1f} m · p90 {q[0.9]:.1f} m · máx {dist_m.max():,.0f} m · "
+              f"{int((dist_m > 10).sum())} a más de 10 m · se usa Catastro en {int(usar_cat.sum())}")
+    oferta.loc[usar_cat, "geometry"] = punto_cat[usar_cat].values
+    oferta["nombre"] = [_nombre_sede(est, sed) for est, sed in zip(oferta["NOMBRE_EST"], oferta["nombre_sede"])]
 
     # UPZ de cada sede (las que caen fuera de las UPZ urbanas, p. ej. rurales, se descartan)
     oferta = gpd.sjoin(oferta, upz[["codigo", "localidad", "geometry"]], how="left", predicate="within")
@@ -225,6 +286,39 @@ def colegios_nuevos(upz) -> gpd.GeoDataFrame:
     n = gpd.read_file(CARPETA / "colegios_nuevos_052026.geojson").to_crs(4326)
     n = gpd.sjoin(n, upz[["codigo", "nombre", "localidad", "geometry"]], how="left", predicate="within")
     return n.rename(columns={"NOMBRE_PROYECTO": "proyecto", "TIPO_PROYECTO": "tipo", "nombre": "upz_nombre"})
+
+
+def manzanas_residenciales(upz) -> gpd.GeoDataFrame:
+    """
+    Manzanas con uso residencial (estrato 1 a 6 en la estratificación de la SDP), la UPZ urbana donde
+    queda cada una (por su punto interior) y su peso para ubicar familias: el número de predios de la
+    manzana según Catastro (en propiedad horizontal cada apartamento es un predio, así que se acerca al
+    número de viviendas). Las manzanas sin dato de predios usan su área por la densidad predial
+    residencial de su UPZ. Columnas: upz, estrato, predios, area_m2, peso, geometry (EPSG:4326).
+    """
+    m = gpd.read_file(CARPETA / "manzana_estratificacion.zip")      # proyección plana local (metros)
+    m = m[m["ESTRATO"].isin(ESTRATOS_RESIDENCIALES) & m.geometry.notna() & ~m.geometry.is_empty].copy()
+    m["geometry"] = m.geometry.make_valid()
+    m["area_m2"] = m.geometry.area
+    m = m[m["area_m2"] > 0].to_crs(4326)
+    # Código de manzana: SDP usa 8 dígitos (sector 6 + manzana 2); Catastro, 9 (sector 6 + manzana 3)
+    predios = pd.read_csv(CARPETA / f"predios_manzana_{ANIO_PREDIOS}.csv", dtype={"MANCODIGO": str})
+    predios = predios.groupby("MANCODIGO")["N_PREDIOS"].max()
+    codigo = m["CODIGO_MAN"].astype(str).str.zfill(8)
+    m["predios"] = (codigo.str[:6] + "0" + codigo.str[6:]).map(predios)
+
+    puntos = m[["geometry"]].copy()
+    puntos["geometry"] = m.representative_point()
+    j = gpd.sjoin(puntos, upz[["codigo", "geometry"]], how="inner", predicate="within")
+    j = j[~j.index.duplicated(keep="first")]
+    m = m.loc[j.index].assign(upz=j["codigo"].to_numpy())
+
+    con = m["predios"].notna()
+    dens_upz = m[con].groupby("upz")["predios"].sum() / m[con].groupby("upz")["area_m2"].sum()
+    dens = m["upz"].map(dens_upz).fillna(m.loc[con, "predios"].sum() / m.loc[con, "area_m2"].sum())
+    m["peso"] = m["predios"].where(con, m["area_m2"] * dens)
+    return gpd.GeoDataFrame(m[["upz", "ESTRATO", "predios", "area_m2", "peso"]].rename(columns={"ESTRATO": "estrato"}),
+                            geometry=m.geometry.values, crs="EPSG:4326").reset_index(drop=True)
 
 
 def cargar_real(s) -> Datos:

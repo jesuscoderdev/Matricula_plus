@@ -68,9 +68,9 @@ interface Personaje {
 // Elegidos probando con simularCaso (supuestos y reglas por defecto): en los tres primeros
 // Matrícula+ cambia el resultado; el último es el caso feliz, igual en los dos.
 export const PERSONAJES: Personaje[] = [
-  { nombre: 'Laura', localidad: 'Bosa', fraccion: 0.5, vulnerable: false, llegada: 0.95, hermano: null, rasgos: ['llega de últimas'] },
-  { nombre: 'Andrés', localidad: 'Suba', fraccion: 0.3, vulnerable: false, llegada: 0.5, hermano: 0, rasgos: ['hermano en su 1.ª opción'] },
-  { nombre: 'Marta', localidad: 'Ciudad Bolívar', fraccion: 0.2, vulnerable: true, llegada: 0.5, hermano: null, rasgos: ['familia vulnerable'] },
+  { nombre: 'Laura', localidad: 'Bosa', fraccion: 0.19, vulnerable: false, llegada: 0.95, hermano: null, rasgos: ['llega de últimas'] },
+  { nombre: 'Andrés', localidad: 'Suba', fraccion: 0.32, vulnerable: false, llegada: 0.5, hermano: 0, rasgos: ['hermano en su 1.ª opción'] },
+  { nombre: 'Marta', localidad: 'Ciudad Bolívar', fraccion: 0.04, vulnerable: true, llegada: 0.5, hermano: null, rasgos: ['familia vulnerable'] },
   { nombre: 'Sofía', localidad: 'Kennedy', fraccion: 0.3, vulnerable: false, llegada: 0.05, hermano: null, rasgos: ['llega de primeras'] },
 ]
 

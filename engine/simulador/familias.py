@@ -2,8 +2,9 @@
 Familias sintéticas (sin datos personales).
 
 Cada familia representa a `estudiantes_por_familia` estudiantes nuevos, vive en un punto
-aleatorio de su UPZ y tiene dos atributos: `vulnerable` y, a veces, un hermano en una de sus
-sedes cercanas. Las distancias y el ruido de preferencias se calculan UNA vez para todas las
+aleatorio de una manzana residencial de su UPZ (elegida con probabilidad proporcional a su número
+de predios según Catastro; si la UPZ no tiene manzanas residenciales, en un punto aleatorio de
+la UPZ) y tiene dos atributos: `vulnerable` y, a veces, un hermano en una de sus sedes cercanas. Las distancias y el ruido de preferencias se calculan UNA vez para todas las
 sedes y todas las ubicaciones candidatas del colegio nuevo, así cada escenario usa los mismos
 números aleatorios (comparación justa y reproducible).
 """
@@ -72,20 +73,44 @@ class Familias:
         return prefs.copy()
 
 
+def _puntos_en_manzanas(manzanas, n: int, rng) -> np.ndarray:
+    """
+    n puntos: cada uno en una manzana elegida con probabilidad proporcional a su peso (predios) y,
+    dentro de ella, en un punto aleatorio uniforme. El orden de los puntos sigue el orden de los sorteos.
+    """
+    peso = manzanas["peso"].to_numpy()
+    elegidas = rng.choice(len(manzanas), size=n, p=peso / peso.sum())
+    pts = np.empty((n, 2))
+    geoms = manzanas.geometry.to_numpy()
+    for k in np.unique(elegidas):
+        donde = np.flatnonzero(elegidas == k)
+        pts[donde] = _puntos_en(geoms[k], len(donde), rng)
+    return pts
+
+
 def generar_familias(base: Base, p: ParametrosSimulador) -> Familias:
     rng = np.random.default_rng(p.semilla)
     n_total = int(round(p.demanda_nuevos_total / p.estudiantes_por_familia))
     por_upz = _reparto_entero(base.demanda_upz.to_numpy() / p.estudiantes_por_familia, n_total)
 
     geom = base.upz.set_index("codigo").geometry
+    manzanas = dict(tuple(base.manzanas.groupby("upz"))) if base.manzanas is not None else {}
     lon, lat, upz = [], [], []
+    sin_manzanas = 0
     for codigo, n in zip(base.demanda_upz.index, por_upz):
         if n == 0:
             continue
-        pts = _puntos_en(geom[codigo], int(n), rng)
+        if codigo in manzanas:
+            pts = _puntos_en_manzanas(manzanas[codigo], int(n), rng)
+        else:
+            pts = _puntos_en(geom[codigo], int(n), rng)
+            sin_manzanas += int(n)
         lon.append(pts[:, 0]); lat.append(pts[:, 1]); upz += [codigo] * int(n)
     lon, lat = np.concatenate(lon), np.concatenate(lat)
     n = len(lon)
+    if base.manzanas is not None:
+        print(f"  Familias en manzanas residenciales: {n - sin_manzanas:,} de {n:,}"
+              + (f" ({sin_manzanas:,} en UPZ sin manzanas residenciales: punto aleatorio de la UPZ)" if sin_manzanas else ""))
 
     destinos_lon = np.concatenate([base.sedes["lon"].to_numpy(), base.candidatos["lon"].to_numpy()])
     destinos_lat = np.concatenate([base.sedes["lat"].to_numpy(), base.candidatos["lat"].to_numpy()])

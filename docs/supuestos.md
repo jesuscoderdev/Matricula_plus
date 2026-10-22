@@ -9,12 +9,39 @@ Simulador de asignación de cupos en colegios oficiales de Bogotá, construido c
 |---|---|---|
 | Oferta de cupos por sede (747 sedes, 412 instituciones) | [SED · Oferta de cupos, sector oficial](https://datosabiertos.bogota.gov.co/dataset/oferta-de-cupos-sector-oficial-bogota-d-c) | 03.2025 |
 | Demanda de cupos por institución | [SED · Demanda de cupos, sector oficial](https://datosabiertos.bogota.gov.co/dataset/demanda-de-cupos-sector-oficial-bogota-d-c) | 03.2025 |
-| Nombres y DANE de sedes | [Catastro · Colegios](https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/educacion/infraestructuraeducativa/MapServer/0) | 2026 |
+| Nombres, DANE y coordenada de sedes | [Catastro · Colegios](https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/educacion/infraestructuraeducativa/MapServer/0) | 2026 |
+| DANE de sede de cada punto de oferta | [SED · Matrícula total en colegios oficiales](https://datosabiertos.bogota.gov.co/dataset/matricula-total-en-colegios-oficiales-bogota-d-c) | 04.2025 |
+| Manzanas residenciales (estrato 1 a 6) | [SDP · Estratificación Manzana Bogotá D.C.](https://datosabiertos.bogota.gov.co/dataset/estratificacion-para-bogota) (Decreto 532 de 2025, CC BY 4.0) | 29.10.2025 |
+| Predios por manzana (peso para ubicar familias) | [Catastro · Densidad predial por manzana](https://datosabiertos.bogota.gov.co/dataset/cantidad-de-predios-por-manzana) ([REST](https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/catastro/densidadpredialmz/MapServer/0), CC BY 4.0) | 2026 |
 | Ubicaciones del colegio nuevo | [SED · Colegios oficiales nuevos y en restitución](https://datosabiertos.bogota.gov.co/dataset/colegios-oficiales-nuevos-y-restitucion-bogota-d-c) | 05.2026 |
 | Población de 5 a 17 años por UPZ | [SDP/DANE · Proyecciones de población por UPZ](https://datosabiertos.bogota.gov.co/dataset/proyecciones-y-retroproyecciones-de-poblacion-2005-2035) | proyección 2026 |
 | Polígonos de UPZ | [SED · Tasa de aprobación escolar oficial por UPZ](https://datosabiertos.bogota.gov.co/dataset/tasa-de-aprobacion-escolar-en-colegios-oficiales-por-upz-bogota-d-c) | 2024 |
 | Límites de localidades | [IDECA · Localidad](https://datosabiertos.bogota.gov.co/dataset/localidad-bogota-d-c) | vigente |
 | Totales de nuevos (158.957 solicitudes, 140.377 cupos) | Estudio de insuficiencia SED 2025 | 2024–2025 |
+
+## Ubicación de las familias y de los colegios
+**Familias.** 38.546 manzanas residenciales caen en las 112 UPZ urbanas; todas las UPZ tienen al menos una, así que
+**ninguna familia** quedó con el método anterior (punto aleatorio en la UPZ, que se conserva en el código como
+respaldo). El código de manzana de la SDP (8 dígitos) se cruza con el de Catastro (9) insertando un 0 en la
+manzana; se comprobó con la geometría en una muestra (centroides a menos de 3 m). El 97% de las manzanas
+residenciales tiene dato de predios; las demás usan su área por la densidad predial residencial de su UPZ. Se pesó por predios y no
+por área porque hay "manzanas" residenciales enormes y casi vacías en el borde urbano (p. ej. 1 km² con 106 predios
+junto al Parque Entrenubes). Resultado: antes solo el 53,5% de las familias caía en una manzana residencial (16,6%
+en manzanas de estrato 0 y 29,9% fuera de toda manzana: vías, parques, cerros, humedales); ahora el 99,2% (el resto
+es el redondeo a 5 decimales en el borde de la manzana). El reparto por UPZ y localidad no cambia.
+
+**Colegios.** La oferta de la SED no trae el DANE de la sede, pero el dataset de Matrícula total (SED 04.2025)
+tiene los mismos 747 puntos en el mismo orden con `DANE12_SED` (se verifica punto a punto en cada carga). Con ese
+DANE se emparejan las 747 sedes con la capa de Colegios de Catastro y se midió la distancia entre los dos puntos de
+la **misma sede**: mediana **0,5 m**, p90 **0,6 m**, máximo **4.728 m**; 731 sedes a menos de 1 m y 15 a más de
+10 m. Es decir, la SED **no** usa centroides de institución: en el 98% de los casos es el mismo punto. En las 15
+discrepancias se comparó cada punto con una estimación por la dirección de la sede (vecinos en la nomenclatura
+calle–carrera de los 2.211 colegios de Catastro): el punto de Catastro cuadra mejor en 12 (p. ej. Colegio
+Cundinamarca: la SED lo ubica a 4,9 km de su dirección y Catastro a 0,3 km; Parques de Bogotá: 2,0 km vs 0,2 km).
+Por eso se usa la **coordenada de Catastro** (corte 2026) emparejada por DANE de sede, salvo en dos sedes donde el
+punto de la SED cuadra claramente mejor con la dirección (Jaime Hernando Garzón Forero, cuya dirección además
+difiere entre fuentes, y Nacional Nicolás Esguerra; lista `PREFERIR_PUNTO_SED` en `engine/fuentes/real.py`). El
+nombre de la sede también sale ahora del DANE de sede y no del punto más cercano.
 
 ## Validación de datos
 - Cupos regulares 03.2025 (preescolar, primaria, secundaria, media y aceleración): **784.632** frente a
@@ -31,8 +58,13 @@ Simulador de asignación de cupos en colegios oficiales de Bogotá, construido c
    entre las sedes en proporción a su oferta regular.
 2. **Dónde viven las familias.** La demanda de nuevos se reparte por UPZ según la población de 5 a 17 años
    (proyección 2026; de la cohorte 15–19 se toma el 60%, que corresponde a 15, 16 y 17 años). Luego se ajusta
-   para que cada localidad conserve su participación en la demanda oficial. Cada familia vive en un punto
-   aleatorio dentro de su UPZ.
+   para que cada localidad conserve su participación en la demanda oficial. Dentro de su UPZ, cada familia vive
+   en una **manzana residencial** (estrato 1 a 6 en la estratificación de la SDP; estrato 0 = parques, industria,
+   equipamientos, humedales, etc.) elegida con probabilidad proporcional a su **número de predios** según Catastro
+   2026 (en propiedad horizontal cada apartamento es un predio, así que se acerca al número de viviendas), y en un
+   punto aleatorio de esa manzana. Así no quedan familias en parques, cerros, humedales, el aeropuerto o zonas
+   industriales, y los barrios densos reciben más familias que los de casas grandes. Detalles en *Ubicación de las
+   familias y de los colegios*.
 3. **Familias sintéticas, sin datos personales.** 1 familia = 10 estudiantes nuevos (15.896 familias).
    El 15% tiene un hermano en una de sus 5 sedes más cercanas y el 30% es vulnerable.
    Ambos porcentajes son configurables.
@@ -105,23 +137,27 @@ elige el visitante y vuelve a correr las dos asignaciones completas.
 
 | | 1.ª opción | Fuera de opciones | Reubicados | Sin cupo | Viajes > 2 km | Vulnerables fuera | Zona crítica fuera |
 |---|---|---|---|---|---|---|---|
-| Hoy (orden de llegada) | 53,3% | 23,2% | 9,5% | 13,7% | 6,3% | 21,9% | 21,7% |
-| Equilibrada | 54,7% | 23,7% | 9,8% | 13,9% | 3,0% | 2,0% | 20,0% |
-| Equidad | 55,7% | 23,7% | 9,8% | 13,9% | 3,1% | 0,6% | 20,3% |
-| Equilibrada + colegio en Tibabuyes | 55,0% | 23,2% | 10,1% | 13,1% | 3,0% | 2,0% | 12,4% |
-| Equilibrada + 5 opciones | 52,3% | 20,2% | 6,4% | 13,8% | 3,1% | 0,6% | 16,0% |
-| Equilibrada + jornada única | 50,0% | 29,2% | 6,5% | 22,7% | 1,3% | 3,2% | 25,5% |
+| Hoy (orden de llegada) | 53,2% | 23,6% | 9,9% | 13,7% | 6,3% | 22,5% | 23,1% |
+| Equilibrada | 54,3% | 24,0% | 10,1% | 14,0% | 3,5% | 1,8% | 23,6% |
+| Equidad | 55,4% | 24,2% | 10,2% | 14,0% | 3,6% | 0,7% | 22,9% |
+| Equilibrada + colegio en Tibabuyes | 54,6% | 23,7% | 10,4% | 13,3% | 3,5% | 1,8% | 17,1% |
+| Equilibrada + 5 opciones | 52,1% | 20,7% | 6,7% | 14,0% | 3,6% | 0,7% | 19,0% |
+| Equilibrada + jornada única | 49,5% | 29,7% | 7,0% | 22,7% | 1,7% | 2,7% | 28,5% |
 
 Lecturas:
-- **Las prioridades deciden *quién* cabe, no *cuántos*.** Fuera de sus opciones se mantiene en unos 23%, pero los
-  vulnerables fuera bajan de 21,9% a 2,0% y los viajes largos se reducen a la mitad.
-- **La capacidad decide cuántos.** Un colegio de 1.200 cupos en Tibabuyes baja la zona crítica de 21,7% a 12,4%;
-  la jornada única sin ampliar capacidad sube los niños sin cupo de 13,7% a 22,7%.
+- **Las prioridades deciden *quién* cabe, no *cuántos*.** Fuera de sus opciones se mantiene en unos 24%, pero los
+  vulnerables fuera bajan de 22,5% a 1,8% y los viajes largos casi a la mitad (6,3% → 3,5%).
+- **La capacidad decide cuántos.** Un colegio de 1.200 cupos en Tibabuyes baja la zona crítica de 23,6% a 17,1%
+  (con las mismas reglas Equilibradas); la jornada única sin ampliar capacidad sube los niños sin cupo de 13,7% a 22,7%.
 - **Más opciones** (5 en vez de 3) bajan "fuera de sus opciones", pero no los niños sin cupo: el faltante es real.
 
 ## Limitaciones
 - **Ubicación de la demanda:** viene de proyecciones de población, no del lugar de residencia real de
-  quienes piden cupo (eso está en SIMAT y no es público).
+  quienes piden cupo (eso está en SIMAT y no es público). Dentro de la UPZ se usan manzanas residenciales pesadas
+  por número de predios: un predio no es una vivienda exacta (cuenta también locales, garajes o depósitos en
+  propiedad horizontal, y una casa con varios hogares es un solo predio) y no dice cuántos niños viven ahí.
+- **Coordenadas de colegios:** en 15 de 747 sedes la SED y Catastro difieren más de 10 m; se eligió por
+  dirección (ver arriba), sin verificación en terreno.
 - **Distancia en línea recta**, no tiempo de viaje por la red vial o el SITP.
 - **Todos los niveles juntos:** no se distingue preescolar, primaria, secundaria ni media.
 - **Cupos de nuevos repartidos de forma proporcional** a la oferta regular de cada sede; la distribución
