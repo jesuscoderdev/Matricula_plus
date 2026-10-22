@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { APP_NAME, EMPRESA, SEGUNDOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } from '../config'
 import logoProliferante from '../assets/logo-proliferante.webp'
+import logoLetras from '../assets/logo-proliferante-letras.webp'
+import logoO from '../assets/logo-proliferante-o.webp'
 import { alternarTema, useTema } from '../tema'
 
 // Ritmo del logo de la cabecera: "Matrícula+" un rato, se agrupa en "M+", se queda así otro rato
@@ -148,9 +150,47 @@ export function LogoReinicio({ alReiniciar, alReiniciarTodo, nombre = APP_NAME }
   )
 }
 
-/** Logo oficial de Proliferante (empaquetado, funciona sin conexión). */
-export function LogoEmpresa({ className = '' }: { className?: string }) {
-  return <img className={`logo-empresa ${className}`} src={logoProliferante} alt={EMPRESA} draggable={false} />
+// El logo partido en letras (píxeles de la imagen de 400 × 121): desde, hasta, centro de la letra (x, y)
+// y orden de nacimiento, de la más cercana a la «o» verde a la más lejana. La «o» va en su propia imagen.
+const LOGO_ANCHO = 400, LOGO_ALTO = 121
+const TROZOS: [number, number, number, number, number][] = [
+  [0, 43, 18.3, 47.7, 4], [43, 120, 70.5, 50.8, 1], [120, 139, 128.2, 35.6, 0], [139, 157, 148.6, 57.5, 2],
+  [157, 185, 168.7, 71.1, 3], [185, 216, 198.1, 44.6, 5], [216, 254, 234.4, 42.4, 6], [254, 296, 274.3, 46.5, 7],
+  [296, 336, 316.0, 40.0, 8], [336, 361, 348.3, 33.1, 9], [361, 400, 377.2, 40.6, 10],
+]
+const PASO_NACIMIENTO = 0.07  // s entre una letra y la siguiente
+
+/**
+ * Logo oficial de Proliferante (empaquetado, funciona sin conexión). Animado, como algo que prolifera:
+ * aparece la «o» verde, de ella salen puntitos y cada puntito florece en una letra; al rato las letras
+ * vuelven a ser puntitos, regresan a la «o» y la hacen brillar, y el ciclo empieza otra vez.
+ * Con "reducir movimiento" queda quieto y completo.
+ */
+export function LogoEmpresa({ className = '', animado = true }: { className?: string; animado?: boolean }) {
+  if (!animado) {
+    return (
+      <span className={`logo-empresa ${className}`} role="img" aria-label={EMPRESA}>
+        <img src={logoProliferante} alt="" draggable={false} />
+      </span>
+    )
+  }
+  const pct = (x: number, total: number) => `${(x / total) * 100}%`
+  return (
+    <span className={`logo-empresa logo-empresa--vivo ${className}`} role="img" aria-label={EMPRESA}>
+      {TROZOS.map(([x0, x1, cx, cy, k]) => (
+        <i key={x0} className="logo-trozo" aria-hidden style={{
+          left: pct(x0, LOGO_ANCHO), width: pct(x1 - x0, LOGO_ANCHO), backgroundImage: `url(${logoLetras})`,
+          backgroundSize: `${(LOGO_ANCHO / (x1 - x0)) * 100}% 100%`, backgroundPosition: `${(x0 / (LOGO_ANCHO - (x1 - x0))) * 100}% 0`,
+          '--cx': pct(cx - x0, x1 - x0), '--cy': pct(cy, LOGO_ALTO), '--d': `${k * PASO_NACIMIENTO}s`,
+        } as CSSProperties} />
+      ))}
+      <img className="logo-o" src={logoO} alt="" draggable={false} />
+      {TROZOS.map(([x0, , cx, cy, k]) => (
+        <i key={`p${x0}`} className="logo-punto" aria-hidden
+           style={{ '--x': pct(cx, LOGO_ANCHO), '--y': pct(cy, LOGO_ALTO), '--d': `${k * PASO_NACIMIENTO}s` } as CSSProperties} />
+      ))}
+    </span>
+  )
 }
 
 /** Botón ☾/☀: cambia entre modo claro y oscuro (por defecto sigue al sistema). */

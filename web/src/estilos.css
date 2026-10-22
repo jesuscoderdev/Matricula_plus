@@ -490,7 +490,38 @@ h1, h2, h3, p { margin: 0; }
 .qr__img--pendiente { display: grid; place-content: center; text-align: center; font-family: var(--f-mono); font-size: 0.9rem; color: var(--tenue); border-style: dashed; }
 .qr__img--pendiente small { font-size: 0.5rem; }
 .qr figcaption { font-size: 0.66rem; color: var(--suave); text-align: center; max-width: 8rem; }
-.logo-empresa { height: 1.5rem; width: auto; display: block; }
+.logo-empresa { height: 1.5rem; aspect-ratio: 400 / 121; display: block; position: relative; flex: none; }
+.logo-empresa > img { display: block; height: 100%; width: auto; }
+/* Logo vivo (Proliferante prolifera): la «o» nace, de ella salen puntitos que florecen en letras;
+   luego las letras vuelven a puntitos, regresan a la «o» y la hacen brillar. Ciclo de 11 s.
+   La «o» verde está en 24,9 % · 35,1 % de la imagen. */
+.logo-empresa--vivo .logo-trozo { position: absolute; top: 0; bottom: 0; background-repeat: no-repeat;
+  animation: trozo-ciclo 11s cubic-bezier(0.65, 0, 0.35, 1) calc(0.6s + var(--d)) infinite both; }
+.logo-empresa--vivo .logo-o { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 24.9% 35.1%;
+  animation: o-nace 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both, o-brilla 11s ease-in-out 0.6s infinite; }
+.logo-punto { position: absolute; left: 24.9%; top: 35.1%; width: 2.8%; aspect-ratio: 1; border-radius: 50%;
+  background: #8bc68e; translate: -50% -50%; opacity: 0; pointer-events: none;
+  animation: punto-ciclo 11s cubic-bezier(0.65, 0, 0.35, 1) calc(0.6s + var(--d)) infinite both; }
+@keyframes o-nace { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes o-brilla {
+  0%, 84%, 100% { transform: scale(1); filter: none; }
+  90% { transform: scale(1.16); filter: brightness(1.2) drop-shadow(0 0 0.3em rgba(139, 198, 142, 0.95)); }
+  96% { transform: scale(1); filter: none; }
+}
+@keyframes trozo-ciclo {
+  0%, 9% { clip-path: circle(0% at var(--cx) var(--cy)); }
+  17%, 70% { clip-path: circle(150% at var(--cx) var(--cy)); }
+  78%, 100% { clip-path: circle(0% at var(--cx) var(--cy)); }
+}
+@keyframes punto-ciclo {
+  0%, 2% { left: 24.9%; top: 35.1%; opacity: 0; transform: scale(0.4); background: #8bc68e; }
+  4% { left: 24.9%; top: 35.1%; opacity: 1; transform: scale(1); background: #8bc68e; }
+  10% { left: var(--x); top: var(--y); opacity: 1; transform: scale(1); background: #7f45ee; }
+  15%, 71% { left: var(--x); top: var(--y); opacity: 0; transform: scale(2.4); background: #7f45ee; }
+  76% { left: var(--x); top: var(--y); opacity: 1; transform: scale(1); background: #7f45ee; }
+  84% { left: 24.9%; top: 35.1%; opacity: 1; transform: scale(0.8); background: #8bc68e; }
+  87%, 100% { left: 24.9%; top: 35.1%; opacity: 0; transform: scale(0.3); background: #8bc68e; }
+}
 
 .lista-supuestos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 .lista-supuestos li { font-size: 0.74rem; line-height: 1.35; color: var(--suave); padding-left: 1rem; position: relative; }
@@ -710,12 +741,21 @@ h1, h2, h3, p { margin: 0; }
 }
 /* Arte de Movilidad+: panal de hexágonos en una escala violeta */
 .arte-hex { position: absolute; inset: 0; width: 100%; height: 100%; }
-.arte-hex__h--0 { fill: var(--linea); }
-.arte-hex__h--1 { fill: var(--violeta-claro); opacity: 0.45; }
-.arte-hex__h--2 { fill: var(--violeta); opacity: 0.6; }
-.arte-hex__h--3 { fill: var(--violeta-osc); opacity: 0.8; }
-.arte-hex__h--late { animation: latido-hex 2.8s ease-in-out infinite; }
-@keyframes latido-hex { 50% { opacity: 0.25; } }
+/* Tono base de cada hexágono (la onda vuelve siempre a él: --base y --op en todos los puntos clave) */
+.arte-hex__h--0 { --base: var(--linea); --op: 1; }
+.arte-hex__h--1 { --base: var(--violeta-claro); --op: 0.45; }
+.arte-hex__h--2 { --base: var(--violeta); --op: 0.6; }
+.arte-hex__h--3 { --base: var(--violeta-osc); --op: 0.8; }
+.arte-hex__h { fill: var(--base); opacity: var(--op); }
+/* Onda que recorre el panal en diagonal (cada hexágono la recibe con su retraso --onda) */
+.arte-hex__h { transform-box: fill-box; transform-origin: center; animation: onda-hex 5.4s ease-in-out var(--onda, 0s) infinite; }
+.arte-hex__h--late { animation: onda-hex 5.4s ease-in-out var(--onda, 0s) infinite, latido-hex 2.8s ease-in-out var(--late, 0s) infinite; }
+@keyframes onda-hex {
+  0%, 11%, 100% { transform: scale(1); fill: var(--base); opacity: var(--op); }
+  4% { transform: scale(0.8); fill: var(--violeta); opacity: 1; }
+  7% { transform: scale(1.05); fill: var(--violeta-claro); opacity: 0.8; }
+}
+@keyframes latido-hex { 0%, 100% { opacity: var(--op); } 50% { opacity: 0.25; } }
 
 /* =========================================================
    10. Movilidad+
@@ -812,3 +852,91 @@ h1, h2, h3, p { margin: 0; }
 :root[data-modo='stand'] .app--movilidad .promesas, :root[data-modo='auto'] .app--movilidad .promesas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 :root[data-modo='stand'] .app--movilidad .promesas .promesa__fila, :root[data-modo='auto'] .app--movilidad .promesas .promesa__fila { grid-template-columns: 1fr; gap: 0.15rem; }
 :root[data-modo='stand'] .app--movilidad .fuentes-mov, :root[data-modo='auto'] .app--movilidad .fuentes-mov { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }
+/* Movilidad+, portada en celular y tótem: las celdas de la ciudad son más intensas que la coropleta de
+   educación, así que el velo cubre más tiempo el texto y deja ver la ciudad debajo */
+:root:not([data-modo='escritorio']) .app--movilidad .portada__velo {
+  background: linear-gradient(180deg, rgb(var(--papel-rgb) / 0.97) 0%, rgb(var(--papel-rgb) / 0.9) 45%, rgb(var(--papel-rgb) / 0.55) 60%, rgb(var(--papel-rgb) / 0.15) 70%, rgb(var(--papel-rgb) / 0.7) 80%, rgb(var(--papel-rgb) / 0.98) 90%);
+}
+
+/* =========================================================
+   Personalidad: vidrio esmerilado (glassmorfismo) sobre orbes de luz,
+   y relieve suave (neumorfismo) en los botones del inicio
+   ========================================================= */
+:root {
+  --vidrio: rgba(255, 255, 255, 0.58);
+  --vidrio-fuerte: rgba(255, 255, 255, 0.78);
+  --vidrio-borde: rgba(255, 255, 255, 0.75);
+  --vidrio-brillo: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --vidrio-sombra: 0 0.2rem 0.5rem rgba(76, 40, 160, 0.06), 0 1.2rem 2.8rem rgba(76, 40, 160, 0.14);
+  --neo-luz: rgba(255, 255, 255, 0.95);
+  --neo-sombra: rgba(110, 90, 170, 0.22);
+  --orbe-1: rgba(127, 69, 238, 0.32);
+  --orbe-2: rgba(139, 198, 142, 0.38);
+  --orbe-3: rgba(168, 140, 240, 0.3);
+}
+:root[data-tema='oscuro'] {
+  --vidrio: rgba(34, 36, 74, 0.5);
+  --vidrio-fuerte: rgba(34, 36, 74, 0.72);
+  --vidrio-borde: rgba(255, 255, 255, 0.1);
+  --vidrio-brillo: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --vidrio-sombra: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.25), 0 1.2rem 2.8rem rgba(0, 0, 0, 0.4);
+  --neo-luz: rgba(255, 255, 255, 0.05);
+  --neo-sombra: rgba(0, 0, 0, 0.5);
+  --orbe-1: rgba(127, 69, 238, 0.42);
+  --orbe-2: rgba(139, 198, 142, 0.2);
+  --orbe-3: rgba(76, 40, 160, 0.5);
+}
+
+/* Orbes de luz del inicio */
+.inicio { isolation: isolate; }  /* ya es fija (.app): contexto para los orbes */
+.inicio__orbes { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.inicio__orbes i { position: absolute; border-radius: 50%; filter: blur(60px); animation: orbe 26s ease-in-out infinite alternate; }
+.inicio__orbes i:nth-child(1) { width: 46vmax; height: 46vmax; left: -10vmax; top: -14vmax; background: var(--orbe-1); }
+.inicio__orbes i:nth-child(2) { width: 34vmax; height: 34vmax; right: -8vmax; top: 18%; background: var(--orbe-2); animation-duration: 31s; animation-delay: -9s; }
+.inicio__orbes i:nth-child(3) { width: 40vmax; height: 40vmax; left: 30%; bottom: -22vmax; background: var(--orbe-3); animation-duration: 36s; animation-delay: -17s; }
+@keyframes orbe {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(6vmax, 4vmax) scale(1.12); }
+  100% { transform: translate(-4vmax, 7vmax) scale(0.94); }
+}
+.inicio .pie { background: transparent; }
+
+/* Barra de marca de vidrio con el logo más grande */
+.inicio__marca {
+  padding: 0.7rem 0.8rem 0.7rem 1.2rem; border-radius: 99rem; background: var(--vidrio); border: 1px solid var(--vidrio-borde);
+  box-shadow: var(--vidrio-brillo), var(--vidrio-sombra); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+}
+.inicio__marca .logo-empresa { height: 2.6rem; }
+:root[data-modo='escritorio'] .inicio__marca .logo-empresa { height: 3.2rem; }
+:root[data-modo='stand'] .inicio__marca .logo-empresa, :root[data-modo='auto'] .inicio__marca .logo-empresa { height: 3.4rem; }
+
+/* Tarjetas de vidrio */
+.inicio .proyecto {
+  background: var(--vidrio); border: 1px solid var(--vidrio-borde); box-shadow: var(--vidrio-brillo), var(--vidrio-sombra);
+  backdrop-filter: blur(22px) saturate(1.5); -webkit-backdrop-filter: blur(22px) saturate(1.5);
+}
+.inicio .proyecto:hover:not(:disabled), .inicio .proyecto:focus-visible {
+  border-color: var(--violeta-claro); box-shadow: var(--vidrio-brillo), 0 0.3rem 0.6rem rgba(76, 40, 160, 0.08), 0 1.6rem 3.4rem rgba(127, 69, 238, 0.26);
+}
+.inicio .proyecto__arte { background: linear-gradient(180deg, rgb(255 255 255 / 0.25), rgb(255 255 255 / 0)); border-bottom-color: var(--vidrio-borde); }
+:root[data-tema='oscuro'] .inicio .proyecto__arte { background: linear-gradient(180deg, rgb(127 69 238 / 0.18), rgb(127 69 238 / 0)); }
+
+/* Relieve suave (neumorfismo): botón de tema y «Entrar» */
+.inicio .boton-tema, .inicio .proyecto__entrar {
+  background: var(--papel); border: 0;
+  box-shadow: 0.3rem 0.3rem 0.7rem var(--neo-sombra), -0.3rem -0.3rem 0.7rem var(--neo-luz);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.inicio .boton-tema { width: 2.6rem; height: 2.6rem; }
+.inicio .boton-tema:active { box-shadow: inset 0.2rem 0.2rem 0.5rem var(--neo-sombra), inset -0.2rem -0.2rem 0.5rem var(--neo-luz); }
+.inicio .proyecto__entrar { align-self: flex-start; padding: 0.6rem 1.1rem; border-radius: 99rem; margin-top: 0.7rem; }
+.inicio .proyecto:hover:not(:disabled) .proyecto__entrar {
+  box-shadow: inset 0.2rem 0.2rem 0.5rem var(--neo-sombra), inset -0.2rem -0.2rem 0.5rem var(--neo-luz); color: var(--violeta);
+}
+
+/* Vidrio también en lo que flota sobre los mapas */
+.mapa__leyenda, .mapa__controles, .cont, .mapa__clave, .mapa__centrar {
+  background: var(--vidrio-fuerte); border: 1px solid var(--vidrio-borde);
+  box-shadow: var(--vidrio-brillo), var(--sombra);
+  backdrop-filter: blur(14px) saturate(1.4); -webkit-backdrop-filter: blur(14px) saturate(1.4);
+}

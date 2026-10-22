@@ -178,9 +178,9 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
     switch (vista) {
       case 'portada':
-        return { capa: 'k24', interactivo: false, respirar: true, leyenda: false,
-          margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * rem) }
-            : { arriba: window.innerHeight * 0.3, abajo: window.innerHeight * 0.22 } }
+        return { capa: 'k24', interactivo: false, respirar: true, leyenda: false, agrupar: true,
+          margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * rem), arriba: window.innerHeight * 0.05, abajo: window.innerHeight * 0.05 }
+            : { arriba: window.innerHeight * 0.4, abajo: window.innerHeight * 0.2 } }
       case 'decide':
         return { capa: 'k24', interactivo, localidad, tocadas, onTocar: modo === 'auto' ? undefined : tocar }
       case 'anio':
@@ -192,7 +192,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
       case 'presupuesto':
         return { capa: 'sel', nivel, interactivo }
       default:
-        return { capa: 'k24', interactivo, respirar: true }
+        return { capa: 'k24', interactivo, respirar: true, agrupar: true, leyenda: false }
     }
   }, [vista, modo, localidad, tocadas, tocar, anio, encuadreTocadas, zona, nivel])
 

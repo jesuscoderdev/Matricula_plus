@@ -54,6 +54,56 @@ function etiquetas(cortes: number[], enteros: boolean): string[] {
   }), enteros ? `${cortes[cortes.length - 1] + 1}+` : `> ${f(cortes[cortes.length - 1])}`]
 }
 
+// ---------------------------------------------------------------- celdas de la vista de ciudad
+const RADIO_CELDA_M = 290   // celda hexagonal de ~500 m de lado a lado (≈ 4 hexágonos de 115 m por lado)
+const N_DESTELLOS = 26      // destellos a la vez en la vista de ciudad
+const PERIODO_DESTELLO = 3.2  // s que dura cada destello
+const suave = (x: number) => x * x * (3 - 2 * x)
+
+/** Segundos desde que se activó, a ~30 cuadros por segundo. Con "reducir movimiento" se queda quieto. */
+function useReloj(activo: boolean) {
+  const [t, setT] = useState(0)
+  useEffect(() => {
+    if (!activo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let id = 0, ult = 0
+    const inicio = performance.now()
+    const p = (ms: number) => { if (ms - ult > 33) { setT((ms - inicio) / 1000); ult = ms } id = requestAnimationFrame(p) }
+    id = requestAnimationFrame(p)
+    return () => cancelAnimationFrame(id)
+  }, [activo])
+  return activo ? t : 0
+}
+interface Celda { v: number; poligono: [number, number][] }
+
+/** Suma el valor de las calles de barrio de cada hexágono en una malla hexagonal de celdas grandes. */
+function agruparEnCeldas(s: DatosMovilidad['sitios'], valor: number[]): Celda[] {
+  const lat0 = s.lat.reduce((a, b) => a + b, 0) / Math.max(1, s.n)
+  const mLat = 110574, mLon = 111320 * Math.cos((lat0 * Math.PI) / 180)
+  const R = RADIO_CELDA_M, ancho = Math.sqrt(3) * R
+  const suma = new Map<string, { q: number; r: number; v: number }>()
+  for (let i = 0; i < s.n; i++) {
+    const x = s.lon[i] * mLon, y = s.lat[i] * mLat
+    // Coordenadas axiales (hexágono con punta arriba) y redondeo cúbico a la celda más cercana
+    const qf = (x * Math.sqrt(3) / 3 - y / 3) / R, rf = (2 * y / 3) / R
+    let q = Math.round(qf), r = Math.round(rf); const sf = -qf - rf, sc = Math.round(sf)
+    const dq = Math.abs(q - qf), dr = Math.abs(r - rf), ds = Math.abs(sc - sf)
+    if (dq > dr && dq > ds) q = -r - sc; else if (dr > ds) r = -q - sc
+    const k = `${q},${r}`
+    const c = suma.get(k) ?? { q, r, v: 0 }
+    if (s.local[i] === 1) c.v += valor[i]
+    suma.set(k, c)
+  }
+  // Un pequeño margen entre celdas (92 %) deja ver la trama
+  const forma = Array.from({ length: 6 }, (_, j) => {
+    const a = (Math.PI / 180) * (60 * j - 30)
+    return [(0.92 * R * Math.cos(a)) / mLon, (0.92 * R * Math.sin(a)) / mLat] as [number, number]
+  })
+  return [...suma.values()].map(({ q, r, v }) => {
+    const cx = (ancho * (q + r / 2)) / mLon, cy = (1.5 * R * r) / mLat
+    return { v, poligono: forma.map(([dx, dy]) => [cx + dx, cy + dy] as [number, number]) }
+  }).sort((a, b) => a.v - b.v)
+}
+
 function useTamano<T extends HTMLElement>() {
   const ref = useRef<T>(null)
   const [tam, setTam] = useState({ w: 600, h: 600 })
@@ -81,13 +131,15 @@ interface Props {
   margen?: { arriba?: number; abajo?: number; izquierda?: number; derecha?: number }
   /** encuadre propio (p. ej. las esquinas tocadas) */
   encuadre?: Bbox | null
+  /** vista de toda la ciudad: los hexágonos de 115 m se suman en celdas de ~500 m para que se lean */
+  agrupar?: boolean
   leyenda?: boolean
   children?: ReactNode
 }
 
 export default function MapaMovilidad({
   datos, capa, localidad = null, nivel = 'bajo', tocadas = [], onTocar, peores = false, interactivo = true,
-  respirar = false, margen = {}, encuadre = null, leyenda = true, children,
+  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, children,
 }: Props) {
   const tema = useTema()
   const P = PALETA[tema]
@@ -144,7 +196,51 @@ export default function MapaMovilidad({
   const conValor = useMemo(() => indices.filter((i) => s.local[i] === 1 && valor[i] > 0).sort((a, b) => valor[a] - valor[b]), [indices, s, valor])
   const elegidas = useMemo(() => (capa === 'sel' ? indices.filter((i) => s.sel[i] & BIT[nivel]) : []), [capa, nivel, indices, s])
 
-  const capas: any[] = [
+  // Vista de ciudad: suma del valor de las calles de barrio en celdas hexagonales grandes. Las celdas
+  // donde solo hay avenidas o calles sin siniestros ese año quedan como fondo y dibujan la ciudad.
+  const celdas = useMemo(() => (agrupar ? agruparEnCeldas(s, valor) : null), [agrupar, s, valor])
+  const cortesCeldas = useMemo(() => (celdas ? cortesDe(celdas.map((c) => c.v), true) : []), [celdas])
+
+  // Destellos (vista de ciudad que respira): cada uno cae en una calle de barrio con siniestros en ese
+  // año, con más frecuencia donde hubo más; un anillo se abre y se apaga. Cada vuelta, otros sitios.
+  const reloj = useReloj(!!celdas && respirar)
+  const bolsa = useMemo(() => {
+    if (!celdas || !respirar) return []
+    const b: number[] = []
+    for (let i = 0; i < s.n; i++) if (s.local[i] === 1 && valor[i] > 0) for (let k = 0; k < valor[i]; k++) b.push(i)
+    return b
+  }, [celdas, respirar, s, valor])
+  const destellos = useMemo(() => {
+    if (!bolsa.length) return []
+    const out: { i: number; u: number }[] = []
+    for (let n = 0; n < N_DESTELLOS; n++) {
+      const tt = reloj + ((n * 0.6180339887) % 1) * PERIODO_DESTELLO
+      const vuelta = Math.floor(tt / PERIODO_DESTELLO)
+      out.push({ i: bolsa[(n * 7919 + vuelta * 104729) % bolsa.length], u: (tt % PERIODO_DESTELLO) / PERIODO_DESTELLO })
+    }
+    return out
+  }, [bolsa, reloj])
+  const tonoDestello: RGB = tema === 'oscuro' ? [236, 228, 255] : rampa[4]
+
+  const capas: any[] = celdas ? [
+    new PolygonLayer<Celda>({
+      id: 'celdas', data: celdas, filled: true, stroked: false,
+      getPolygon: (c) => c.poligono,
+      getFillColor: (c) => (c.v > 0 ? [...rampa[claseDe(cortesCeldas, c.v)], 255] : P.vacio),
+      opacity: respirar ? 0.75 + 0.25 * respiro : 1,
+      updateTriggers: { getFillColor: [tema, cortesCeldas] },
+      transitions: { getFillColor: 500 },
+    }),
+    destellos.length > 0 && new ScatterplotLayer<{ i: number; u: number }>({
+      id: 'destellos-anillo', data: destellos, getPosition: (d) => [s.lon[d.i], s.lat[d.i]], radiusUnits: 'pixels',
+      getRadius: (d) => e * (3 + 16 * suave(d.u)), filled: false, stroked: true, lineWidthUnits: 'pixels', getLineWidth: 1.6 * e,
+      getLineColor: (d) => [...tonoDestello, Math.round(230 * (1 - d.u))] as RGBA,
+    }),
+    destellos.length > 0 && new ScatterplotLayer<{ i: number; u: number }>({
+      id: 'destellos-punto', data: destellos, getPosition: (d) => [s.lon[d.i], s.lat[d.i]], radiusUnits: 'pixels',
+      getRadius: (d) => e * 2.6 * (1 - 0.5 * d.u), getFillColor: (d) => [...tonoDestello, Math.round(255 * Math.max(0, 1 - 1.6 * d.u))] as RGBA,
+    }),
+  ] : [
     new PolygonLayer<number>({
       id: 'hexagonos', data: indices, filled: true, stroked: false,
       getPolygon: (i) => s.forma.map(([dx, dy]) => [s.lon[i] + dx, s.lat[i] + dy]),
@@ -210,7 +306,7 @@ export default function MapaMovilidad({
   const css = (c: RGB | RGBA) => `rgb(${c[0]},${c[1]},${c[2]})`
   return (
     <div ref={ref} className="mapa mapa--movilidad">
-      <DeckGL initialViewState={viewState} layers={capas} onClick={alTocar}
+      <DeckGL initialViewState={viewState} layers={capas.filter(Boolean)} onClick={alTocar}
               controller={interactivo ? { dragRotate: false, touchRotate: false, doubleClickZoom: false, scrollZoom: { speed: 0.02, smooth: true } } : false}
               getCursor={({ isDragging }) => (isDragging ? 'grabbing' : onTocar ? 'crosshair' : interactivo ? 'grab' : 'default')} />
       {leyenda && (

@@ -72,6 +72,8 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
   const reducir = useReducedMotion()
   return (
     <div className="app inicio">
+      {/* Orbes de luz que se mueven despacio detrás del vidrio de las tarjetas */}
+      <div className="inicio__orbes" aria-hidden><i /><i /><i /></div>
       <div className="inicio__contenido">
         <motion.header className="inicio__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa />
@@ -157,7 +159,9 @@ function ArteHexagonos() {
           const a = (Math.PI / 3) * k + Math.PI / 6
           return `${(x + 0.92 * r * Math.cos(a)).toFixed(2)},${(y + 0.92 * r * Math.sin(a)).toFixed(2)}`
         }).join(' ')
-        return <polygon key={j} points={puntos} className={`arte-hex__h arte-hex__h--${tono} ${late ? 'arte-hex__h--late' : ''}`} style={{ animationDelay: `${(j % 7) * 0.4}s` }} />
+        // Una onda recorre el panal en diagonal; algunos hexágonos además laten a su ritmo
+        return <polygon key={j} points={puntos} className={`arte-hex__h arte-hex__h--${tono} ${late ? 'arte-hex__h--late' : ''}`}
+                        style={{ '--onda': `${((c + f * 0.6) * 0.2).toFixed(2)}s`, '--late': `${(j % 7) * 0.4}s` } as CSSProperties} />
       })}
     </svg>
   )
