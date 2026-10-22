@@ -32,41 +32,42 @@ type RGBA = [number, number, number, number]
 
 // ---------------------------------------------------------------- paleta del mapa
 export const COLOR = {
-  primera: [91, 43, 196, 255] as RGBA,       // violeta oscuro: en su 1.ª opción
-  otra: [168, 140, 240, 255] as RGBA,        // violeta claro: en otra de sus opciones
-  reubicado: [38, 132, 132, 255] as RGBA,    // verde azulado: reubicado fuera de sus opciones
-  sin: [224, 102, 42, 255] as RGBA,          // naranja: sin ningún cupo cercano
-  espera: [160, 162, 176, 210] as RGBA,
-  pidiendo: [134, 116, 214, 255] as RGBA,
-  rechazo: [240, 140, 80, 255] as RGBA,
-  tinta: [22, 19, 43, 255] as RGBA,
-  violeta: [127, 69, 238, 255] as RGBA,
+  primera: [90, 68, 221, 255] as RGBA,       // índigo #5A44DD: en su 1.ª opción
+  otra: [173, 162, 238, 255] as RGBA,        // índigo al 50 %: en otra de sus opciones
+  reubicado: [80, 91, 125, 255] as RGBA,     // pizarra #505B7D: reubicado fuera de sus opciones
+  sin: [123, 198, 137, 255] as RGBA,         // verde #7BC689 (el foco del manual): sin ningún cupo cercano
+  espera: [80, 91, 125, 130] as RGBA,        // pizarra translúcido: todavía no llega
+  pidiendo: [131, 115, 230, 255] as RGBA,    // índigo al 75 %
+  rechazo: [123, 198, 137, 200] as RGBA,     // verde translúcido: rechazada en esta ronda
+  tinta: [22, 43, 42, 255] as RGBA,
+  violeta: [90, 68, 221, 255] as RGBA,      // índigo Proliferante (#5A44DD): acción y colegio nuevo
 }
+// Escala de la paleta del manual: azul claro → índigo → navy
 export const ESCALA: { hasta: number; color: RGB; etiqueta: string }[] = [
-  { hasta: 10, color: [244, 240, 254], etiqueta: '< 10%' },
-  { hasta: 20, color: [214, 196, 250], etiqueta: '10–20%' },
-  { hasta: 30, color: [171, 134, 243], etiqueta: '20–30%' },
-  { hasta: 40, color: [127, 69, 238], etiqueta: '30–40%' },
-  { hasta: 101, color: [74, 32, 158], etiqueta: '≥ 40%' },
+  { hasta: 10, color: [233, 239, 248], etiqueta: '< 10%' },
+  { hasta: 20, color: [199, 215, 236], etiqueta: '10–20%' },
+  { hasta: 30, color: [173, 162, 238], etiqueta: '20–30%' },
+  { hasta: 40, color: [90, 68, 221], etiqueta: '30–40%' },
+  { hasta: 101, color: [22, 43, 42], etiqueta: '≥ 40%' },
 ]
-// En oscuro la escala va al revés: más niños fuera = más brillante
-const ESCALA_OSCURA: RGB[] = [[36, 33, 74], [62, 46, 132], [100, 64, 204], [144, 104, 246], [206, 186, 255]]
+// En oscuro la escala va al revés: más niños fuera = más brillante (navy → pizarra → índigo → azul claro)
+const ESCALA_OSCURA: RGB[] = [[34, 62, 60], [80, 91, 125], [90, 68, 221], [173, 162, 238], [199, 215, 236]]
 const escalaDe = (tema: Tema) => (tema === 'oscuro' ? ESCALA.map((x, i) => ({ ...x, color: ESCALA_OSCURA[i] })) : ESCALA)
 const colorEscala = (escala: typeof ESCALA, pct: number) => (escala.find((e) => pct < e.hasta) ?? escala[escala.length - 1]).color
 
 /** Colores del mapa que dependen del tema (fondos, bordes, textos). */
 const PALETA = {
   claro: {
-    tinta: COLOR.tinta, upzFuera: [234, 232, 240, 255] as RGBA, upzDentro: [255, 255, 255, 255] as RGBA,
-    bordeCiudad: [255, 255, 255, 220] as RGBA, bordeDentro: [22, 19, 43, 70] as RGBA, bordeFuera: [255, 255, 255, 255] as RGBA,
-    texto: [90, 88, 112, 220] as RGBA, superficie: [255, 255, 255, 240] as RGBA, contorno: [255, 255, 255, 200] as RGBA,
-    ocupacion: [22, 19, 43, 205] as RGBA, nuevo: [241, 235, 254, 255] as RGBA,
+    tinta: COLOR.tinta, upzFuera: [232, 239, 248, 255] as RGBA, upzDentro: [255, 255, 255, 255] as RGBA,
+    bordeCiudad: [255, 255, 255, 220] as RGBA, bordeDentro: [22, 43, 42, 70] as RGBA, bordeFuera: [255, 255, 255, 255] as RGBA,
+    texto: [80, 91, 125, 220] as RGBA, superficie: [255, 255, 255, 240] as RGBA, contorno: [255, 255, 255, 200] as RGBA,
+    ocupacion: [22, 43, 42, 205] as RGBA, nuevo: [238, 235, 252, 255] as RGBA,
   },
   oscuro: {
-    tinta: [236, 233, 250, 255] as RGBA, upzFuera: [26, 28, 56, 255] as RGBA, upzDentro: [40, 42, 82, 255] as RGBA,
-    bordeCiudad: [13, 15, 34, 230] as RGBA, bordeDentro: [255, 255, 255, 60] as RGBA, bordeFuera: [13, 15, 34, 255] as RGBA,
-    texto: [176, 172, 204, 220] as RGBA, superficie: [30, 32, 66, 245] as RGBA, contorno: [13, 15, 34, 210] as RGBA,
-    ocupacion: [236, 233, 250, 215] as RGBA, nuevo: [52, 40, 110, 255] as RGBA,
+    tinta: [240, 246, 245, 255] as RGBA, upzFuera: [24, 46, 45, 255] as RGBA, upzDentro: [34, 62, 60, 255] as RGBA,
+    bordeCiudad: [14, 31, 30, 230] as RGBA, bordeDentro: [255, 255, 255, 60] as RGBA, bordeFuera: [14, 31, 30, 255] as RGBA,
+    texto: [178, 196, 220, 220] as RGBA, superficie: [29, 54, 52, 245] as RGBA, contorno: [14, 31, 30, 210] as RGBA,
+    ocupacion: [240, 246, 245, 215] as RGBA, nuevo: [48, 42, 120, 255] as RGBA,
   },
 }
 const alfa = (c: RGBA | RGB, a: number): RGBA => [c[0], c[1], c[2], a]
@@ -423,7 +424,7 @@ export default function MapaEscena(props: Props) {
 
   // ---------------------------------------------------------------- viaje de la familia (caso)
   // Desde la casa, una línea crece hacia cada opción en orden: ✕ si no hay cupo para ella, ✓ si
-  // queda. Si no cupo en ninguna, la reubican (verde azulado) o queda sin cupo (naranja). En bucle.
+  // queda. Si no cupo en ninguna, la reubican (pizarra) o queda sin cupo (verde). En bucle.
   const viaje = escena === 'caso' && caso ? caso.viaje ?? null : null
   const [vez, setVez] = useState(0)
   const quieto = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
@@ -495,7 +496,7 @@ export default function MapaEscena(props: Props) {
     }),
     etiquetas.length && new TextLayer({
       id: 'upz-nombres', data: etiquetas, getPosition: (x: any) => x.p, getText: (x: any) => x.n,
-      getSize: 10.5 * e, getColor: P.texto, updateTriggers: { getColor: [tema] }, fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 600, characterSet: 'auto',
+      getSize: 10.5 * e, getColor: P.texto, updateTriggers: { getColor: [tema] }, fontFamily: 'Poppins, sans-serif', fontWeight: 600, characterSet: 'auto',
     }),
     escena === 'ciudad' && new ScatterplotLayer({
       id: 'sedes', data: datos.posSedes, getPosition: (p: any) => p, getRadius: 1.4 * e, radiusUnits: 'pixels',
@@ -549,7 +550,7 @@ export default function MapaEscena(props: Props) {
     caso && escena === 'caso' && new TextLayer({
       id: 'caso-numeros', data: caso.colegios.map((s, o) => ({ s, o })),
       getPosition: (x: any) => coord(x.s), getText: (x: any) => String(x.o + 1), getSize: 13 * e,
-      getColor: alfa(COLOR.violeta, 255), getPixelOffset: [0, -(caso.viaje ? 30 : 20) * e], fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600,
+      getColor: alfa(COLOR.violeta, 255), getPixelOffset: [0, -(caso.viaje ? 30 : 20) * e], fontFamily: 'Poppins, sans-serif', fontWeight: 600,
       background: true, getBackgroundColor: P.superficie, backgroundPadding: [4, 2], updateTriggers: { getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
     }),
     caso && escena === 'caso' && new LineLayer({
@@ -568,7 +569,7 @@ export default function MapaEscena(props: Props) {
     }),
     recorrido && new TextLayer({
       id: 'caso-marcas', data: recorrido.marcas, getPosition: (x: any) => x.p, getText: (x: any) => x.texto, getSize: 15 * e,
-      getColor: (x: any) => x.color, fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 800, characterSet: ['✕', '✓'],
+      getColor: (x: any) => x.color, fontFamily: 'Poppins, sans-serif', fontWeight: 800, characterSet: ['✕', '✓'],
     }),
     recorrido?.punta && new ScatterplotLayer({
       id: 'caso-punta', data: [recorrido.punta], getPosition: (x: any) => x.p, getRadius: 5 * e, radiusUnits: 'pixels',
@@ -591,7 +592,7 @@ export default function MapaEscena(props: Props) {
     colegioNuevo && new TextLayer({
       id: 'nuevo-etiqueta', data: [colegioNuevo], getPosition: (c: any) => [c.lon, c.lat], getText: () => '+ colegio nuevo',
       getPixelOffset: [0, -22 * e], getSize: 12.5 * e, getColor: alfa(COLOR.violeta, 255),
-      fontFamily: 'Inter Tight Variable, sans-serif', fontWeight: 700, background: true, getBackgroundColor: P.superficie, backgroundPadding: [5, 3],
+      fontFamily: 'Poppins, sans-serif', fontWeight: 700, background: true, getBackgroundColor: P.superficie, backgroundPadding: [5, 3],
       updateTriggers: { getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
     }),
   ].filter(Boolean)
@@ -627,7 +628,7 @@ export default function MapaEscena(props: Props) {
       {enProceso && (
         <div className="mapa__contadores">
           {fase === 'llegada' && t < T1 && <span className="cont"><b>{entero(cuadro.c.llegaron * epf)}</b> llegaron</span>}
-          <span className="cont"><i style={{ background: 'rgb(91,43,196)' }} /><b>{entero(cuadro.c.conColegio * epf)}</b> en sus opciones</span>
+          <span className="cont"><i style={{ background: 'rgb(69,50,184)' }} /><b>{entero(cuadro.c.conColegio * epf)}</b> en sus opciones</span>
           {cuadro.c.buscando > 0 && <span className="cont"><i style={{ background: 'rgb(240,140,80)' }} /><b>{entero(cuadro.c.buscando * epf)}</b> {fase === 'llegada' ? 'sin cupo en sus opciones' : 'buscando'}</span>}
           {cuadro.c.reubicados > 0 && <span className="cont"><i style={{ background: 'rgb(38,132,132)' }} /><b>{entero(cuadro.c.reubicados * epf)}</b> reubicados</span>}
           {cuadro.c.sinCupo > 0 && <span className="cont"><i style={{ background: 'rgb(224,102,42)' }} /><b>{entero(cuadro.c.sinCupo * epf)}</b> sin cupo</span>}

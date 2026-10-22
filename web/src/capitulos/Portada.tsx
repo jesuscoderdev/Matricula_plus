@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { entero } from '../datos'
-import { BotonInicio, BotonTema, IconoApp, LogoEmpresa, NombreApp } from '../componentes/Marca'
-import Proli from '../componentes/Proli'
+import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from '../componentes/Marca'
+import Proli, { ProliMarca } from '../componentes/Proli'
 import { esTotem } from '../modo'
 import type { PropsCapitulo } from './tipos'
 
@@ -13,12 +13,13 @@ export default function Portada({ datos, r, modo, ir, alInicio }: PropsCapitulo)
   return (
     <>
       <div className="portada__contenido">
+        <MarcaDeAgua className="marca-agua--portada" />
         <motion.div className="portada__marca" {...entrar} transition={{ delay: 0.05 }}>
           <div className="portada__logos">
             {alInicio && modo !== 'auto' && <BotonInicio alInicio={alInicio} />}
             <LogoEmpresa />
             <span className="portada__sep" aria-hidden />
-            <span className="marca-bloque"><IconoApp /><NombreApp /></span>
+            <span className="marca-bloque"><ProliMarca /><NombreApp /></span>
           </div>
           <span className="etiqueta">GovTech · 3–4 nov 2026</span>
           <BotonTema />
@@ -29,7 +30,7 @@ export default function Portada({ datos, r, modo, ir, alInicio }: PropsCapitulo)
         </motion.h1>
         <motion.p className="lead" {...entrar} transition={{ delay: 0.35 }}>
           Cada año <b>{entero(p.demanda_nuevos_total)}</b> niños nuevos piden cupo en un colegio público de Bogotá,
-          y solo hay <b>{entero(p.cupos_nuevos_total)}</b> cupos. Simula cómo repartirlos mejor.
+          y solo hay <b>{entero(p.cupos_nuevos_total)}</b> cupos. <span className="acento">Simula cómo repartirlos mejor.</span>
         </motion.p>
       </div>
       <div className="portada__pie">

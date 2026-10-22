@@ -64,7 +64,7 @@ cd web && npm install && cd ..
 python -m engine.build_scenarios       # descarga lo que falte a data/raw/real/ y precalcula todo (~1–3 min)
 python -m engine.build_scenarios --fuente sintetica   # sin internet: datos sintéticos con las mismas proporciones
 pytest tests                           # 314 tests
-cd web && npm run verificar            # el motor del navegador da lo mismo que Python (36 escenarios + base)
+cd web && npm run verificar            # el motor del navegador da lo mismo que Python (48 escenarios + base)
 ```
 
 Si la descarga falla, `build_scenarios` usa automáticamente el modo sintético para no bloquear el trabajo.
@@ -118,9 +118,11 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
 ## Configuración
 - `web/src/config.ts`: nombre, **QR** (`QR_IMAGEN`, p. ej. `./qr-cita.png` en `web/public/`), WhatsApp/Calendly para
   la cita, tiempos del kiosco y del modo auto, y colores.
-- `web/src/estilos.css`: diseño "atlas". Tinta `#16132B`, papel `#FBFAF7`, violeta Proliferante `#7F45EE`, verde Proli
-  `#8BC68E`, naranja (sin cupo) `#E0662A`, verde azulado (reubicados) `#268484`. Tipografías **Fraunces** (titulares),
-  **Inter Tight** (interfaz) e **IBM Plex Mono** (cifras), incluidas localmente.
+- `web/src/estilos.css`: identidad del Manual de marca de Proliferante. Navy `#162B2A` (base; fondo del modo oscuro),
+  verde `#7BC689` (foco), índigo `#5A44DD` (acción: botones e interactivos), azul claro `#C7D7EC` (respiro) y pizarra
+  `#505B7D` (soporte de textos); papel blanco. Para los datos se conservan naranja (sin cupo) `#E0662A` y verde azulado
+  (reubicados) `#268484`. Tipografías **MuseoModerno** (titulares y logo Matrícula+), **Poppins** (interfaz, cuerpo y
+  cifras) y **Caveat Brush** (acento emocional, una frase por sección: clase `.acento`), incluidas localmente.
 - `engine/simulador/config.py`: totales de nuevos, % de hermanos y vulnerables, pesos de prioridad, presets,
   ubicaciones y cupos del colegio nuevo, reducción por jornada única, zona crítica y semilla.
 - **Proli**, la mascota (`web/src/assets/proli.webp`), aparece en la portada del tótem, en el método y en Agendar; el

@@ -3,6 +3,17 @@ import { motion, useReducedMotion } from 'framer-motion'
 import imagenProli from '../assets/proli.webp'
 import { EMPRESA } from '../config'
 
+/** Proli en el lugar del icono de un proyecto (portada, intro y tarjetas): se mece y saluda. */
+export function ProliMarca({ tamano = 2.4, className = '' }: { tamano?: number; className?: string }) {
+  const reducir = useReducedMotion()
+  return (
+    <motion.img src={imagenProli} alt={`Proli, de ${EMPRESA}`} className={`proli-marca ${className}`} draggable={false}
+                style={{ height: `${tamano}rem` }}
+                animate={reducir ? undefined : { rotate: [0, -5, 0, 5, 0] }}
+                transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }} />
+  )
+}
+
 /**
  * Proli, la mascota de Proliferante. Se mece suavemente (salvo con "reducir movimiento")
  * y puede llevar un globo de diálogo.

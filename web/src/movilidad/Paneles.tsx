@@ -7,8 +7,8 @@
  */
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
-import { BotonInicio, BotonTema, IconoApp, LogoEmpresa, NombreApp } from '../componentes/Marca'
-import Proli from '../componentes/Proli'
+import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from '../componentes/Marca'
+import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
 import { ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, TITULO_MOVILIDAD, URL_CITA } from '../config'
 import { esTotem, type Modo } from '../modo'
@@ -67,12 +67,13 @@ export function PortadaMov({ datos, modo, ir, alInicio }: PropsMov) {
   return (
     <>
       <div className="portada__contenido">
+        <MarcaDeAgua className="marca-agua--portada" />
         <motion.div className="portada__marca" {...entrar} transition={{ delay: 0.05 }}>
           <div className="portada__logos">
             {alInicio && modo !== 'auto' && <BotonInicio alInicio={alInicio} />}
             <LogoEmpresa />
             <span className="portada__sep" aria-hidden />
-            <span className="marca-bloque"><IconoApp nombre={NOMBRE_MOVILIDAD} variante="violeta" /><NombreApp nombre={NOMBRE_MOVILIDAD} /></span>
+            <span className="marca-bloque"><ProliMarca /><NombreApp nombre={NOMBRE_MOVILIDAD} /></span>
           </div>
           <span className="etiqueta">GovTech · 3–4 nov 2026</span>
           <BotonTema />

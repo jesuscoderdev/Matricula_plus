@@ -24,7 +24,7 @@ export default function Metodo({ datos, modo, palancas, ir }: PropsCapitulo) {
         {etapas.map((e) => <li key={e.t}><span><b>{e.t}</b><small>{e.d}</small></span></li>)}
       </ol>
       <div className="cierre">
-        <Proli tamano={modo === 'escritorio' ? 6.5 : 7} globo={<>¿Lo vemos con los datos de tu entidad? <b>Agenda una cita.</b></>} />
+        <Proli tamano={modo === 'escritorio' ? 6.5 : 7} globo={<><span className="acento">¿Lo vemos con los datos de tu entidad?</span> <b>Agenda una cita.</b></>} />
         <QrCita />
       </div>
       {modo !== 'auto' && (

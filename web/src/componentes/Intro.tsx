@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { APP_NAME, TITULO_SIMULADOR } from '../config'
-import { Cruz, IconoApp } from './Marca'
+import { Cruz, MarcaDeAgua } from './Marca'
+import { ProliMarca } from './Proli'
 
 /**
- * Animación de entrada (sigue a la pantalla de carga, con su mismo fondo): el icono M+ queda
- * arriba, aparece la cruz y luego las letras de "Matrícula" una a una, empujándola hacia la
+ * Animación de entrada (sigue a la pantalla de carga, con su mismo fondo): Proli queda
+ * arriba (sobre el ícono de Proliferante en transparencia), aparece la cruz y luego las letras de "Matrícula" una a una, empujándola hacia la
  * derecha hasta formar "Matrícula+". Se puede saltar tocando la pantalla. Con "reducir
  * movimiento" se muestra el nombre directo.
  */
@@ -13,8 +14,8 @@ const RETRASO_LETRAS = 0.75   // s que el "+" está solo
 const PASO_LETRA = 0.075      // s entre letras
 const PAUSA_FINAL = 0.9       // s con el nombre completo antes de salir
 
-export default function Intro({ alTerminar, nombre = APP_NAME, lema = TITULO_SIMULADOR, variante = 'tinta' }: {
-  alTerminar: () => void; nombre?: string; lema?: string; variante?: 'tinta' | 'violeta'
+export default function Intro({ alTerminar, nombre = APP_NAME, lema = TITULO_SIMULADOR }: {
+  alTerminar: () => void; nombre?: string; lema?: string
 }) {
   const reducir = useReducedMotion()
   const termina = nombre.endsWith('+')
@@ -42,9 +43,8 @@ export default function Intro({ alTerminar, nombre = APP_NAME, lema = TITULO_SIM
           exit={{ opacity: 0, scale: 1.04 }}
           transition={{ duration: 0.45, ease: 'easeInOut' }}
         >
-          <motion.div initial={false} animate={reducir ? {} : { scale: [1, 1.06, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}>
-            <IconoApp nombre={nombre} variante={variante} />
-          </motion.div>
+          <MarcaDeAgua className="marca-agua--intro" />
+          <ProliMarca tamano={7} className="intro__proli" />
           <div className="intro__marca" aria-label={nombre}>
             <AnimatePresence>
               {letras.slice(0, visibles).map((l, i) => (

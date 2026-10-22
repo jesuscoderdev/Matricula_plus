@@ -5,7 +5,7 @@ import QRCode from 'qrcode'
 export default function Qr({ texto, etiqueta }: { texto: string; etiqueta?: ReactNode }) {
   const [svg, setSvg] = useState('')
   useEffect(() => {
-    QRCode.toString(texto, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#0b0f17', light: '#ffffff' } })
+    QRCode.toString(texto, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#162b2a', light: '#ffffff' } })
       .then(setSvg)
       .catch(() => setSvg(''))
   }, [texto])

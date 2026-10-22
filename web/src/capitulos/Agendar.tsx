@@ -25,7 +25,7 @@ export default function Agendar() {
       <header className="panel__cabeza">
         <span className="kicker">Hablemos</span>
         <h1 className="display">Llévalo a <em>tu entidad</em></h1>
-        <p className="lead">Te mostramos {APP_NAME} con tus propios datos y tus reglas de asignación.</p>
+        <p className="lead"><span className="acento">Te mostramos {APP_NAME} con tus propios datos y tus reglas de asignación.</span></p>
       </header>
       {CALENDLY_CITA && <button className="boton boton--violeta" onClick={() => window.open(CALENDLY_CITA, '_blank', 'noopener')}>Elegir fecha y hora</button>}
       <form className="formulario" onSubmit={enviar}>

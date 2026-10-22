@@ -4,6 +4,7 @@ import { APP_NAME, EMPRESA, SEGUNDOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } fr
 import logoProliferante from '../assets/logo-proliferante.webp'
 import logoLetras from '../assets/logo-proliferante-letras.webp'
 import logoO from '../assets/logo-proliferante-o.webp'
+import iconoProliferante from '../assets/icono-proliferante.webp'
 import { alternarTema, useTema } from '../tema'
 
 // Ritmo del logo de la cabecera: "Matrícula+" un rato, se agrupa en "M+", se queda así otro rato
@@ -191,6 +192,14 @@ export function LogoEmpresa({ className = '', animado = true }: { className?: st
       ))}
     </span>
   )
+}
+
+/**
+ * Marca de agua: el ícono de Proliferante en transparencia, como las cifras gigantes de fondo del
+ * manual de marca. Decorativa; el color y la opacidad salen del tema.
+ */
+export function MarcaDeAgua({ className = '' }: { className?: string }) {
+  return <span className={`marca-agua ${className}`} aria-hidden style={{ ['--icono' as string]: `url(${iconoProliferante})` }} />
 }
 
 /** Botón ☾/☀: cambia entre modo claro y oscuro (por defecto sigue al sistema). */

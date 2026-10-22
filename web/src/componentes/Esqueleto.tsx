@@ -4,9 +4,9 @@ import { APP_NAME } from '../config'
 // Familias (puntos) que llegan en espiral al colegio (el icono M+): ángulo, retraso y color.
 // Los mismos de index.html, para que no haya salto al montar.
 const PUNTOS: [string, string, string][] = [
-  ['0deg', '0s', '#7f45ee'], ['51deg', '0.4s', '#268484'], ['103deg', '0.8s', '#e0662a'], ['154deg', '1.2s', '#a88cf0'],
-  ['206deg', '1.6s', '#8bc68e'], ['257deg', '2s', '#7f45ee'], ['309deg', '2.4s', '#268484'], ['26deg', '1.4s', '#a88cf0'],
-  ['129deg', '0.2s', '#7f45ee'], ['231deg', '1s', '#e0662a'], ['334deg', '1.8s', '#8bc68e'], ['180deg', '2.6s', '#7f45ee'],
+  ['0deg', '0s', '#5a44dd'], ['51deg', '0.4s', '#505b7d'], ['103deg', '0.8s', '#7bc689'], ['154deg', '1.2s', '#aca2ee'],
+  ['206deg', '1.6s', '#7bc689'], ['257deg', '2s', '#5a44dd'], ['309deg', '2.4s', '#505b7d'], ['26deg', '1.4s', '#aca2ee'],
+  ['129deg', '0.2s', '#5a44dd'], ['231deg', '1s', '#7bc689'], ['334deg', '1.8s', '#7bc689'], ['180deg', '2.6s', '#5a44dd'],
 ]
 
 /**

@@ -9,9 +9,10 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, LEMA_EMPRESA, PROYECTOS, SEGUNDOS_INICIO_AUTO, URL_EMPRESA, type IdProyecto } from './config'
+import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
-import { BotonTema, IconoApp, LogoEmpresa, NombreApp } from './componentes/Marca'
+import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
+import Proli from './componentes/Proli'
 import Esqueleto from './componentes/Esqueleto'
 import Qr from './componentes/Qr'
 import App from './App'
@@ -83,6 +84,7 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
   const reducir = useReducedMotion()
   return (
     <div className="app inicio">
+      <MarcaDeAgua className="marca-agua--inicio" />
       <div className="inicio__contenido">
         <motion.header className="inicio__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa />
@@ -95,7 +97,7 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
             ¿Qué quiere <em>explorar</em>?
           </motion.h1>
           <motion.p className="lead" {...entrar} transition={{ delay: 0.28 }}>
-            Demostraciones de {EMPRESA} para decidir con datos públicos. {modo === 'auto' ? 'Recorrido automático.' : 'Elija una para empezar.'}
+            Demostraciones de {EMPRESA} para decidir con datos públicos. <span className="acento">{modo === 'auto' ? 'Recorrido automático.' : 'Elija una para empezar.'}</span>
           </motion.p>
         </div>
         <div className="inicio__tarjetas">
@@ -114,7 +116,8 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
             >
               <span className="proyecto__arte" aria-hidden>
                 {p.id === 'movilidad' ? <ArteHexagonos /> : <ArteFamilias />}
-                <IconoApp nombre={p.nombre} letra={p.letra} variante={p.variante} className="proyecto__icono" />
+                <Proli tamano={5} lado={p.id === 'movilidad' ? 'derecha' : 'izquierda'} className="proyecto__proli"
+                       globo={p.proximamente ? undefined : p.gancho} />
               </span>
               <span className="proyecto__texto">
                 <span className="kicker">{p.area}</span>
@@ -122,13 +125,23 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
                 <span className="proyecto__pregunta">{p.pregunta}</span>
                 <span className="proyecto__bajada">{p.bajada}</span>
                 {(p.proximamente || siguiente === p.id || modo !== 'auto') && (
-                  <span className="proyecto__entrar">{p.proximamente ? 'Próximamente' : siguiente === p.id ? 'Empieza en un momento' : 'Entrar →'}</span>
+                  <span className="proyecto__entrar">{p.proximamente ? 'Próximamente' : siguiente === p.id ? 'Empieza en un momento' : p.cta}</span>
                 )}
               </span>
               {siguiente === p.id && <span className="proyecto__progreso" style={{ ['--seg' as string]: `${SEGUNDOS_INICIO_AUTO}s` }} />}
             </motion.button>
           ))}
         </div>
+        <motion.aside className="llamado" {...entrar} transition={{ delay: 0.6 }}>
+          <div className="llamado__texto">
+            <span className="kicker">{LLAMADO_INICIO.kicker}</span>
+            <p className="llamado__titulo">{LLAMADO_INICIO.titulo}</p>
+            <p className="nota">{LLAMADO_INICIO.texto}</p>
+          </div>
+          {esTotem(modo)
+            ? <Qr texto={URL_CITA} etiqueta={<>Escanee para<br /><b>agendar una cita</b></>} />
+            : <a className="boton boton--violeta" href={URL_CITA} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>}
+        </motion.aside>
       </div>
       <PieEmpresa modo={modo} />
     </div>
@@ -156,7 +169,7 @@ function PieEmpresa({ modo }: { modo: Modo }) {
 }
 
 // Puntos que llegan al icono (como la pantalla de carga de Matrícula+)
-const PUNTOS = ['#7f45ee', '#268484', '#e0662a', '#a88cf0', '#8bc68e', '#7f45ee', '#268484', '#a88cf0', '#7f45ee', '#e0662a']
+const PUNTOS = ['#5a44dd', '#505b7d', '#7bc689', '#aca2ee', '#7bc689', '#5a44dd', '#505b7d', '#aca2ee', '#5a44dd', '#7bc689']
 function ArteFamilias() {
   return (
     <span className="arte-familias">

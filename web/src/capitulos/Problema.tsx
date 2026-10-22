@@ -26,7 +26,7 @@ export default function Problema({ datos, r, modo, supuestos, localidad, elegirL
         <header className="panel__cabeza">
           <span className="kicker">{kicker('problema')}</span>
           <h1 className="display">Faltan cupos <em>donde viven</em> los niños</h1>
-          <p className="lead">Hoy los cupos se reparten por orden de llegada: quien llega primero, elige primero.
+          <p className="lead">Hoy los cupos se reparten por orden de llegada: <span className="acento">quien llega primero, elige primero.</span>
             Así, <b>{decimal(r.bogota.hoy.pctFueraDeOpciones)}%</b> de los niños nuevos no queda en ninguno de sus {supuestos.opciones} colegios.</p>
         </header>
         <div className="datos-linea">
@@ -63,7 +63,7 @@ export default function Problema({ datos, r, modo, supuestos, localidad, elegirL
           <span className="etiqueta">Resultado de hoy en {localidad}</span>
           <div className="gran-cifra">
             <span className="gran-cifra__n" style={{ color: 'var(--naranja)' }}>{entero(hoy.fueraDeOpciones)}</span>
-            <span className="gran-cifra__t" style={{ color: '#d9d5ea' }}>niños fuera de sus opciones ({decimal(hoy.pctFueraDeOpciones)}%):
+            <span className="gran-cifra__t" style={{ color: '#c7d7ec' }}>niños fuera de sus opciones ({decimal(hoy.pctFueraDeOpciones)}%):
               {' '}{entero(hoy.fueraDeOpciones - hoy.sinCupo)} reubicados lejos y {entero(hoy.sinCupo)} sin ningún cupo cercano.</span>
           </div>
         </div>

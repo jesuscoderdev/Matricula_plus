@@ -60,13 +60,26 @@ export const PROYECTOS: {
   variante: 'tinta' | 'violeta'
   pregunta: string
   bajada: string
+  gancho: string          // lo que dice Proli en la tarjeta (voz retadora: una pregunta)
+  cta: string             // llamado a la acción de la tarjeta: verbo + beneficio
   proximamente?: boolean
 }[] = [
   { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta', pregunta: TITULO_SIMULADOR,
-    bajada: 'Cupos en colegios oficiales de Bogotá: cómo repartirlos mejor.' },
+    bajada: 'Cupos en colegios oficiales de Bogotá: cómo repartirlos mejor.',
+    gancho: '¿Quién se queda sin cupo? Véalo en un minuto.', cta: 'Simular la asignación →' },
   { id: 'movilidad', area: 'Movilidad', nombre: NOMBRE_MOVILIDAD, letra: 'M', variante: 'violeta', pregunta: TITULO_MOVILIDAD,
-    bajada: LEMA_MOVILIDAD },
+    bajada: LEMA_MOVILIDAD,
+    gancho: '¿Qué esquina arreglaría usted primero?', cta: 'Decidir dónde invertir →' },
 ]
+
+// Llamado a la acción del inicio (para quien decide en una entidad pública). Voz del manual:
+// retadora al señalar el problema, cercana al acompañar, rigurosa al entregar.
+export const LLAMADO_INICIO = {
+  kicker: 'Para entidades públicas',
+  titulo: '¿Su entidad decide con datos o por costumbre?',
+  texto: 'Estas demostraciones usan solo datos abiertos. Le mostramos cómo se verían con los datos y las reglas de su entidad.',
+  boton: 'Agendar una conversación →',
+}
 
 // Modo automático sin ?proyecto: segundos en la página de inicio antes de entrar al siguiente proyecto
 export const SEGUNDOS_INICIO_AUTO = 6

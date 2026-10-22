@@ -196,7 +196,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
     }
   }, [vista, modo, localidad, tocadas, tocar, anio, encuadreTocadas, zona, nivel])
 
-  const entrada = intro && <Intro alTerminar={() => setIntro(false)} nombre={NOMBRE_MOVILIDAD} lema={LEMA_MOVILIDAD} variante="violeta" />
+  const entrada = intro && <Intro alTerminar={() => setIntro(false)} nombre={NOMBRE_MOVILIDAD} lema={LEMA_MOVILIDAD} />
   if (error || !datos) {
     return (
       <div className="app">

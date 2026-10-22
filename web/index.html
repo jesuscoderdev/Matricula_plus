@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#fbfaf7" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="description" content="Demostraciones de Proliferante con datos abiertos de Bogotá: Matrícula+ (cupos escolares) y Movilidad+ (seguridad vial en calles de barrio)." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="icon" type="image/png" href="./iconos/favicon.png" />
     <link rel="apple-touch-icon" href="./iconos/apple-touch-icon.png" />
     <title>Proliferante · Matrícula+ y Movilidad+</title>
-    <link rel="preload" href="/fuentes/montserrat-alternates-800.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fuentes/museomoderno-800.woff2" as="font" type="font/woff2" crossorigin />
     <!--
       Pantalla de carga: se ve desde el primer instante, antes de que llegue el JavaScript.
       Es neutral (marca Proliferante y los iconos de los dos proyectos): luego viene la página de
@@ -18,22 +18,22 @@
       mismas clases (.esq*). Sigue el modo oscuro del sistema.
     -->
     <style>
-      /* Tipografía del logo Matrícula+ (aquí y no en el bundle: la usa ya la pantalla de carga) */
-      @font-face { font-family: 'Montserrat Alternates'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fuentes/montserrat-alternates-700.woff2') format('woff2'); }
-      @font-face { font-family: 'Montserrat Alternates'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fuentes/montserrat-alternates-800.woff2') format('woff2'); }
-      html, body { margin: 0; height: 100%; background: #fbfaf7; }
+      /* Tipografía de titulares del manual de marca (logo Matrícula+), aquí y no en el bundle: la usa ya la pantalla de carga */
+      @font-face { font-family: 'MuseoModerno'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fuentes/museomoderno-700.woff2') format('woff2'); }
+      @font-face { font-family: 'MuseoModerno'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fuentes/museomoderno-800.woff2') format('woff2'); }
+      html, body { margin: 0; height: 100%; background: #ffffff; }
       .esq {
-        --esq-fondo: #fbfaf7; --esq-halo: #efeaf9; --esq-tinta: #7f45ee; --esq-crema: #ffffff; --esq-cruz: #8bc68e;
-        --esq-suave: #6b6884; --esq-orbita: #d9d3ea; --esq-ic-fondo: #7f45ee; --esq-ic-m: #ffffff;
+        --esq-fondo: #ffffff; --esq-halo: #eaf1f9; --esq-tinta: #5a44dd; --esq-crema: #ffffff; --esq-cruz: #7bc689;
+        --esq-suave: #505b7d; --esq-orbita: #c7d7ec; --esq-ic-fondo: #5a44dd; --esq-ic-m: #ffffff;
         position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem;
         padding: 1.5rem; background: radial-gradient(circle at 50% 44%, var(--esq-halo), var(--esq-fondo) 60%);
         color: var(--esq-tinta); font-family: system-ui, sans-serif; text-align: center; overflow: hidden;
       }
       @media (prefers-color-scheme: dark) {
-        html, body { background: #14162d; }
-        .esq { --esq-fondo: #14162d; --esq-halo: #2c235b; --esq-tinta: #f3f1fa; --esq-crema: #ffffff; --esq-cruz: #8bc68e; --esq-suave: #b5b1d0; --esq-orbita: #3a3470;
+        html, body { background: #162b2a; }
+        .esq { --esq-fondo: #162b2a; --esq-halo: #1f3d3b; --esq-tinta: #f4f8f7; --esq-crema: #ffffff; --esq-cruz: #7bc689; --esq-suave: #c7d7ec; --esq-orbita: #2f4a48;
           /* El icono sigue violeta con M blanca y cruz verde (colores de Proliferante) */
-          --esq-ic-fondo: #7f45ee; --esq-ic-m: #ffffff; }
+          --esq-ic-fondo: #5a44dd; --esq-ic-m: #ffffff; }
       }
       .esq__escena { position: relative; width: 17rem; height: 17rem; max-width: 80vw; max-height: 80vw; display: grid; place-items: center; }
       .esq__orbita { position: absolute; inset: 12%; border: 2px dashed var(--esq-orbita); border-radius: 50%; animation: esq-girar 24s linear infinite; }
@@ -42,11 +42,11 @@
         position: absolute; left: 50%; top: 50%; width: 0.75rem; height: 0.75rem; margin: -0.375rem; border-radius: 50%;
         background: var(--c); opacity: 0; animation: esq-llega 2.8s cubic-bezier(0.5, 0, 0.3, 1) var(--d) infinite;
       }
-      .esq__icono { position: relative; width: 5.6rem; height: 5.6rem; filter: drop-shadow(0 0.6rem 1.4rem rgba(127, 69, 238, 0.3)); animation: esq-latir 1.4s ease-in-out infinite; }
+      .esq__icono { position: relative; width: 5.6rem; height: 5.6rem; filter: drop-shadow(0 0.6rem 1.4rem rgba(90, 68, 221, 0.3)); animation: esq-latir 1.4s ease-in-out infinite; }
       .esq__icono rect { fill: var(--esq-ic-fondo); }
-      .esq__icono text { fill: var(--esq-ic-m); font: 800 56px 'Montserrat Alternates', system-ui, sans-serif; }
+      .esq__icono text { fill: var(--esq-ic-m); font: 800 56px 'MuseoModerno', system-ui, sans-serif; }
       .esq__icono path { stroke: var(--esq-cruz); fill: none; stroke-width: 8.7; stroke-linecap: round; transform-origin: 75.3px 24.3px; animation: esq-cruz 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
-      .esq__nombre { display: inline-flex; align-items: flex-start; font: 700 1.9rem 'Montserrat Alternates', system-ui, sans-serif; letter-spacing: -0.03em; }
+      .esq__nombre { display: inline-flex; align-items: flex-start; font: 700 1.9rem 'MuseoModerno', system-ui, sans-serif; letter-spacing: -0.01em; }
       .esq__nombre svg { width: 0.42em; height: 0.42em; margin: -0.04em 0 0 0.1em; color: var(--esq-cruz); }
       .esq__estado { display: flex; align-items: center; gap: 0.7rem; color: var(--esq-suave); font: 500 0.72rem ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
       .esq__carga { display: inline-flex; gap: 0.3rem; }
@@ -58,7 +58,7 @@
       .esq__iconos .esq__icono { width: 4.4rem; height: 4.4rem; }
       .esq__iconos .esq__icono:first-child { transform: rotate(-6deg); animation-name: esq-latir-izq; }
       .esq__iconos .esq__icono:last-child { transform: rotate(6deg); animation-name: esq-latir-der; animation-delay: 0.7s; }
-      .esq__icono--violeta rect { fill: #ffffff; stroke: #a88cf0; stroke-width: 3; }
+      .esq__icono--violeta rect { fill: #ffffff; stroke: #aca2ee; stroke-width: 3; }
       .esq__icono--violeta text { fill: var(--esq-ic-fondo); }
       .esq__icono--violeta path { stroke: var(--esq-cruz); }
       .esq__logo { height: 2.6rem; width: auto; display: block; }
@@ -86,18 +86,18 @@
       <div class="esq" role="status" aria-label="Cargando">
         <div class="esq__escena" aria-hidden="true">
           <span class="esq__orbita"></span><span class="esq__orbita esq__orbita--2"></span>
-          <i class="esq__p" style="--a:0deg;--d:0s;--c:#7f45ee"></i>
-          <i class="esq__p" style="--a:51deg;--d:0.4s;--c:#268484"></i>
-          <i class="esq__p" style="--a:103deg;--d:0.8s;--c:#e0662a"></i>
-          <i class="esq__p" style="--a:154deg;--d:1.2s;--c:#a88cf0"></i>
-          <i class="esq__p" style="--a:206deg;--d:1.6s;--c:#8bc68e"></i>
-          <i class="esq__p" style="--a:257deg;--d:2s;--c:#7f45ee"></i>
-          <i class="esq__p" style="--a:309deg;--d:2.4s;--c:#268484"></i>
-          <i class="esq__p" style="--a:26deg;--d:1.4s;--c:#a88cf0"></i>
-          <i class="esq__p" style="--a:129deg;--d:0.2s;--c:#7f45ee"></i>
-          <i class="esq__p" style="--a:231deg;--d:1s;--c:#e0662a"></i>
-          <i class="esq__p" style="--a:334deg;--d:1.8s;--c:#8bc68e"></i>
-          <i class="esq__p" style="--a:180deg;--d:2.6s;--c:#7f45ee"></i>
+          <i class="esq__p" style="--a:0deg;--d:0s;--c:#5a44dd"></i>
+          <i class="esq__p" style="--a:51deg;--d:0.4s;--c:#505b7d"></i>
+          <i class="esq__p" style="--a:103deg;--d:0.8s;--c:#7bc689"></i>
+          <i class="esq__p" style="--a:154deg;--d:1.2s;--c:#aca2ee"></i>
+          <i class="esq__p" style="--a:206deg;--d:1.6s;--c:#7bc689"></i>
+          <i class="esq__p" style="--a:257deg;--d:2s;--c:#5a44dd"></i>
+          <i class="esq__p" style="--a:309deg;--d:2.4s;--c:#505b7d"></i>
+          <i class="esq__p" style="--a:26deg;--d:1.4s;--c:#aca2ee"></i>
+          <i class="esq__p" style="--a:129deg;--d:0.2s;--c:#5a44dd"></i>
+          <i class="esq__p" style="--a:231deg;--d:1s;--c:#7bc689"></i>
+          <i class="esq__p" style="--a:334deg;--d:1.8s;--c:#7bc689"></i>
+          <i class="esq__p" style="--a:180deg;--d:2.6s;--c:#5a44dd"></i>
           <div class="esq__iconos">
             <svg class="esq__icono" viewBox="0 0 100 100"><rect width="100" height="100" rx="21" /><text x="45" y="75" text-anchor="middle">M</text><path d="M75.3 16.6V32M67.6 24.3H83" /></svg>
             <svg class="esq__icono esq__icono--violeta" viewBox="0 0 100 100"><rect width="100" height="100" rx="21" /><text x="45" y="75" text-anchor="middle">M</text><path d="M75.3 16.6V32M67.6 24.3H83" /></svg>

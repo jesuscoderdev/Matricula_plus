@@ -56,7 +56,7 @@ export default function Resultado(props: PropsResultado) {
       <Comparacion hoy={m.hoy} pol={m.pol} s={supuestos} zona={a === 'bogota' ? r.zona : undefined}
                    solo={modo === 'escritorio' ? undefined : ['pctFueraDeOpciones', 'pctPrimera', 'pctSinCupo', 'pctVulnerablesFuera', 'pctViajeLargo']} />
       <p className="nota">Quien no cabe en sus opciones es <b>reubicado</b> en el colegio con cupo más cercano (hasta {decimal(supuestos.radioReubicacionKm)} km), como hace la SED;
-        si no hay, queda <b>sin cupo</b>. Hoy por orden de llegada; con Matrícula+, por prioridad.</p>
+        si no hay, queda <b>sin cupo</b>. <span className="acento">Hoy por orden de llegada; con Matrícula+, por prioridad.</span></p>
       {!auto && (
         <div className="panel__pie">
           <div className="segmentos">

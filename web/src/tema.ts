@@ -21,7 +21,7 @@ const oyentes = new Set<() => void>()
 function aplicar() {
   const t = actual()
   document.documentElement.dataset.tema = t
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t === 'oscuro' ? '#13152b' : '#fbfaf7')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', t === 'oscuro' ? '#162b2a' : '#ffffff')
   oyentes.forEach((f) => f())
 }
 if (typeof document !== 'undefined') {

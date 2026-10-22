@@ -24,16 +24,16 @@ export type Capa = 'k24' | 'k25' | 'kappa' | 'sel'
 
 // ---------------------------------------------------------------- paleta (la de la app)
 const RAMPA: Record<Tema, RGB[]> = {
-  claro: [[196, 172, 250], [155, 112, 244], [122, 62, 232], [86, 38, 186], [48, 18, 112]],
-  oscuro: [[62, 46, 132], [100, 64, 204], [144, 104, 246], [190, 166, 255], [236, 228, 255]],
+  claro: [[190, 182, 246], [140, 124, 238], [90, 68, 221], [66, 48, 180], [36, 28, 110]],
+  oscuro: [[52, 48, 130], [78, 62, 200], [120, 104, 236], [178, 168, 250], [232, 230, 255]],
 }
 const PALETA = {
-  claro: { vacio: [216, 212, 229, 255] as RGBA, avenida: [231, 229, 237, 255] as RGBA, tinta: [22, 19, 43, 255] as RGBA,
+  claro: { vacio: [210, 222, 238, 255] as RGBA, avenida: [230, 237, 246, 255] as RGBA, tinta: [22, 43, 42, 255] as RGBA,
     superficie: [255, 255, 255, 245] as RGBA, fuera: 70 },
-  oscuro: { vacio: [42, 44, 82, 255] as RGBA, avenida: [28, 30, 60, 255] as RGBA, tinta: [236, 233, 250, 255] as RGBA,
-    superficie: [30, 32, 66, 245] as RGBA, fuera: 60 },
+  oscuro: { vacio: [36, 64, 62, 255] as RGBA, avenida: [24, 48, 46, 255] as RGBA, tinta: [240, 246, 245, 255] as RGBA,
+    superficie: [29, 54, 52, 245] as RGBA, fuera: 60 },
 }
-const VIOLETA: RGBA = [127, 69, 238, 255]
+const VIOLETA: RGBA = [90, 68, 221, 255]
 const BIT: Record<Nivel, number> = { bajo: 1, medio: 2, alto: 4 }
 
 /** Cortes de la escala a partir de los datos (cuantiles de los valores positivos, sin repetir). */
@@ -211,7 +211,7 @@ export default function MapaMovilidad({
     }
     return out
   }, [bolsa, reloj])
-  const tonoDestello: RGB = tema === 'oscuro' ? [236, 228, 255] : rampa[4]
+  const tonoDestello: RGB = tema === 'oscuro' ? [232, 230, 255] : rampa[4]
 
   const capas: any[] = celdas ? [
     new PolygonLayer<Celda>({
@@ -265,7 +265,7 @@ export default function MapaMovilidad({
     }),
     tocadas.length > 0 && new TextLayer<number>({
       id: 'tocadas-n', data: tocadas, getPosition: (i) => [s.lon[i], s.lat[i]], getText: (i) => String(tocadas.indexOf(i) + 1),
-      getSize: 13 * e, getPixelOffset: [0, -22 * e], getColor: VIOLETA, fontFamily: 'IBM Plex Mono, monospace', fontWeight: 600,
+      getSize: 13 * e, getPixelOffset: [0, -22 * e], getColor: VIOLETA, fontFamily: 'Poppins, sans-serif', fontWeight: 600,
       background: true, getBackgroundColor: P.superficie, backgroundPadding: [5, 2],
       updateTriggers: { getText: [tocadas], getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
     }),
