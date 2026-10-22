@@ -36,3 +36,39 @@ export const SEGUNDOS_ANIMACION_LOGO = 5.3    // el logo alterna "Matrícula+" �
 // Duración de cada capítulo en modo automático (segundos): ~67 s por vuelta.
 // Problema y Acción incluyen la animación del proceso en la localidad.
 export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado: 12, laboratorio: 6, metodo: 8 }
+
+// --- Página de inicio (elegir proyecto) ---
+// Nombre y pregunta de la sección de movilidad (se cambian aquí)
+export const NOMBRE_MOVILIDAD = 'Movilidad+'
+export const TITULO_MOVILIDAD = 'Con este presupuesto, ¿dónde se evitan más siniestros graves?'
+export const LEMA_MOVILIDAD = 'Las avenidas ya se vigilan. ¿Y las esquinas de su barrio?'
+
+export type IdProyecto = 'educacion' | 'movilidad'
+/**
+ * Proyectos de la página de inicio, en orden. Para sumar un tercero: agregar su id a IdProyecto,
+ * una entrada aquí y su componente en Inicio.tsx. Con `proximamente` se muestra como tarjeta
+ * discreta, sin entrar.
+ */
+export const PROYECTOS: {
+  id: IdProyecto
+  area: string            // tema del proyecto (kicker de la tarjeta)
+  nombre: string          // marca (termina en "+" → cruz violeta)
+  letra: string           // letra del icono
+  variante: 'tinta' | 'violeta'
+  pregunta: string
+  bajada: string
+  proximamente?: boolean
+}[] = [
+  { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta', pregunta: TITULO_SIMULADOR,
+    bajada: 'Cupos en colegios oficiales de Bogotá: cómo repartirlos mejor.' },
+  { id: 'movilidad', area: 'Movilidad', nombre: NOMBRE_MOVILIDAD, letra: 'M', variante: 'violeta', pregunta: TITULO_MOVILIDAD,
+    bajada: LEMA_MOVILIDAD },
+]
+
+// Modo automático sin ?proyecto: segundos en la página de inicio antes de entrar al siguiente proyecto
+export const SEGUNDOS_INICIO_AUTO = 6
+
+// Movilidad+: duración de cada capítulo en modo automático (segundos): ~60 s por vuelta
+export const DURACION_PASOS_MOVILIDAD = { portada: 5, decide: 10, anio: 9, giro: 6, metodo: 9, presupuesto: 11, fuentes: 5, cierre: 5 }
+// Movilidad+: esquinas que toca el visitante en "Usted decide"
+export const ESQUINAS_A_TOCAR = 3

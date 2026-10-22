@@ -1,0 +1,551 @@
+{
+  "version": "v20261021_6bdb0713",
+  "generado": "2026-10-21T14:42:16",
+  "periodo_estimacion": [
+    2023,
+    2024
+  ],
+  "anio_validacion": 2025,
+  "unidad": "hexágono regular de 115 m (vértice a vértice), CRS EPSG:9377",
+  "definicion_grave": "Gravedad_indicador_30d en {Con Heridos, Con Muertos}",
+  "fuentes": {
+    "siniestros": "SDM, Anuario de Siniestralidad Vial 2024 (histórico) y 2025, Observatorio de Movilidad",
+    "red_vial": "© colaboradores de OpenStreetMap (ODbL), extracto Geofabrik"
+  },
+  "universo": {
+    "hexagonos": 42232,
+    "por_zona": {
+      "local": 32180,
+      "arterial": 10052
+    },
+    "graves_fuera_de_universo_por_anio": {
+      "2023": 104,
+      "2024": 99,
+      "2025": 88
+    }
+  },
+  "grupos_referencia": {
+    "arterial|media_red": {
+      "sitios": 3350,
+      "media_K": 1.4943,
+      "varianza_K": 5.0965,
+      "sobredispersion": true,
+      "alpha": 0.2932,
+      "sitios_con_K_mayor_0": 1849,
+      "largo_red_m_rango": [
+        155,
+        255
+      ]
+    },
+    "arterial|mucha_red": {
+      "sitios": 3351,
+      "media_K": 3.1379,
+      "varianza_K": 16.9329,
+      "sobredispersion": true,
+      "alpha": 0.1853,
+      "sitios_con_K_mayor_0": 2487,
+      "largo_red_m_rango": [
+        255,
+        792
+      ]
+    },
+    "arterial|poca_red": {
+      "sitios": 3351,
+      "media_K": 0.3497,
+      "varianza_K": 1.2886,
+      "sobredispersion": true,
+      "alpha": 0.2714,
+      "sitios_con_K_mayor_0": 571,
+      "largo_red_m_rango": [
+        20,
+        155
+      ]
+    },
+    "local|media_red": {
+      "sitios": 10726,
+      "media_K": 0.239,
+      "varianza_K": 0.5643,
+      "sobredispersion": true,
+      "alpha": 0.4235,
+      "sitios_con_K_mayor_0": 1640,
+      "largo_red_m_rango": [
+        104,
+        201
+      ]
+    },
+    "local|mucha_red": {
+      "sitios": 10727,
+      "media_K": 0.5273,
+      "varianza_K": 1.149,
+      "sobredispersion": true,
+      "alpha": 0.4589,
+      "sitios_con_K_mayor_0": 3310,
+      "largo_red_m_rango": [
+        201,
+        577
+      ]
+    },
+    "local|poca_red": {
+      "sitios": 10727,
+      "media_K": 0.074,
+      "varianza_K": 0.2561,
+      "sobredispersion": true,
+      "alpha": 0.289,
+      "sitios_con_K_mayor_0": 533,
+      "largo_red_m_rango": [
+        2,
+        104
+      ]
+    }
+  },
+  "validacion_2025": {
+    "arterial": {
+      "sitios": 10052,
+      "graves_por_anio": {
+        "2023": 8383,
+        "2024": 8310,
+        "2025": 7465
+      },
+      "promedio_anual_estimacion": 8346.5,
+      "tendencia_2025_vs_promedio": -0.1056,
+      "top": {
+        "30": {
+          "regla_bruta": {
+            "promete": 394.0,
+            "ocurrio": 302,
+            "sobrestimacion": 0.3046,
+            "captura_2025": 0.0405
+          },
+          "bayes_empirico": {
+            "promete": 329.3,
+            "ocurrio": 311,
+            "sobrestimacion": 0.0588,
+            "captura_2025": 0.0417
+          },
+          "sitios_en_comun": 28
+        },
+        "100": {
+          "regla_bruta": {
+            "promete": 970.0,
+            "ocurrio": 704,
+            "sobrestimacion": 0.3778,
+            "captura_2025": 0.0943
+          },
+          "bayes_empirico": {
+            "promete": 809.0,
+            "ocurrio": 708,
+            "sobrestimacion": 0.1427,
+            "captura_2025": 0.0948
+          },
+          "sitios_en_comun": 93
+        }
+      },
+      "calibracion_deciles_K_mayor_0": {
+        "bruto": [
+          0.5,
+          0.5,
+          0.5,
+          0.743,
+          1.0,
+          1.219,
+          1.56,
+          2.143,
+          2.969,
+          5.872
+        ],
+        "eb": [
+          0.467,
+          0.572,
+          0.673,
+          0.774,
+          0.999,
+          1.165,
+          1.484,
+          1.871,
+          2.583,
+          4.969
+        ],
+        "observado": [
+          0.346,
+          0.481,
+          0.696,
+          0.717,
+          0.804,
+          0.959,
+          1.187,
+          1.684,
+          2.159,
+          4.42
+        ]
+      },
+      "error_cuadratico_medio_2025": {
+        "regla_bruta": 1.3535,
+        "bayes_empirico": 1.1762
+      },
+      "error_absoluto_medio_2025": {
+        "regla_bruta": 0.6422,
+        "bayes_empirico": 0.6548
+      }
+    },
+    "local": {
+      "sitios": 32180,
+      "graves_por_anio": {
+        "2023": 4511,
+        "2024": 4502,
+        "2025": 4020
+      },
+      "promedio_anual_estimacion": 4506.5,
+      "tendencia_2025_vs_promedio": -0.108,
+      "top": {
+        "30": {
+          "regla_bruta": {
+            "promete": 177.0,
+            "ocurrio": 111,
+            "sobrestimacion": 0.5946,
+            "captura_2025": 0.0276
+          },
+          "bayes_empirico": {
+            "promete": 107.8,
+            "ocurrio": 101,
+            "sobrestimacion": 0.0674,
+            "captura_2025": 0.0251
+          },
+          "sitios_en_comun": 27
+        },
+        "100": {
+          "regla_bruta": {
+            "promete": 412.5,
+            "ocurrio": 236,
+            "sobrestimacion": 0.7479,
+            "captura_2025": 0.0587
+          },
+          "bayes_empirico": {
+            "promete": 247.6,
+            "ocurrio": 220,
+            "sobrestimacion": 0.1254,
+            "captura_2025": 0.0547
+          },
+          "sitios_en_comun": 88
+        }
+      },
+      "calibracion_deciles_K_mayor_0": {
+        "bruto": [
+          0.5,
+          0.5,
+          0.5,
+          0.5,
+          0.5,
+          0.5,
+          0.696,
+          1.0,
+          1.205,
+          2.316
+        ],
+        "eb": [
+          0.339,
+          0.339,
+          0.368,
+          0.392,
+          0.392,
+          0.392,
+          0.484,
+          0.656,
+          0.778,
+          1.406
+        ],
+        "observado": [
+          0.255,
+          0.206,
+          0.159,
+          0.381,
+          0.279,
+          0.301,
+          0.391,
+          0.529,
+          0.6,
+          1.199
+        ]
+      },
+      "error_cuadratico_medio_2025": {
+        "regla_bruta": 0.2145,
+        "bayes_empirico": 0.17
+      },
+      "error_absoluto_medio_2025": {
+        "regla_bruta": 0.1745,
+        "bayes_empirico": 0.1904
+      }
+    }
+  },
+  "supuestos_intervenciones": {
+    "estado": "VALORES CON FUENTE (21 oct 2026). Las efectividades provienen del CMF Clearinghouse (FHWA) y son estudios de Estados Unidos y Europa: su transferencia a Bogotá es un supuesto. Los costos provienen de cifras públicas de la Alcaldía de Bogotá, ajustadas por IPC; son referencias de orden de magnitud, no presupuestos de obra.",
+    "unidad_costo_millones_cop": 1,
+    "ajuste_ipc": {
+      "metodo": "Variación anual del IPC total (DANE) desde diciembre del año anterior al dato hasta septiembre de 2026. Sobreajusta levemente los meses ya transcurridos del año del dato, lo que da costos algo más altos (criterio conservador).",
+      "ipc_anual_pct": {
+        "2017": 4.09,
+        "2018": 3.18,
+        "2019": 3.8,
+        "2020": 1.61,
+        "2021": 5.62,
+        "2022": 13.12,
+        "2023": 9.28,
+        "2024": 5.2,
+        "2025": 5.1,
+        "2026_ene_sep": 5.74
+      },
+      "fuente": "DANE, boletines técnicos del IPC (diciembre de cada año; septiembre de 2026: 5,74 % año corrido)"
+    },
+    "intervenciones": {
+      "local": {
+        "nombre": "Reductores de velocidad en la esquina (resaltos o pompeyanos con demarcación)",
+        "reduccion_esperada": 0.4,
+        "efectividad_fuente": "CMF Clearinghouse, CMF ID 132 (instalar resaltos reductores de velocidad): CMF 0,60, error estándar 0,16; siniestros con heridos (A, B, C), calles locales urbanas y suburbanas de dos carriles. Estudio: Elvik y Vaa (2004), Handbook of Road Safety Measures, metaanálisis. El manual de factores de reducción de Oregon (ODOT, julio de 2026, sección BP30) usa el mismo valor.",
+        "efectividad_rango": "0,40 a 0,50 (CMF ID 134 da CMF 0,50 para la misma medida). Se usa el valor más conservador.",
+        "costo_millones_cop": 6,
+        "costo_fuente": "Unidad de Mantenimiento Vial de Bogotá: 1.300 millones de pesos para demarcar e instalar reductores en 307 segmentos viales (Semana, 16 de marzo de 2022). Promedio: 4,23 millones por segmento en 2022; ajustado por IPC: 6,12 millones en 2026. Se supone un segmento por hexágono.",
+        "costo_rango": "Referencia de orden de magnitud: un promedio de programa, no el precio de un diseño específico. Para un valor de obra debe consultarse el visor de precios unitarios de referencia del IDU o los contratos en SECOP II."
+      },
+      "arterial": {
+        "nombre": "Intersección semaforizada con intervalo peatonal anticipado (el peatón recibe verde unos segundos antes que los vehículos)",
+        "reduccion_esperada": 0.14,
+        "efectividad_fuente": "CMF Clearinghouse, CMF ID 9917 (intervalo peatonal anticipado): CMF 0,86, error estándar 0,03; todos los tipos de siniestro con heridos o muertos (K, A, B, C), intersecciones semaforizadas urbanas. Estudio: Goughnour et al. (2018), Safety Evaluation of Protected Left-Turn Phasing and Leading Pedestrian Intervals on Pedestrian Safety (FHWA-HRT-18-044); antes-después con Bayes empírico en 105 intersecciones de Chicago, Nueva York y Charlotte.",
+        "efectividad_rango": "Para siniestros con peatones, CMF 0,87 (CMF ID 9918). Es una contramedida de la lista de contramedidas probadas de la FHWA.",
+        "costo_millones_cop": 389,
+        "costo_fuente": "Alcaldía de Bogotá (bogota.gov.co, 13 de septiembre de 2017): «el costo de cada instalación semafórica en una intersección oscila entre 150 y 300 millones de pesos». Se usa el punto medio (225 millones) ajustado por IPC: 389 millones en 2026 (rango 259 a 519).",
+        "costo_rango": "Cota superior: en una intersección que ya tiene semáforo y cabezas peatonales, el intervalo peatonal anticipado solo requiere reprogramar los tiempos, con un costo mucho menor. No se encontró una cifra pública de Bogotá para esa reprogramación."
+      }
+    },
+    "intervenciones_descartadas": {
+      "camaras_de_fotodeteccion": "Las cifras públicas de costo por cámara en Bogotá son muy dispares (de 292 a 2.186 millones según la fuente), la FHWA las retiró en 2026 de su lista de contramedidas probadas y son un tema políticamente sensible en la ciudad.",
+      "semaforizar_intersecciones_sin_semaforo": "Efecto neto incierto: reduce los choques en ángulo (−67 %) pero aumenta los de alcance (+143 %), según el manual de Oregon (ODOT, 2026) con base en el Highway Safety Manual. Además, la mayoría de las intersecciones arteriales de Bogotá ya está semaforizada."
+    },
+    "presupuestos_millones_cop": {
+      "bajo": 1000,
+      "medio": 5000,
+      "alto": 20000
+    },
+    "escenarios": {
+      "barrio": {
+        "zonas": [
+          "local"
+        ],
+        "descripcion": "Solo calles locales"
+      },
+      "toda_la_red": {
+        "zonas": [
+          "local",
+          "arterial"
+        ],
+        "descripcion": "Calles locales y red arterial"
+      }
+    }
+  },
+  "asignacion_presupuesto": {
+    "barrio": {
+      "bajo": {
+        "presupuesto_millones_cop": 1000,
+        "optimo_mochila_eb": {
+          "sitios": 166,
+          "por_zona": {
+            "local": 166
+          },
+          "costo_millones_cop": 996,
+          "promesa_evitados_anual": 139.95,
+          "esperado_evitados_anual_eb": 139.95,
+          "referencia_2025": 129.2
+        },
+        "lista_por_conteo_bruto": {
+          "sitios": 166,
+          "por_zona": {
+            "local": 166
+          },
+          "costo_millones_cop": 996,
+          "promesa_evitados_anual": 233.6,
+          "esperado_evitados_anual_eb": 139.55,
+          "referencia_2025": 133.2
+        },
+        "lista_por_beneficio_costo_eb": {
+          "sitios": 166,
+          "por_zona": {
+            "local": 166
+          },
+          "costo_millones_cop": 996,
+          "promesa_evitados_anual": 139.95,
+          "esperado_evitados_anual_eb": 139.95,
+          "referencia_2025": 127.6
+        }
+      },
+      "medio": {
+        "presupuesto_millones_cop": 5000,
+        "optimo_mochila_eb": {
+          "sitios": 833,
+          "por_zona": {
+            "local": 833
+          },
+          "costo_millones_cop": 4998,
+          "promesa_evitados_anual": 409.13,
+          "esperado_evitados_anual_eb": 409.13,
+          "referencia_2025": 336.8
+        },
+        "lista_por_conteo_bruto": {
+          "sitios": 833,
+          "por_zona": {
+            "local": 833
+          },
+          "costo_millones_cop": 4998,
+          "promesa_evitados_anual": 667.2,
+          "esperado_evitados_anual_eb": 407.62,
+          "referencia_2025": 337.6
+        },
+        "lista_por_beneficio_costo_eb": {
+          "sitios": 833,
+          "por_zona": {
+            "local": 833
+          },
+          "costo_millones_cop": 4998,
+          "promesa_evitados_anual": 409.13,
+          "esperado_evitados_anual_eb": 409.13,
+          "referencia_2025": 337.6
+        }
+      },
+      "alto": {
+        "presupuesto_millones_cop": 20000,
+        "optimo_mochila_eb": {
+          "sitios": 3333,
+          "por_zona": {
+            "local": 3333
+          },
+          "costo_millones_cop": 19998,
+          "promesa_evitados_anual": 907.77,
+          "esperado_evitados_anual_eb": 907.77,
+          "referencia_2025": 737.6
+        },
+        "lista_por_conteo_bruto": {
+          "sitios": 3333,
+          "por_zona": {
+            "local": 3333
+          },
+          "costo_millones_cop": 19998,
+          "promesa_evitados_anual": 1372.6,
+          "esperado_evitados_anual_eb": 896.38,
+          "referencia_2025": 710.0
+        },
+        "lista_por_beneficio_costo_eb": {
+          "sitios": 3333,
+          "por_zona": {
+            "local": 3333
+          },
+          "costo_millones_cop": 19998,
+          "promesa_evitados_anual": 907.77,
+          "esperado_evitados_anual_eb": 907.77,
+          "referencia_2025": 724.0
+        }
+      }
+    },
+    "toda_la_red": {
+      "bajo": {
+        "presupuesto_millones_cop": 1000,
+        "optimo_mochila_eb": {
+          "sitios": 166,
+          "por_zona": {
+            "local": 166
+          },
+          "costo_millones_cop": 996,
+          "promesa_evitados_anual": 139.95,
+          "esperado_evitados_anual_eb": 139.95,
+          "referencia_2025": 129.2
+        },
+        "lista_por_conteo_bruto": {
+          "sitios": 39,
+          "por_zona": {
+            "local": 37,
+            "arterial": 2
+          },
+          "costo_millones_cop": 1000,
+          "promesa_evitados_anual": 87.81,
+          "esperado_evitados_anual_eb": 54.47,
+          "referencia_2025": 50.6
+        },
+        "lista_por_beneficio_costo_eb": {
+          "sitios": 166,
+          "por_zona": {
+            "local": 166
+          },
+          "costo_millones_cop": 996,
+          "promesa_evitados_anual": 139.95,
+          "esperado_evitados_anual_eb": 139.95,
+          "referencia_2025": 130.8
+        }
+      },
+      "medio": {
+        "presupuesto_millones_cop": 5000,
+        "optimo_mochila_eb": {
+          "sitios": 833,
+          "por_zona": {
+            "local": 833
+          },
+          "costo_millones_cop": 4998,
+          "promesa_evitados_anual": 409.13,
+          "esperado_evitados_anual_eb": 409.13,
+          "referencia_2025": 336.8
+        },
+        "lista_por_conteo_bruto": {
+          "sitios": 67,
+          "por_zona": {
+            "local": 55,
+            "arterial": 12
+          },
+          "costo_millones_cop": 4998,
+          "promesa_evitados_anual": 133.99,
+          "esperado_evitados_anual_eb": 86.51,
+          "referencia_2025": 82.52
+        },
+        "lista_por_beneficio_costo_eb": {
+          "sitios": 833,
+          "por_zona": {
+            "local": 833
+          },
+          "costo_millones_cop": 4998,
+          "promesa_evitados_anual": 409.13,
+          "esperado_evitados_anual_eb": 409.13,
+          "referencia_2025": 335.2
+        }
+      },
+      "alto": {
+        "presupuesto_millones_cop": 20000,
+        "optimo_mochila_eb": {
+          "sitios": 3333,
+          "por_zona": {
+            "local": 3333
+          },
+          "costo_millones_cop": 19998,
+          "promesa_evitados_anual": 907.77,
+          "esperado_evitados_anual_eb": 907.77,
+          "referencia_2025": 737.6
+        },
+        "lista_por_conteo_bruto": {
+          "sitios": 77,
+          "por_zona": {
+            "arterial": 51,
+            "local": 26
+          },
+          "costo_millones_cop": 19995,
+          "promesa_evitados_anual": 147.44,
+          "esperado_evitados_anual_eb": 107.73,
+          "referencia_2025": 100.92
+        },
+        "lista_por_beneficio_costo_eb": {
+          "sitios": 3333,
+          "por_zona": {
+            "local": 3333
+          },
+          "costo_millones_cop": 19998,
+          "promesa_evitados_anual": 907.77,
+          "esperado_evitados_anual_eb": 907.77,
+          "referencia_2025": 751.6
+        }
+      }
+    }
+  },
+  "mensaje_publico": "Con estos supuestos, se esperaría… (nunca «esta obra salvará X vidas»)"
+}

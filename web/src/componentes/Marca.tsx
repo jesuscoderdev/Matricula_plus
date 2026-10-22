@@ -19,23 +19,29 @@ export function Cruz() {
   )
 }
 
-/** Nombre de la app: "Matrícula" en Fraunces + la cruz violeta en alto. */
-export function NombreApp({ className = '' }: { className?: string }) {
-  const termina = APP_NAME.endsWith('+')
+/** Nombre de un proyecto ("Matrícula", "Movilidad"…) + la cruz violeta en alto. */
+export function NombreApp({ className = '', nombre = APP_NAME }: { className?: string; nombre?: string }) {
+  const termina = nombre.endsWith('+')
   return (
     <span className={`marca-app ${className}`}>
-      {termina ? APP_NAME.slice(0, -1) : APP_NAME}
+      {termina ? nombre.slice(0, -1) : nombre}
       {termina && <span className="marca-app__mas"><Cruz /></span>}
     </span>
   )
 }
 
-/** Icono de la app: "M" sobre cuadro redondeado con la cruz violeta arriba a la derecha. */
-export function IconoApp({ claro = false, className = '' }: { claro?: boolean; className?: string }) {
+/**
+ * Icono de un proyecto: la letra sobre cuadro redondeado con la cruz arriba a la derecha.
+ * Variante "tinta" (Matrícula+: fondo tinta, cruz violeta) o "violeta" (Movilidad+: fondo violeta,
+ * letra y cruz en crema), con la misma paleta.
+ */
+export function IconoApp({ claro = false, className = '', nombre = APP_NAME, letra = 'M', variante = 'tinta' }: {
+  claro?: boolean; className?: string; nombre?: string; letra?: string; variante?: 'tinta' | 'violeta'
+}) {
   return (
-    <svg className={`icono-app ${claro ? 'icono-app--claro' : ''} ${className}`} viewBox="0 0 100 100" role="img" aria-label={APP_NAME}>
+    <svg className={`icono-app icono-app--${variante} ${claro ? 'icono-app--claro' : ''} ${className}`} viewBox="0 0 100 100" role="img" aria-label={nombre}>
       <rect className="icono-app__fondo" width="100" height="100" rx="21" />
-      <text className="icono-app__m" x="45" y="75" textAnchor="middle">M</text>
+      <text className="icono-app__m" x="45" y="75" textAnchor="middle">{letra}</text>
       <path className="icono-app__cruz" d="M75.3 16.6V32M67.6 24.3H83" strokeWidth="8.7" strokeLinecap="round" />
     </svg>
   )
@@ -52,7 +58,7 @@ const MS_PULSO = 900
  * bucle rápido. "M+" queda centrado en el espacio del nombre completo (una copia invisible
  * reserva el ancho). Con "reducir movimiento" queda fijo.
  */
-export function NombreAnimado({ cargando = false }: { cargando?: boolean }) {
+export function NombreAnimado({ cargando = false, nombre = APP_NAME }: { cargando?: boolean; nombre?: string }) {
   const reducir = useReducedMotion()
   const [compacto, setCompacto] = useState(false)
   const [pulso, setPulso] = useState(0)
@@ -73,11 +79,11 @@ export function NombreAnimado({ cargando = false }: { cargando?: boolean }) {
     const id = window.setTimeout(() => setCompacto((c) => !c), seg * 1000)
     return () => window.clearTimeout(id)
   }, [compacto, reducir, cargando])
-  const termina = APP_NAME.endsWith('+')
-  const palabra = termina ? APP_NAME.slice(0, -1) : APP_NAME
+  const termina = nombre.endsWith('+')
+  const palabra = termina ? nombre.slice(0, -1) : nombre
   const medio = [...palabra.slice(1)]
   return (
-    <span className="marca-app marca-app--animada" aria-label={APP_NAME}>
+    <span className="marca-app marca-app--animada" aria-label={nombre}>
       <span className="marca-app__molde" aria-hidden>{palabra}{termina && <span className="marca-app__mas"><Cruz /></span>}</span>
       <span className="marca-app__vivo" aria-hidden>
         <span>{palabra[0]}</span>
@@ -110,10 +116,14 @@ export function NombreAnimado({ cargando = false }: { cargando?: boolean }) {
 
 /**
  * Logo de la cabecera. Un toque lleva al inicio (portada). Mantenerlo presionado N segundos
- * también reinicia el demo (para el personal del stand, en el tótem).
+ * también reinicia el demo (para el personal del stand, en el tótem); con `alReiniciarTodo`,
+ * el reinicio largo vuelve a la página de inicio (elegir proyecto).
  */
-export function LogoReinicio({ alReiniciar }: { alReiniciar: () => void }) {
+export function LogoReinicio({ alReiniciar, alReiniciarTodo, nombre = APP_NAME }: {
+  alReiniciar: () => void; alReiniciarTodo?: () => void; nombre?: string
+}) {
   const t = useRef<number | undefined>(undefined)
+  const largo = useRef(false)   // el toque largo ya reinició: el clic que sigue no cuenta
   const [cargando, setCargando] = useState(false)
   const soltar = () => { window.clearTimeout(t.current); setCargando(false) }
   return (
@@ -122,17 +132,18 @@ export function LogoReinicio({ alReiniciar }: { alReiniciar: () => void }) {
       className={`logo-reinicio ${cargando ? 'logo-reinicio--cargando' : ''}`}
       style={{ ['--seg' as string]: `${SEGUNDOS_REINICIO_LOGO}s` }}
       title="Volver al inicio"
-      onClick={alReiniciar}
+      onClick={() => { if (!largo.current) alReiniciar(); largo.current = false }}
       onPointerDown={() => {
         setCargando(true)
-        t.current = window.setTimeout(() => { setCargando(false); alReiniciar() }, SEGUNDOS_REINICIO_LOGO * 1000)
+        largo.current = false
+        t.current = window.setTimeout(() => { setCargando(false); largo.current = true; (alReiniciarTodo ?? alReiniciar)() }, SEGUNDOS_REINICIO_LOGO * 1000)
       }}
       onPointerUp={soltar}
       onPointerLeave={soltar}
       onPointerCancel={soltar}
       onContextMenu={(e) => e.preventDefault()}
     >
-      <NombreAnimado />
+      <NombreAnimado nombre={nombre} />
     </button>
   )
 }
@@ -159,6 +170,18 @@ export function BotonTema() {
           <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
         </svg>
       )}
+    </button>
+  )
+}
+
+/** Botón "← Inicio": vuelve a la página de inicio (elegir proyecto). */
+export function BotonInicio({ alInicio }: { alInicio: () => void }) {
+  return (
+    <button type="button" className="boton-tema boton-atras boton-inicio" onClick={(e) => { e.stopPropagation(); alInicio() }}
+            title="Volver al inicio" aria-label="Volver al inicio (elegir proyecto)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M19 12H5M11 6l-6 6 6 6" />
+      </svg>
     </button>
   )
 }

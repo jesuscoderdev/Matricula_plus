@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion'
 import { entero } from '../datos'
-import { BotonTema, IconoApp, LogoEmpresa, NombreApp } from '../componentes/Marca'
+import { BotonInicio, BotonTema, IconoApp, LogoEmpresa, NombreApp } from '../componentes/Marca'
 import Proli from '../componentes/Proli'
 import { esTotem } from '../modo'
 import type { PropsCapitulo } from './tipos'
 
 /** Portada: la pregunta, la cifra que duele y una sola acción. */
-export default function Portada({ datos, r, modo, ir }: PropsCapitulo) {
+export default function Portada({ datos, r, modo, ir, alInicio }: PropsCapitulo) {
   const p = datos.indice.parametros as { cupos_nuevos_total: number; demanda_nuevos_total: number }
   const totem = esTotem(modo)
   const entrar = { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 } }
@@ -15,6 +15,7 @@ export default function Portada({ datos, r, modo, ir }: PropsCapitulo) {
       <div className="portada__contenido">
         <motion.div className="portada__marca" {...entrar} transition={{ delay: 0.05 }}>
           <div className="portada__logos">
+            {alInicio && modo !== 'auto' && <BotonInicio alInicio={alInicio} />}
             <LogoEmpresa />
             <span className="portada__sep" aria-hidden />
             <span className="marca-bloque"><IconoApp /><NombreApp /></span>

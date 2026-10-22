@@ -34,4 +34,6 @@ export interface PropsCapitulo {
   /** proceso animado en el mapa */
   terminado: boolean
   repetir: () => void
+  /** volver a la página de inicio (elegir proyecto) */
+  alInicio?: () => void
 }

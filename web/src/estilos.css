@@ -637,3 +637,177 @@ h1, h2, h3, p { margin: 0; }
 :root[data-modo='celular'] .mapa__viaje { left: 0.5rem; bottom: 0.5rem; width: calc(100% - 1rem); gap: 0.25rem; padding: 0.35rem 0.45rem 0.45rem; }
 :root[data-modo='celular'] .mapa__viaje p { font-size: 0.72rem; min-height: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :root[data-modo='celular'] .mapa__repetir { width: 1.9rem; height: 1.9rem; }
+
+/* =========================================================
+   9. Página de inicio (elegir proyecto)
+   ========================================================= */
+/* Icono de Movilidad+: misma paleta, fondo violeta y letra/cruz en crema */
+.icono-app--violeta .icono-app__fondo { fill: var(--marca-violeta); }
+.icono-app--violeta .icono-app__m { fill: var(--marca-crema); }
+.icono-app--violeta .icono-app__cruz { stroke: var(--marca-crema); }
+
+.inicio { background: radial-gradient(120% 60% at 85% 0%, var(--violeta-tenue), var(--papel) 60%); }
+.inicio__contenido {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 1.3rem; padding: 1.4rem 1.4rem 1.6rem;
+  width: 100%; max-width: 72rem; margin: 0 auto;
+}
+.inicio__marca { display: flex; align-items: center; gap: 0.8rem; }
+.inicio__marca .logo-empresa { height: 2rem; }
+.inicio__marca .etiqueta { margin-left: auto; }
+.inicio__cabeza { display: flex; flex-direction: column; gap: 0.7rem; padding-top: 0.6rem; }
+.inicio__cabeza .lead { max-width: 34rem; }
+.inicio__tarjetas { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+:root[data-modo='escritorio'] .inicio__contenido { padding: 2.4rem 3rem 2rem; gap: 2rem; }
+/* Centrado vertical que no recorta arriba si no cabe (se desplaza) */
+:root:not([data-modo='celular']) .inicio__contenido > :first-child { margin-top: auto; }
+:root:not([data-modo='celular']) .inicio__contenido > :last-child { margin-bottom: auto; }
+:root[data-modo='escritorio'] .inicio__tarjetas { grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); gap: 1.6rem; }
+:root[data-modo='escritorio'] .inicio .display--xl { font-size: 4rem; }
+:root[data-modo='stand'] .inicio__contenido, :root[data-modo='auto'] .inicio__contenido { gap: 1.6rem; padding-inline: 1.6rem; }
+/* Tótem: tarjetas horizontales (arte a la izquierda) para que todo quepa sin desplazarse */
+:root[data-modo='stand'] .proyecto, :root[data-modo='auto'] .proyecto { display: grid; grid-template-columns: 9.5rem 1fr; }
+:root[data-modo='stand'] .proyecto__arte, :root[data-modo='auto'] .proyecto__arte { height: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--linea); }
+
+.proyecto {
+  position: relative; display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden;
+  border: 1px solid var(--linea); border-radius: calc(var(--r) * 1.4); background: var(--blanco); box-shadow: var(--sombra);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.proyecto:hover:not(:disabled), .proyecto:focus-visible { border-color: var(--violeta); box-shadow: 0 0.2rem 0.4rem rgba(22, 19, 43, 0.06), 0 1.2rem 2.6rem rgba(127, 69, 238, 0.18); }
+.proyecto:disabled { cursor: default; color: inherit; }
+.proyecto--siguiente { border-color: var(--violeta); }
+.proyecto--pronto { border-style: dashed; box-shadow: none; background: transparent; opacity: 0.7; }
+.proyecto__arte {
+  position: relative; display: grid; place-items: center; height: 9.5rem; overflow: hidden;
+  background: linear-gradient(180deg, var(--violeta-suave), var(--violeta-tenue)); border-bottom: 1px solid var(--linea);
+}
+:root[data-modo='escritorio'] .proyecto__arte { height: 12rem; }
+.proyecto__icono { position: relative; width: 4.4rem; height: 4.4rem; filter: drop-shadow(0 0.5rem 1.2rem rgba(27, 30, 60, 0.3)); }
+.proyecto__texto { display: flex; flex-direction: column; gap: 0.45rem; padding: 1.1rem 1.2rem 1.3rem; }
+.proyecto__nombre { font-size: 1.7rem; }
+.proyecto__pregunta { font-family: var(--f-display); font-size: 1.35rem; line-height: 1.15; letter-spacing: -0.02em; color: var(--tinta); font-weight: 500; }
+.proyecto__bajada { font-size: 0.9rem; line-height: 1.4; color: var(--suave); }
+.proyecto__entrar { margin-top: 0.4rem; font-weight: 650; color: var(--violeta-osc); font-size: 0.95rem; }
+.proyecto__progreso { position: absolute; left: 0; bottom: 0; height: 0.25rem; width: 0; background: var(--violeta); animation: progreso var(--seg) linear forwards; }
+@keyframes progreso { to { width: 100%; } }
+
+/* Arte de Matrícula+: familias que llegan al colegio */
+.arte-familias { position: absolute; inset: 0; display: block; }
+.arte-familias__orbita { position: absolute; left: 50%; top: 50%; width: 15rem; height: 15rem; margin: -7.5rem; border: 2px dashed var(--linea-2); border-radius: 50%; animation: girar-inicio 26s linear infinite; }
+.arte-familias__orbita--2 { width: 9rem; height: 9rem; margin: -4.5rem; animation-duration: 18s; animation-direction: reverse; }
+.arte-familias i {
+  position: absolute; left: 50%; top: 50%; width: 0.6rem; height: 0.6rem; margin: -0.3rem; border-radius: 50%;
+  background: var(--c); opacity: 0; animation: llega-inicio 2.8s cubic-bezier(0.5, 0, 0.3, 1) var(--d) infinite;
+}
+@keyframes girar-inicio { to { transform: rotate(360deg); } }
+@keyframes llega-inicio {
+  0% { transform: rotate(var(--a)) translateX(9rem) scale(0.5); opacity: 0; }
+  15% { opacity: 1; }
+  75% { transform: rotate(calc(var(--a) + 50deg)) translateX(3.4rem) scale(1); opacity: 1; }
+  100% { transform: rotate(calc(var(--a) + 70deg)) translateX(1.6rem) scale(0); opacity: 0; }
+}
+/* Arte de Movilidad+: panal de hexágonos en una escala violeta */
+.arte-hex { position: absolute; inset: 0; width: 100%; height: 100%; }
+.arte-hex__h--0 { fill: var(--linea); }
+.arte-hex__h--1 { fill: var(--violeta-claro); opacity: 0.45; }
+.arte-hex__h--2 { fill: var(--violeta); opacity: 0.6; }
+.arte-hex__h--3 { fill: var(--violeta-osc); opacity: 0.8; }
+.arte-hex__h--late { animation: latido-hex 2.8s ease-in-out infinite; }
+@keyframes latido-hex { 50% { opacity: 0.25; } }
+
+/* =========================================================
+   10. Movilidad+
+   ========================================================= */
+.mapa__atribucion {
+  position: absolute; right: 0.5rem; bottom: 0.4rem; font-size: 0.56rem; color: var(--suave); background: var(--flotante);
+  padding: 0.1rem 0.4rem; border-radius: 0.3rem; pointer-events: none;
+}
+.mapa--movilidad .mapa__leyenda { bottom: 1.8rem; max-width: calc(100% - 1.6rem); }
+.mapa__zona .k-cuadro { width: 0.75rem; height: 0.75rem; border: 0; border-radius: 0.15rem; }
+.mapa__zona .k-anillo-vacio { width: 0.75rem; height: 0.75rem; border: 1.5px solid var(--tinta); border-radius: 50%; }
+.portada-mov__fuente { display: block; margin-top: 0.3rem; font-family: var(--f-mono); font-size: 0.62rem; color: var(--tenue); }
+.portada .portada-mov__titulo { font-size: 2.7rem; }
+:root[data-modo='escritorio'] .portada .portada-mov__titulo { font-size: 3.3rem; }
+
+.selector { display: flex; flex-direction: column; gap: 0.3rem; }
+.selector select {
+  font: inherit; font-size: 0.9rem; padding: 0.6rem 0.75rem; border: 1px solid var(--linea-2); border-radius: var(--r-chico);
+  background: var(--blanco); color: var(--texto); accent-color: var(--violeta);
+}
+.esquinas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.esquina {
+  display: grid; grid-template-columns: 1.8rem 1fr auto; gap: 0.6rem; align-items: center;
+  border: 1px solid var(--violeta); background: var(--blanco); border-radius: var(--r-chico); padding: 0.5rem 0.7rem;
+}
+.esquina--vacia { border: 1px dashed var(--linea-2); background: transparent; color: var(--tenue); }
+.esquina__n {
+  width: 1.6rem; height: 1.6rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--f-mono); font-size: 0.78rem;
+  font-weight: 600; background: var(--violeta); color: #fff;
+}
+.esquina--vacia .esquina__n { background: none; border: 1px dashed var(--linea-2); color: var(--tenue); }
+.esquina__texto { display: flex; flex-direction: column; gap: 0.1rem; font-size: 0.86rem; min-width: 0; }
+.esquina__texto b { color: var(--tinta); font-weight: 650; }
+.esquina__texto small { font-size: 0.74rem; color: var(--suave); }
+.esquina__quitar { border: 0; background: none; color: var(--tenue); font-size: 1.3rem; line-height: 1; padding: 0 0.2rem; }
+.app--movilidad .boton:disabled { opacity: 0.55; cursor: default; }
+
+.antes-despues { display: flex; flex-direction: column; gap: 0.55rem; }
+.antes-despues__fila { display: grid; grid-template-columns: 1.8rem 1fr auto; gap: 0.6rem; align-items: center; }
+.antes-despues__barras { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.barra-mini { display: flex; align-items: center; gap: 0.4rem; height: 1.2rem; font-size: 0.72rem; }
+.barra-mini i { display: block; height: 100%; border-radius: 0.25rem; min-width: 0.2rem; flex: none; transition: width 0.5s ease; }
+.barra-mini__antes { background: repeating-linear-gradient(135deg, var(--violeta-claro) 0 0.3rem, var(--violeta-suave) 0.3rem 0.45rem); border: 1.5px solid var(--violeta-claro); }
+.barra-mini__despues { background: var(--solido); }
+.barra-mini b { font-family: var(--f-mono); font-weight: 600; color: var(--tinta); white-space: nowrap; }
+.antes-despues__delta { font-family: var(--f-mono); font-size: 0.95rem; font-weight: 600; color: var(--suave); }
+.antes-despues__delta--baja { color: var(--violeta-osc); }
+.gran-cifra--mov .gran-cifra__n { color: var(--violeta-osc); font-size: 2.8rem; }
+.gran-cifra__flecha { font-size: 0.6em; margin: 0 0.25em; color: var(--tenue); vertical-align: middle; }
+.display--giro { font-size: 1.9rem; }
+
+.promesas { display: flex; flex-direction: column; gap: 0.8rem; }
+.promesa { display: flex; flex-direction: column; gap: 0.35rem; border: 1px solid var(--linea); background: var(--blanco); border-radius: var(--r); padding: 0.75rem 0.85rem; }
+.promesa--sola { gap: 0.45rem; }
+.promesa__cabeza { display: flex; flex-direction: column; }
+.promesa__cabeza b { font-size: 0.92rem; font-weight: 650; color: var(--tinta); }
+.promesa__cabeza small { font-size: 0.7rem; color: var(--tenue); }
+.promesa__fila { display: grid; grid-template-columns: 6.2rem 1fr; gap: 0.6rem; align-items: center; }
+.promesa--sola .promesa__fila { grid-template-columns: 8.5rem 1fr; }
+.promesa__etiqueta { font-size: 0.74rem; font-weight: 600; color: var(--suave); line-height: 1.2; }
+.promesa__pista { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
+.promesa__barra { display: block; height: 1.3rem; border-radius: 0.25rem; flex: none; transform-origin: left; animation: crecer 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; transition: width 0.5s ease; }
+@keyframes crecer { from { transform: scaleX(0); } }
+.promesa__barra--promete { background: repeating-linear-gradient(135deg, var(--violeta-claro) 0 0.35rem, var(--violeta-suave) 0.35rem 0.55rem); border: 1.5px solid var(--violeta-claro); }
+.promesa__barra--ocurrio { background: var(--solido); }
+.promesa__pista b { font-family: var(--f-mono); font-size: 0.92rem; font-weight: 600; color: var(--tinta); white-space: nowrap; }
+.promesa__sobre { align-self: flex-end; font-family: var(--f-mono); font-size: 0.72rem; font-weight: 600; color: var(--violeta-osc); }
+
+.aviso-mov { border-left: 3px solid var(--naranja); background: var(--naranja-suave); color: var(--texto); padding: 0.55rem 0.75rem; border-radius: 0 var(--r-chico) var(--r-chico) 0; font-size: 0.78rem; line-height: 1.4; }
+.fuentes-mov { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.fuentes-mov li { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.55rem 0; border-top: 1px solid var(--linea); font-size: 0.78rem; line-height: 1.35; }
+.fuentes-mov b { color: var(--tinta); font-weight: 650; }
+.fuentes-mov span { color: var(--suave); }
+.fuentes-mov a { font-family: var(--f-mono); font-size: 0.66rem; color: var(--violeta-osc); }
+
+/* Tótem: textos de Movilidad+ más compactos para que el panel no se desplace */
+:root[data-modo='stand'] .app--movilidad .nota, :root[data-modo='auto'] .app--movilidad .nota { font-size: 0.72rem; }
+/* Celular: la marca de la portada de Movilidad+ es más larga; leyenda del mapa compacta */
+:root[data-modo='celular'] .app--movilidad .portada__logos { gap: 0.6rem; }
+:root[data-modo='celular'] .app--movilidad .portada__logos .logo-empresa { height: 1.6rem; }
+:root[data-modo='celular'] .app--movilidad .portada__logos .marca-app { font-size: 1.2rem; }
+:root[data-modo='celular'] .app--movilidad .portada__logos .icono-app { width: 1.9rem; height: 1.9rem; }
+:root:is([data-modo='celular'], [data-modo='stand'], [data-modo='auto']) .mapa--movilidad .mapa__leyenda { padding: 0.35rem 0.5rem; gap: 0.2rem; left: 0.5rem; bottom: 1.6rem; }
+:root:is([data-modo='celular'], [data-modo='stand'], [data-modo='auto']) .mapa--movilidad .mapa__escala span { width: 2.1rem; }
+:root:is([data-modo='celular'], [data-modo='stand'], [data-modo='auto']) .mapa--movilidad .mapa__zona--avenidas { display: none; }
+/* Tótem: Movilidad+ cabe sin desplazarse (letra algo menor en el panel y sin las notas secundarias) */
+:root[data-modo='stand'] .app--movilidad .escena, :root[data-modo='auto'] .app--movilidad .escena { grid-template-rows: minmax(0, 36fr) minmax(0, 64fr); }
+:root[data-modo='stand'] .app--movilidad .escena--mapa-grande, :root[data-modo='auto'] .app--movilidad .escena--mapa-grande { grid-template-rows: minmax(0, 46fr) minmax(0, 54fr); }
+:root[data-modo='stand'] .app--movilidad .panel, :root[data-modo='auto'] .app--movilidad .panel { zoom: 0.86; }
+:root[data-modo='stand'] .app--movilidad .panel, :root[data-modo='auto'] .app--movilidad .panel { gap: 0.75rem; }
+:root[data-modo='stand'] .app--movilidad .mov-sec, :root[data-modo='auto'] .app--movilidad .mov-sec { display: none; }
+:root[data-modo='stand'] .app--movilidad .promesa__cabeza small, :root[data-modo='auto'] .app--movilidad .promesa__cabeza small { display: none; }
+:root[data-modo='stand'] .app--movilidad .fuentes-mov li, :root[data-modo='auto'] .app--movilidad .fuentes-mov li { padding: 0.35rem 0; }
+:root[data-modo='stand'] .app--movilidad .promesas, :root[data-modo='auto'] .app--movilidad .promesas { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+:root[data-modo='stand'] .app--movilidad .promesas .promesa__fila, :root[data-modo='auto'] .app--movilidad .promesas .promesa__fila { grid-template-columns: 1fr; gap: 0.15rem; }
+:root[data-modo='stand'] .app--movilidad .fuentes-mov, :root[data-modo='auto'] .app--movilidad .fuentes-mov { display: grid; grid-template-columns: 1fr 1fr; column-gap: 1rem; }

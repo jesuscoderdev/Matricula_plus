@@ -4,18 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <meta name="theme-color" content="#fbfaf7" />
-    <meta name="description" content="Simulador de asignación de cupos en colegios oficiales de Bogotá, con datos abiertos. Por Proliferante." />
+    <meta name="description" content="Demostraciones de Proliferante con datos abiertos de Bogotá: Matrícula+ (cupos escolares) y Movilidad+ (seguridad vial en calles de barrio)." />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="icon" type="image/png" href="./iconos/favicon.png" />
     <link rel="apple-touch-icon" href="./iconos/apple-touch-icon.png" />
-    <title>Matrícula+ · ¿Dónde cabe cada niño?</title>
+    <title>Proliferante · Matrícula+ y Movilidad+</title>
     <link rel="preload" href="/fuentes/montserrat-alternates-800.woff2" as="font" type="font/woff2" crossorigin />
     <!--
       Pantalla de carga: se ve desde el primer instante, antes de que llegue el JavaScript.
-      React la reemplaza al montar; mientras cargan los datos, Esqueleto.tsx muestra la misma
-      pantalla (reutiliza estas clases). Familias (puntos) que llegan al colegio (el icono M+).
-      Sigue el modo oscuro del sistema.
+      Es neutral (marca Proliferante y los iconos de los dos proyectos): luego viene la página de
+      inicio. Al entrar a un proyecto, Esqueleto.tsx muestra su propia pantalla de carga con estas
+      mismas clases (.esq*). Sigue el modo oscuro del sistema.
     -->
     <style>
       /* Tipografía del logo Matrícula+ (aquí y no en el bundle: la usa ya la pantalla de carga) */
@@ -53,6 +53,17 @@
       .esq__carga i { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--esq-cruz); animation: esq-salto 1s ease-in-out infinite; }
       .esq__carga i:nth-child(2) { animation-delay: 0.15s; }
       .esq__carga i:nth-child(3) { animation-delay: 0.3s; }
+      /* Carga neutral: los dos iconos (Matrícula+ y Movilidad+) y el logo de Proliferante */
+      .esq__iconos { position: relative; display: flex; gap: 0.7rem; }
+      .esq__iconos .esq__icono { width: 4.4rem; height: 4.4rem; }
+      .esq__iconos .esq__icono:first-child { transform: rotate(-6deg); animation-name: esq-latir-izq; }
+      .esq__iconos .esq__icono:last-child { transform: rotate(6deg); animation-name: esq-latir-der; animation-delay: 0.7s; }
+      .esq__icono--violeta rect { fill: var(--esq-cruz); }
+      .esq__icono--violeta text { fill: var(--esq-crema); }
+      .esq__icono--violeta path { stroke: var(--esq-crema); }
+      .esq__logo { height: 2.6rem; width: auto; display: block; }
+      @keyframes esq-latir-izq { 0%, 100% { transform: rotate(-6deg) scale(1); } 50% { transform: rotate(-6deg) scale(1.06); } }
+      @keyframes esq-latir-der { 0%, 100% { transform: rotate(6deg) scale(1); } 50% { transform: rotate(6deg) scale(1.06); } }
       @keyframes esq-girar { to { transform: rotate(360deg); } }
       /* Cada familia entra en espiral desde afuera y se mete en el colegio */
       @keyframes esq-llega {
@@ -72,7 +83,7 @@
   </head>
   <body>
     <div id="root">
-      <div class="esq" role="status" aria-label="Cargando Matrícula+">
+      <div class="esq" role="status" aria-label="Cargando">
         <div class="esq__escena" aria-hidden="true">
           <span class="esq__orbita"></span><span class="esq__orbita esq__orbita--2"></span>
           <i class="esq__p" style="--a:0deg;--d:0s;--c:#7f45ee"></i>
@@ -87,10 +98,13 @@
           <i class="esq__p" style="--a:231deg;--d:1s;--c:#e0662a"></i>
           <i class="esq__p" style="--a:334deg;--d:1.8s;--c:#8bc68e"></i>
           <i class="esq__p" style="--a:180deg;--d:2.6s;--c:#7f45ee"></i>
-          <svg class="esq__icono" viewBox="0 0 100 100"><rect width="100" height="100" rx="21" /><text x="45" y="75" text-anchor="middle">M</text><path d="M75.3 16.6V32M67.6 24.3H83" /></svg>
+          <div class="esq__iconos">
+            <svg class="esq__icono" viewBox="0 0 100 100"><rect width="100" height="100" rx="21" /><text x="45" y="75" text-anchor="middle">M</text><path d="M75.3 16.6V32M67.6 24.3H83" /></svg>
+            <svg class="esq__icono esq__icono--violeta" viewBox="0 0 100 100"><rect width="100" height="100" rx="21" /><text x="45" y="75" text-anchor="middle">M</text><path d="M75.3 16.6V32M67.6 24.3H83" /></svg>
+          </div>
         </div>
-        <div class="esq__nombre">Matrícula<svg viewBox="0 0 7.2 7.2" aria-hidden="true"><path d="M3.6 1.3V5.9M1.3 3.6H5.9" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" /></svg></div>
-        <div class="esq__estado"><span class="esq__carga"><i></i><i></i><i></i></span><span>Cargando datos de Bogotá</span></div>
+        <img class="esq__logo" src="./src/assets/logo-proliferante.webp" alt="Proliferante" />
+        <div class="esq__estado"><span class="esq__carga"><i></i><i></i><i></i></span><span>Cargando</span></div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

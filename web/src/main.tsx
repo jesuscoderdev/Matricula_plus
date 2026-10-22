@@ -10,10 +10,10 @@ import '@fontsource/ibm-plex-mono/500.css'
 import '@fontsource/ibm-plex-mono/600.css'
 import './estilos.css'
 import './tema'  // aplica el tema (claro/oscuro) antes del primer render
-import App from './App'
+import Inicio from './Inicio'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <Inicio />
   </StrictMode>,
 )

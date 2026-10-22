@@ -1,0 +1,133 @@
+{
+  "version_modelo": "v20261021_6bdb0713",
+  "nota": "Todas las cifras salen del modelo. No se deben escribir cifras a mano en la interfaz.",
+  "contexto_ciudad": {
+    "fallecidos_2025": 562,
+    "lesionados_2025": 19605,
+    "fallecidos_2024_segun_anuario_2025": 575,
+    "variacion_fallecidos_2025_pct": -2.3,
+    "peatones_aumento_muertes_2025_pct": 4,
+    "mayores_60_entre_peatones_fallecidos_pct": 48,
+    "fuente": "Anuario de Siniestralidad Vial de Bogotá 2025 (SDM). 562 y 19.605 se reprodujeron exactamente con la base publicada; 575, −2,3 %, +4 % y 48 % se toman del texto del Anuario."
+  },
+  "pantalla_1_usted_decide": {
+    "titulo_sugerido": "¿Dónde invertiría usted?",
+    "instruccion": "Toque 3 esquinas donde haría una obra de seguridad vial.",
+    "anio_mostrado": 2024,
+    "capa": "sitios.geojson",
+    "campo_a_mostrar": "k_2024",
+    "filtro_sugerido": "zona_vial == 'local' (pregunta de barrio) o sin filtro (toda la red)",
+    "hexagonos_con_graves_2024": {
+      "local": 3285,
+      "toda_la_red": 6898
+    }
+  },
+  "pantalla_2_pasa_un_anio": {
+    "titulo_sugerido": "Pasó un año",
+    "como_calcular_lo_del_visitante": "Para cada esquina tocada mostrar k_2024 y k_2025 del mismo hexágono.",
+    "referencia_30_peores_esquinas_de_barrio_2024": {
+      "graves_2024": 189,
+      "graves_2025": 87,
+      "esquinas_que_bajaron": 27,
+      "de_un_total_de": 30,
+      "hexagonos": [
+        "36975_23993",
+        "37021_23972",
+        "36908_24016",
+        "36892_23965",
+        "36882_23992",
+        "37046_23943",
+        "36963_23984",
+        "37009_24019",
+        "37020_23960",
+        "37005_23995",
+        "36921_23988",
+        "36914_23977",
+        "36958_23924",
+        "37021_23967",
+        "37037_23918",
+        "36903_24012",
+        "36891_23968",
+        "36893_23999",
+        "36918_24105",
+        "36961_23998",
+        "36893_24010",
+        "36914_23989",
+        "36930_23987",
+        "37019_23990",
+        "36879_23987",
+        "36891_24001",
+        "36899_24069",
+        "36903_24020",
+        "36920_24144",
+        "36935_23976"
+      ],
+      "advertencia": "El análisis no considera intervenciones hechas en esos sitios."
+    }
+  },
+  "pantalla_3_el_giro": {
+    "texto_sugerido": "Si hubiera hecho una obra en esas esquinas, habría creído que funcionó. Bajaron solas: los años malos no se repiten."
+  },
+  "pantalla_4_el_metodo": {
+    "titulo_sugerido": "Lo que se prometía y lo que pasó",
+    "explicacion": "Se eligen las 30 esquinas de mayor riesgo con 2023–2024 y se compara con 2025, un año que el modelo no vio.",
+    "calles_de_barrio_30_sitios": {
+      "regla_simple": {
+        "promete": 177.0,
+        "ocurrio": 111,
+        "sobrestimacion_pct": 59.0
+      },
+      "metodo_proliferante": {
+        "promete": 107.8,
+        "ocurrio": 101,
+        "sobrestimacion_pct": 7.0
+      },
+      "esquinas_en_comun": 27
+    },
+    "avenidas_30_sitios": {
+      "regla_simple": {
+        "promete": 394.0,
+        "ocurrio": 302,
+        "sobrestimacion_pct": 30.0
+      },
+      "metodo_proliferante": {
+        "promete": 329.3,
+        "ocurrio": 311,
+        "sobrestimacion_pct": 6.0
+      },
+      "esquinas_en_comun": 28
+    },
+    "caida_general_2025_pct": -10.8,
+    "mensaje_clave": "El método no cambia tanto dónde intervenir, sino cuánto se puede prometer."
+  },
+  "pantalla_presupuesto_barrio": {
+    "intervencion": "Reductores de velocidad en la esquina (resaltos o pompeyanos con demarcación)",
+    "reduccion_supuesta_pct": 40.0,
+    "costo_por_esquina_millones": 6,
+    "escenarios": {
+      "bajo": {
+        "presupuesto_millones": 1000,
+        "esquinas": 166,
+        "se_esperaria_evitar_por_anio": 139.9,
+        "la_practica_intuitiva_prometeria": 233.6
+      },
+      "medio": {
+        "presupuesto_millones": 5000,
+        "esquinas": 833,
+        "se_esperaria_evitar_por_anio": 409.1,
+        "la_practica_intuitiva_prometeria": 667.2
+      },
+      "alto": {
+        "presupuesto_millones": 20000,
+        "esquinas": 3333,
+        "se_esperaria_evitar_por_anio": 907.8,
+        "la_practica_intuitiva_prometeria": 1372.6
+      }
+    },
+    "como_decirlo": "Con estos supuestos, se esperaría evitar X siniestros graves al año."
+  },
+  "cierre": {
+    "texto_sugerido": "¿Y con los datos de su entidad? Este mismo análisis se actualiza cada vez que llegan datos nuevos y puede evaluar, después, si cada obra funcionó.",
+    "accion": "QR de agenda (el mismo de la sección de educación)."
+  }
+}

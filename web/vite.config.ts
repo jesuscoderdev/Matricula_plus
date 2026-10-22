@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { viteSingleFile } from 'vite-plugin-singlefile'
 import fs from 'node:fs'
+import { compactar } from './src/movilidad/compactar'
 
 // Las mismas cabeceras de seguridad de producción (vercel.json) en `npm run preview`, para probarlas en local.
 // Sin HSTS ni upgrade-insecure-requests: la vista previa va por http (también desde el celular en la red local).
@@ -34,6 +35,30 @@ const iconosIncrustados = () => ({
   },
 })
 
+/**
+ * Movilidad+: sitios.geojson pesa ~9 MB. El build normal genera al lado un derivado compacto
+ * (movilidad/datos/sitios.compacto.json, centros + una sola forma de hexágono) que es el que se
+ * descarga y se precachea; el build "archivo" lo incrusta en el HTML junto con los JSON.
+ * Nada se escribe a mano: todo sale de los archivos de public/movilidad/datos.
+ */
+const DIR_MOVILIDAD = 'public/movilidad/datos/'
+const leerMovilidad = (f: string) => JSON.parse(fs.readFileSync(DIR_MOVILIDAD + f, 'utf-8'))
+const sitiosCompactos = () => compactar(leerMovilidad('sitios.geojson'), leerMovilidad('experiencia.json').version_modelo)
+const movilidad = (archivo: boolean) => ({
+  name: 'movilidad-datos',
+  resolveId: (id: string) => (id === 'virtual:movilidad-embebido' ? '\0movilidad-embebido' : null),
+  load(id: string) {
+    if (id !== '\0movilidad-embebido') return null
+    if (!archivo) return 'export default null'
+    const d = [leerMovilidad('experiencia.json'), leerMovilidad('fuentes.json'), leerMovilidad('resumen.json'), sitiosCompactos()]
+    return `export default JSON.parse(${JSON.stringify(JSON.stringify(d))})`
+  },
+  generateBundle(this: { emitFile: (f: { type: 'asset'; fileName: string; source: string }) => void }) {
+    if (archivo) return
+    this.emitFile({ type: 'asset', fileName: 'movilidad/datos/sitios.compacto.json', source: JSON.stringify(sitiosCompactos()) })
+  },
+})
+
 // Dos builds:
 //  - normal (`npm run build`): PWA con service worker, para servir en http y funcionar offline
 //  - archivo (`npm run build:archivo`): UN solo HTML con código, fuentes y datos adentro,
@@ -43,6 +68,7 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       react(),
+      movilidad(archivo),
       archivo
         ? [viteSingleFile({ removeViteModuleLoader: true }), iconosIncrustados()]
         // PWA: el service worker precachea TODO (código, fuente, datos) para funcionar sin internet
@@ -51,9 +77,9 @@ export default defineConfig(({ mode }) => {
           injectRegister: 'auto',
           includeAssets: ['iconos/*.png'],
           manifest: {
-            name: 'Matrícula+ · ¿Dónde cabe cada niño?',
-            short_name: 'Matrícula+',
-            description: 'Simulación de asignación de cupos escolares oficiales en Bogotá — Proliferante',
+            name: 'Proliferante · Matrícula+ y Movilidad+',
+            short_name: 'Proliferante',
+            description: 'Demostraciones con datos abiertos de Bogotá: cupos escolares (Matrícula+) y seguridad vial en calles de barrio (Movilidad+) — Proliferante',
             lang: 'es-CO',
             start_url: './',
             scope: './',
@@ -68,7 +94,9 @@ export default defineConfig(({ mode }) => {
             ],
           },
           workbox: {
-            globPatterns: ['**/*.{js,css,html,woff2,png,svg,json,geojson}'],
+            globPatterns: ['**/*.{js,css,html,woff2,png,svg,webp,json,geojson}'],
+            // El geojson original de movilidad no se precachea: la app usa el derivado compacto
+            globIgnores: ['movilidad/datos/sitios.geojson'],
             maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
             navigateFallback: 'index.html',
             // La vista previa de desarrollo no debe caer en la app

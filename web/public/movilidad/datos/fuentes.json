@@ -1,0 +1,44 @@
+{
+  "titulo_sugerido": "De dónde salen los datos",
+  "fuentes": [
+    {
+      "dato": "Siniestros viales graves 2023, 2024 y 2025 (con heridos o muertos, criterio de 30 días)",
+      "fuente": "Secretaría Distrital de Movilidad, Anuarios de Siniestralidad Vial 2024 y 2025",
+      "anio": "2023–2025",
+      "url": "https://observatorio.movilidadbogota.gov.co/node/354"
+    },
+    {
+      "dato": "Red vial y tipo de vía (avenida o calle de barrio)",
+      "fuente": "© colaboradores de OpenStreetMap (licencia ODbL), extracto Geofabrik",
+      "anio": "datos al 20 de octubre de 2026",
+      "url": "https://www.openstreetmap.org/copyright"
+    },
+    {
+      "dato": "Efectividad de los reductores de velocidad (−40 % de siniestros con heridos)",
+      "fuente": "CMF Clearinghouse (FHWA), CMF ID 132; Elvik y Vaa (2004)",
+      "anio": "2004",
+      "url": "https://cmfclearinghouse.fhwa.dot.gov/detail.php?facid=132"
+    },
+    {
+      "dato": "Efectividad del intervalo peatonal anticipado (−14 % de siniestros con heridos)",
+      "fuente": "CMF Clearinghouse (FHWA), CMF ID 9917; Goughnour et al. (2018)",
+      "anio": "2018",
+      "url": "https://cmfclearinghouse.fhwa.dot.gov/detail.php?facid=9917"
+    },
+    {
+      "dato": "Costo de reductores (≈ 6 millones por esquina)",
+      "fuente": "Unidad de Mantenimiento Vial de Bogotá (2022), ajustado por IPC del DANE",
+      "anio": "2022, en pesos de 2026",
+      "url": "https://www.semana.com/nacion/articulo/alcaldia-destinara-millonarios-recursos-para-demarcar-vias-e-instalar-reductores-de-velocidad/202220/"
+    },
+    {
+      "dato": "Costo de intervención semafórica (≈ 389 millones por intersección)",
+      "fuente": "Alcaldía de Bogotá (2017), ajustado por IPC del DANE",
+      "anio": "2017, en pesos de 2026",
+      "url": "https://bogota.gov.co/mi-ciudad/localidades/usme/intersecciones-semaforizadas-mejoran-la-seguridad-vial"
+    }
+  ],
+  "cruces": "Cada siniestro se ubicó en un hexágono de 115 m y se clasificó como de avenida o de barrio según la vía de OpenStreetMap más cercana. El riesgo de cada hexágono se corrigió con el método de Bayes empírico (Hauer, 1997) comparándolo con hexágonos parecidos.",
+  "metodo_validacion": "Se estimó con 2023–2024 y se verificó con 2025, un año que el modelo no vio. 2022 se excluyó porque sus coordenadas se publicaron redondeadas.",
+  "advertencia": "Las efectividades provienen de estudios internacionales y los costos son referencias de orden de magnitud: las cifras de presupuesto son estimaciones, no compromisos."
+}

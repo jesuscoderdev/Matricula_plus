@@ -13,10 +13,12 @@ const RETRASO_LETRAS = 0.75   // s que el "+" está solo
 const PASO_LETRA = 0.075      // s entre letras
 const PAUSA_FINAL = 0.9       // s con el nombre completo antes de salir
 
-export default function Intro({ alTerminar }: { alTerminar: () => void }) {
+export default function Intro({ alTerminar, nombre = APP_NAME, lema = TITULO_SIMULADOR, variante = 'tinta' }: {
+  alTerminar: () => void; nombre?: string; lema?: string; variante?: 'tinta' | 'violeta'
+}) {
   const reducir = useReducedMotion()
-  const termina = APP_NAME.endsWith('+')
-  const palabra = termina ? APP_NAME.slice(0, -1) : APP_NAME
+  const termina = nombre.endsWith('+')
+  const palabra = termina ? nombre.slice(0, -1) : nombre
   const letras = [...palabra]
   const [visibles, setVisibles] = useState(reducir ? letras.length : 0)
   const [saliendo, setSaliendo] = useState(false)
@@ -41,9 +43,9 @@ export default function Intro({ alTerminar }: { alTerminar: () => void }) {
           transition={{ duration: 0.45, ease: 'easeInOut' }}
         >
           <motion.div initial={false} animate={reducir ? {} : { scale: [1, 1.06, 1] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}>
-            <IconoApp />
+            <IconoApp nombre={nombre} variante={variante} />
           </motion.div>
-          <div className="intro__marca" aria-label={APP_NAME}>
+          <div className="intro__marca" aria-label={nombre}>
             <AnimatePresence>
               {letras.slice(0, visibles).map((l, i) => (
                 <motion.span
@@ -80,7 +82,7 @@ export default function Intro({ alTerminar }: { alTerminar: () => void }) {
             animate={{ opacity: visibles === letras.length ? 1 : 0 }}
             transition={{ duration: 0.4 }}
           >
-            {TITULO_SIMULADOR}
+            {lema}
           </motion.p>
         </motion.div>
       )}

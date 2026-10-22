@@ -32,7 +32,14 @@ const GUIONES: { localidad: string; cambios: { segundo: number; cambio: Cambio }
   { localidad: 'Bosa', cambios: [{ segundo: 2, cambio: { preset: 'cercania' } }, { segundo: 4, cambio: { colegioNuevo: 'bosa' } }] },
 ]
 
-export default function App() {
+/**
+ * Matrícula+. Desde la página de inicio (Inicio.tsx) recibe cómo volver: `alSalir` (← en la
+ * portada, atrás del navegador, logo mantenido), `alInactivo` (stand) y `alTerminarVuelta` (auto,
+ * para alternar con los otros proyectos). Sin ellas funciona como siempre.
+ */
+export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
+  alSalir?: () => void; alInactivo?: () => void; alTerminarVuelta?: () => void
+} = {}) {
   const [modo, setModo] = useState<Modo>(leerModo)
   const [datos, setDatos] = useState<Datos | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -107,13 +114,14 @@ export default function App() {
    * localidad) y luego vuelve a la vista anterior; sin historial, al capítulo anterior.
    */
   const atras = useCallback(() => {
+    if (vista === 'portada') return alSalir?.()
     if (eligiendoPunto) return setEligiendoPunto(false)
     if (vista === 'caso' && caso.lon != null) return setCaso(casoInicial())
     if (vista === 'explorar' && upz) return setUpz(null)
     if (vista === 'problema' && localidad) return setLocalidad(null)
     const i = ORDEN.indexOf(vista)
     setVista(pila.current.pop() ?? (i > 0 ? ORDEN[i - 1] : 'portada'))
-  }, [eligiendoPunto, vista, caso.lon, upz, localidad])
+  }, [eligiendoPunto, vista, caso.lon, upz, localidad, alSalir])
   // El "atrás" del celular o del navegador hace lo mismo que el botón; en la portada sí sale
   const refAtras = useRef(atras)
   refAtras.current = atras
@@ -121,13 +129,13 @@ export default function App() {
     if (esTotem(modo)) return
     history.pushState({ matricula: true }, '')
     const alVolver = () => {
-      if (vistaRef.current === 'portada') return history.back()
+      if (vistaRef.current === 'portada') return alSalir ? alSalir() : history.back()
       refAtras.current()
       history.pushState({ matricula: true }, '')
     }
     window.addEventListener('popstate', alVolver)
     return () => window.removeEventListener('popstate', alVolver)
-  }, [modo])
+  }, [modo, alSalir])
   const cambiarPalancas = useCallback((c: Partial<Palancas>) => setPalancas((p) => (p ? { ...p, ...c } : p)), [])
   const cambiarSupuestos = useCallback((c: Partial<Supuestos>) => setSupuestos((s) => (s ? { ...s, ...c } : s)), [])
   const asignar = useCallback(() => { setAsignado(true); setReproduccion((x) => x + 1) }, [])
@@ -144,14 +152,15 @@ export default function App() {
     [vista, datos, supuestos, politica, caso.lon, caso.lat, caso.vulnerable, caso.hermanoEn, caso.colegios, caso.llegada])  // eslint-disable-line react-hooks/exhaustive-deps
   const viaje = useMemo(() => (resCaso && supuestos ? viajeDe(caso.colegios, resCaso, cual, supuestos.opciones) : null), [resCaso, caso.colegios, cual, supuestos])
 
-  // Kiosco táctil: sin interacción en N segundos, vuelve a la portada
+  // Kiosco táctil: sin interacción en N segundos, vuelve a la portada (o a la página de inicio)
   useEffect(() => {
-    if (modo !== 'stand' || vista === 'portada') return
-    let id = window.setTimeout(reiniciar, SEGUNDOS_INACTIVIDAD * 1000)
-    const tocar = () => { window.clearTimeout(id); id = window.setTimeout(reiniciar, SEGUNDOS_INACTIVIDAD * 1000) }
+    const volver = alInactivo ?? reiniciar
+    if (modo !== 'stand' || (vista === 'portada' && !alInactivo)) return
+    let id = window.setTimeout(volver, SEGUNDOS_INACTIVIDAD * 1000)
+    const tocar = () => { window.clearTimeout(id); id = window.setTimeout(volver, SEGUNDOS_INACTIVIDAD * 1000) }
     window.addEventListener('pointerdown', tocar)
     return () => { window.clearTimeout(id); window.removeEventListener('pointerdown', tocar) }
-  }, [modo, vista, reiniciar])
+  }, [modo, vista, reiniciar, alInactivo])
 
   // El tótem no abre menús contextuales ni hace zoom con gestos
   useEffect(() => {
@@ -184,10 +193,12 @@ export default function App() {
     if (v === 'laboratorio') en(2, () => cambiarSupuestos({ opciones: 5 }))
     en(DURACION_PASOS[v], () => {
       const sig = ORDEN[(ORDEN.indexOf(v) + 1) % ORDEN.length]
-      if (sig === 'portada') { setVuelta((x) => x + 1); reiniciar() } else setVista(sig)
+      if (sig !== 'portada') setVista(sig)
+      else if (alTerminarVuelta) alTerminarVuelta()
+      else { setVuelta((x) => x + 1); reiniciar() }
     })
     return () => timers.forEach((t) => window.clearTimeout(t))
-  }, [modo, vista, datos, vuelta, intro, cambiarPalancas, cambiarSupuestos, asignar, reiniciar])
+  }, [modo, vista, datos, vuelta, intro, cambiarPalancas, cambiarSupuestos, asignar, reiniciar, alTerminarVuelta])
 
   // Modo presentación (PC): flechas para avanzar/retroceder, espacio para asignar, F pantalla completa
   useEffect(() => {
@@ -265,7 +276,7 @@ export default function App() {
 
   const props: PropsCapitulo = {
     datos, r, modo, supuestos, cambiarSupuestos, restaurarSupuestos: () => setSupuestos(supuestosIniciales(datos)),
-    palancas, cambiarPalancas, localidad, elegirLocalidad: setLocalidad, ir, terminado, repetir,
+    palancas, cambiarPalancas, localidad, elegirLocalidad: setLocalidad, ir, terminado, repetir, alInicio: alSalir,
   }
   const panel = (() => {
     switch (vista) {
@@ -303,7 +314,7 @@ export default function App() {
               </svg>
             </button>
           )}
-          <LogoReinicio alReiniciar={reiniciar} />
+          <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} />
           <nav className="capitulos" aria-label="Capítulos">
             {CAPITULOS.map((c, i) => (
               <button key={c.id} disabled={modo === 'auto'} onClick={() => ir(c.id as Capitulo)}
