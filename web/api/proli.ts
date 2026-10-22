@@ -116,6 +116,9 @@ export async function POST(request: Request): Promise<Response> {
         }, { signal: request.signal })
         flujo.on('text', (d) => enviar({ t: 'texto', d }))
         const final = await flujo.finalMessage()
+        // Consumo por respuesta (sin contenido de la conversación): permite vigilar el costo en los registros
+        const u = final.usage
+        console.log(`[proli] tokens entrada=${u.input_tokens} cache_leida=${u.cache_read_input_tokens ?? 0} cache_escrita=${u.cache_creation_input_tokens ?? 0} salida=${u.output_tokens} stop=${final.stop_reason}`)
         // El contenido va intacto: el navegador debe guardarlo tal cual (incluidos los bloques de
         // razonamiento) para la siguiente petición. Si la respuesta terminó en una negativa o se
         // cortó por longitud, el navegador no ejecuta sus acciones y empieza una conversación nueva.

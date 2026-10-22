@@ -27,6 +27,7 @@ type Bloque = Anthropic.Beta.Messages.BetaContentBlock
 const MAX_PASOS = 4            // vueltas de acciones por pregunta
 const MAX_PREGUNTAS = 12       // por conversación (en el stand, cada visitante tiene la suya)
 const PAUSA_ACCION_MS = 350    // entre acciones, para que la pantalla alcance a cambiar
+const SEGUNDOS_LECTURA = 20    // margen extra para leer la respuesta antes de la inactividad del tótem
 const URL = './api/proli'
 
 interface Linea { quien: 'visitante' | 'proli' | 'accion' | 'aviso'; texto: string }
@@ -123,6 +124,14 @@ export default function Asistente() {
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
   useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false) } }, [pantalla, reiniciar])
   useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas])
+  // Tiempo de lectura: cuando Proli termina de responder con el panel abierto, se da un margen
+  // antes de que el tótem vuelva a la portada por inactividad. Si el visitante se fue, el tótem
+  // vuelve igual, un poco más tarde.
+  useEffect(() => {
+    if (!abierto || ocupado || !lineas.length) return
+    const id = window.setTimeout(avisarActividad, SEGUNDOS_LECTURA * 1000)
+    return () => window.clearTimeout(id)
+  }, [abierto, ocupado, lineas.length])
 
   const agregar = (l: Linea) => setLineas((x) => [...x, l])
   /** Agrega texto a la última línea de Proli (la que se está escribiendo). */
