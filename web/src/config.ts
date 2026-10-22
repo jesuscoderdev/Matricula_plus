@@ -40,6 +40,24 @@ export const SEGUNDOS_ANIMACION_LOGO = 5.3    // el logo alterna "Matrícula+" �
 // Problema y Acción incluyen la animación del proceso en la localidad.
 export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado: 12, laboratorio: 6, metodo: 8 }
 
+// --- Portada del stand (primera pantalla, antes de elegir proyecto) ---
+// Pantalla de atracción: se ve desde lejos y se toca para entrar. Voz del manual: la pregunta es
+// retadora (señala el problema), Proli es cercano y el eslogan es el cierre del manual de marca.
+export const PORTADA_STAND = {
+  evento: 'GovTech Summit 2026 · Bogotá · 3 y 4 de noviembre',
+  kicker: 'Decisiones públicas con datos abiertos',
+  // La parte entre corchetes va resaltada (segunda voz del titular)
+  pregunta: '¿Y si los datos de su entidad [ya tuvieran la respuesta]?',
+  bajada: 'Dos decisiones reales de Bogotá, resueltas con datos abiertos en un minuto: dónde cabe cada niño y qué esquina conviene arreglar primero.',
+  eslogan: 'Hacemos simple lo complejo',
+  acento: 'Inyectamos capacidades que multiplican posibilidades',
+  proli: '¡Hola! Soy Proli. Toque la pantalla y se lo muestro.',
+  tocar: 'Toque la pantalla para empezar',
+  boton: 'Empezar →',
+}
+// Modo automático: segundos en la portada antes de pasar a elegir proyecto
+export const SEGUNDOS_PORTADA_AUTO = 7
+
 // --- Página de inicio (elegir proyecto) ---
 // Nombre y pregunta de la sección de movilidad (se cambian aquí)
 export const NOMBRE_MOVILIDAD = 'Movilidad+'

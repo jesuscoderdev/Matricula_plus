@@ -1,21 +1,22 @@
 /**
- * Página de inicio: elegir proyecto (Matrícula+, Movilidad+…). Es la primera pantalla.
+ * Entrada de la app: portada del stand → elegir proyecto (Matrícula+, Movilidad+…) → proyecto.
  *
- *  ?proyecto=educacion|movilidad → entra directo a uno (útil para el tótem)
- *  ?modo=auto sin ?proyecto      → alterna los proyectos: un recorrido de cada uno y vuelve aquí
- *  ?modo=stand sin ?proyecto     → la inactividad vuelve aquí
+ *  ?proyecto=educacion|movilidad → entra directo a uno, sin portada (útil para el tótem)
+ *  ?modo=auto sin ?proyecto      → portada, elegir proyecto y un recorrido de cada uno, en bucle
+ *  ?modo=stand sin ?proyecto     → la inactividad vuelve a la portada (pantalla de atracción)
  *
  * Los datos de cada proyecto solo se cargan al entrar a él (cada proyecto es su propio módulo).
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, type IdProyecto } from './config'
+import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
 import Proli from './componentes/Proli'
 import Esqueleto from './componentes/Esqueleto'
 import Qr from './componentes/Qr'
 import App from './App'
+import PortadaStand from './PortadaStand'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -32,6 +33,8 @@ const pedido = (): IdProyecto | null => {
 export default function Inicio() {
   const fijo = useMemo(pedido, [])
   const [proyecto, setProyecto] = useState<IdProyecto | null>(fijo)
+  // Pantallas antes de los proyectos. Quien entra con ?proyecto= va directo, sin portada.
+  const [etapa, setEtapa] = useState<'portada' | 'elegir'>(fijo ? 'elegir' : 'portada')
   const [modo, setModo] = useState<Modo>(leerModo)
   const [turno, setTurno] = useState(0)   // auto: qué proyecto sigue
 
@@ -51,19 +54,32 @@ export default function Inicio() {
   }, [])
 
   const volver = useCallback(() => setProyecto(null), [])
+  const aPortada = useCallback(() => { setProyecto(null); setEtapa('portada') }, [])
+  const aElegir = useCallback(() => setEtapa('elegir'), [])
   const alternar = modo === 'auto' && !fijo
-  const terminarVuelta = useCallback(() => { setTurno((t) => t + 1); setProyecto(null) }, [])
+  // Auto: al terminar el recorrido de un proyecto, la vuelta siguiente empieza en la portada
+  const terminarVuelta = useCallback(() => { setTurno((t) => t + 1); aPortada() }, [aPortada])
 
-  // Auto: unos segundos aquí y entra al proyecto que sigue
+  // Auto: unos segundos eligiendo proyecto y entra al que sigue
   useEffect(() => {
-    if (!alternar || proyecto) return
+    if (!alternar || proyecto || etapa !== 'elegir') return
     const id = window.setTimeout(() => setProyecto(activos[turno % activos.length].id), SEGUNDOS_INICIO_AUTO * 1000)
     return () => window.clearTimeout(id)
-  }, [alternar, proyecto, turno])
+  }, [alternar, proyecto, etapa, turno])
+
+  // Tótem táctil: si nadie toca la pantalla de elegir proyecto, vuelve a la portada
+  useEffect(() => {
+    if (modo !== 'stand' || fijo || proyecto || etapa !== 'elegir') return
+    let id = window.setTimeout(aPortada, SEGUNDOS_INACTIVIDAD * 1000)
+    const alTocar = () => { window.clearTimeout(id); id = window.setTimeout(aPortada, SEGUNDOS_INACTIVIDAD * 1000) }
+    window.addEventListener('pointerdown', alTocar)
+    return () => { window.clearTimeout(id); window.removeEventListener('pointerdown', alTocar) }
+  }, [modo, fijo, proyecto, etapa, aPortada])
 
   const salidas = {
     alSalir: volver,
-    alInactivo: modo === 'stand' && !fijo ? volver : undefined,
+    // En el tótem, la inactividad dentro de un proyecto vuelve a la portada (pantalla de atracción)
+    alInactivo: modo === 'stand' && !fijo ? aPortada : undefined,
     alTerminarVuelta: alternar ? terminarVuelta : undefined,
   }
   if (proyecto === 'educacion') return <App {...salidas} />
@@ -75,6 +91,7 @@ export default function Inicio() {
       </Suspense>
     )
   }
+  if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aElegir} />
   return <Hub modo={modo} entrar={setProyecto} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }
 
