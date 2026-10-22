@@ -12,7 +12,7 @@ import Proli from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
 import { ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, TITULO_MOVILIDAD, URL_CITA } from '../config'
 import { esTotem, type Modo } from '../modo'
-import { entero, millones, nombreLocalidad, pct, type DatosMovilidad, type Nivel } from './datos'
+import { entero, millones, nombreLocalidad, pct, pctFraccion, type DatosMovilidad, type Nivel } from './datos'
 
 export type CapituloMov = 'decide' | 'anio' | 'giro' | 'metodo' | 'presupuesto' | 'fuentes' | 'cierre'
 export type VistaMov = 'portada' | CapituloMov
@@ -225,7 +225,9 @@ export function Anio({ datos, modo, ir, tocadas, anio, setAnio }: PropsMov) {
 
 // ---------------------------------------------------------------- 3. El giro
 export function Giro({ datos, modo, ir }: PropsMov) {
-  const [primera, resto] = partir(datos.experiencia.pantalla_3_el_giro.texto_sugerido)
+  // Solo la primera frase: la segunda del JSON («Bajaron solas…») afirma algo que los datos no
+  // dicen (el análisis no considera obras hechas en esos sitios); la lectura de abajo lo dice bien
+  const [primera] = partir(datos.experiencia.pantalla_3_el_giro.texto_sugerido)
   const [inicio, final] = partir(primera, ', ')
   const ref = datos.experiencia.pantalla_2_pasa_un_anio.referencia_30_peores_esquinas_de_barrio_2024
   return (
@@ -233,7 +235,6 @@ export function Giro({ datos, modo, ir }: PropsMov) {
       <header className="panel__cabeza">
         <span className="kicker">{kicker('giro')}</span>
         <h1 className="display display--giro">{final ? <>{inicio} <em>{final}</em></> : primera}</h1>
-        {resto && <p className="lead"><b>{resto}</b></p>}
       </header>
       <p className="lectura">Las {entero(ref.de_un_total_de)} peores esquinas de {anioBase(datos)} pasaron de <b>{entero(ref.graves_2024)}</b> a <b>{entero(ref.graves_2025)}</b> siniestros graves.
         Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella.</p>
@@ -286,7 +287,7 @@ export function Metodo({ datos, modo, ir, zona, setZona }: PropsMov) {
         <Promesa titulo="Con el método" sub="riesgo corregido (Bayes empírico, Hauer)" promete={c.metodo_proliferante.promete} ocurrio={c.metodo_proliferante.ocurrio} max={max} sobre={c.metodo_proliferante.sobrestimacion_pct} />
       </div>
       <p className="lectura">{m.mensaje_clave} Las dos listas coinciden en <b>{entero(c.esquinas_en_comun)} de {entero(n)}</b> esquinas.</p>
-      <p className="nota mov-sec">La diferencia que queda es del orden de la caída general de siniestros graves en {anioVal(datos)} (<b>{pct(m.caida_general_2025_pct)}</b>), que ninguna lista podía anticipar.
+      <p className="nota mov-sec">La diferencia que queda es del orden de la caída de siniestros graves {zona === 'barrio' ? 'en calles de barrio' : 'en avenidas'} en {anioVal(datos)} frente al promedio {p0}–{p1} (<b>{pctFraccion(datos.resumen.validacion_2025[zona === 'barrio' ? 'local' : 'arterial'].tendencia_2025_vs_promedio)}</b>), que ninguna lista podía anticipar.
         Es el mismo tipo de análisis que ya usa la ciudad (hexágonos de {tamanoHex(datos)}, método de Hauer), llevado a las calles de barrio, y se actualiza cada vez que llegan datos nuevos.</p>
       <div className="panel__pie">
         {modo !== 'auto' && <button className="boton boton--ancho boton--violeta" onClick={() => ir('presupuesto')}>Llevarlo al presupuesto →</button>}
