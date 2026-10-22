@@ -712,6 +712,200 @@ h1, h2, h3, p { margin: 0; }
 :root[data-modo='celular'] .mapa__repetir { width: 1.9rem; height: 1.9rem; }
 
 /* =========================================================
+   8b. Portada del stand (primera pantalla, pantalla de atracción)
+   ========================================================= */
+/* Navy con letras blancas y foco verde, como la portada del manual («blanco sobre navy»).
+   No cambia con el tema: es la cara del stand y debe leerse igual desde lejos. */
+.portada-stand {
+  isolation: isolate; cursor: pointer; color: #ffffff;
+  background:
+    radial-gradient(75% 45% at 100% 0%, rgba(90, 68, 221, 0.55), transparent 70%),
+    radial-gradient(65% 40% at 0% 100%, rgba(123, 198, 137, 0.2), transparent 70%),
+    var(--p-navy);
+}
+:root[data-modo='auto'] .portada-stand { cursor: none; }
+/* Un brillo verde que se desplaza despacio: algo se mueve, la marca está viva */
+.portada-stand__brillo {
+  position: absolute; inset: -25%; z-index: -1; pointer-events: none;
+  background: radial-gradient(30% 22% at 35% 45%, rgba(123, 198, 137, 0.13), transparent 70%);
+  animation: brillo-portada 16s ease-in-out infinite alternate;
+}
+@keyframes brillo-portada { from { transform: translate(-8%, -6%); } to { transform: translate(10%, 8%); } }
+.marca-agua--portada-stand { right: -10rem; top: 28%; width: 38rem; transform: rotate(-12deg); }
+.portada-stand .marca-agua { background: var(--p-verde); opacity: 0.07; }
+
+.portada-stand__contenido {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 1.5rem; padding: 1.5rem 1.5rem 2rem;
+  width: 100%; max-width: 46rem; margin: 0 auto;
+}
+.portada-stand__marca { display: flex; align-items: center; gap: 0.8rem 1.2rem; flex-wrap: wrap; }
+.portada-stand__marca .logo-empresa { height: 2.4rem; }
+/* Logo en versión blanca (como en «La marca» del manual): letras blancas, la «o» sigue verde */
+.portada-stand .logo-trozo { filter: brightness(0) invert(1); }
+.portada-stand__evento { margin-left: auto; font-size: 0.68rem; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--p-azul); }
+
+.portada-stand__cabeza { display: flex; flex-direction: column; gap: 1rem; margin-top: auto; }
+.portada-stand .kicker { color: var(--p-verde); }
+.portada-stand .display { color: #ffffff; }
+.portada-stand .display em, :root[data-tema='oscuro'] .portada-stand .display em { color: var(--p-verde); }
+.portada-stand__pregunta { font-size: 3.2rem; line-height: 1.04; }
+.portada-stand__bajada { color: var(--p-azul); font-size: 1.08rem; max-width: 34rem; }
+
+.portada-stand__proli .proli__img { filter: drop-shadow(0 0.8rem 1.6rem rgba(0, 0, 0, 0.35)); }
+.portada-stand__proli .proli__globo {
+  background: #ffffff; color: var(--p-navy); border: 0; font-size: 1rem; font-weight: 500;
+  max-width: 17rem; padding: 0.75rem 1rem; margin-bottom: 3rem;
+}
+
+.portada-stand__eslogan { display: flex; flex-direction: column; gap: 0.35rem; padding-left: 1rem; border-left: 3px solid var(--p-verde); }
+.portada-stand__frase { font-family: var(--f-display); font-weight: 700; font-size: 1.7rem; line-height: 1.1; color: #ffffff; }
+.portada-stand .acento { color: var(--p-verde); font-size: 1.45rem; }
+
+.portada-stand__accion { display: flex; justify-content: center; margin-bottom: auto; padding-top: 0.5rem; }
+/* La única acción de la pantalla, en índigo (el color de la acción); late para invitar a tocar */
+.portada-stand__tocar {
+  display: inline-flex; align-items: center; gap: 0.75rem; padding: 1rem 1.8rem; border-radius: 99rem;
+  background: var(--p-indigo); color: #ffffff; font-weight: 600; font-size: 1.15rem;
+  animation: tocar-pulso 2.2s ease-out infinite;
+}
+.portada-stand__tocar i { width: 0.75rem; height: 0.75rem; border-radius: 50%; background: var(--p-verde); }
+@keyframes tocar-pulso {
+  0% { box-shadow: 0 0 0 0 rgba(123, 198, 137, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 1.2rem rgba(123, 198, 137, 0); }
+}
+.portada-stand__boton { background: var(--p-indigo); color: #ffffff; font-size: 1.1rem; padding-inline: 2.2rem; }
+.portada-stand__boton:focus-visible { outline-color: var(--p-verde); }
+
+/* Tótem: todo más grande, para leerse a uno o dos metros */
+:root[data-modo='stand'] .portada-stand__contenido, :root[data-modo='auto'] .portada-stand__contenido { gap: 1.3rem; padding: 1.5rem 1.8rem 1.7rem; }
+:root[data-modo='stand'] .portada-stand__bajada, :root[data-modo='auto'] .portada-stand__bajada { font-size: 1rem; }
+:root[data-modo='stand'] .portada-stand__pregunta, :root[data-modo='auto'] .portada-stand__pregunta { font-size: 3.25rem; }
+:root[data-modo='stand'] .portada-stand__marca .logo-empresa, :root[data-modo='auto'] .portada-stand__marca .logo-empresa { height: 2.8rem; }
+/* PC: dos columnas, el texto a la izquierda y Proli a la derecha */
+:root[data-modo='escritorio'] .portada-stand__contenido {
+  max-width: 76rem; padding: 2.4rem 3rem; display: grid; align-content: center; column-gap: 3rem; row-gap: 1.8rem;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-areas: 'marca marca' 'cabeza proli' 'eslogan proli' 'accion accion';
+}
+:root[data-modo='escritorio'] .portada-stand__marca { grid-area: marca; }
+:root[data-modo='escritorio'] .portada-stand__cabeza { grid-area: cabeza; margin-top: 0; }
+:root[data-modo='escritorio'] .portada-stand__proli { grid-area: proli; align-self: center; justify-self: center; }
+:root[data-modo='escritorio'] .portada-stand__eslogan { grid-area: eslogan; }
+:root[data-modo='escritorio'] .portada-stand__accion { grid-area: accion; justify-content: flex-start; margin-bottom: 0; }
+:root[data-modo='escritorio'] .portada-stand__pregunta { font-size: 4.2rem; }
+/* Celular: un poco más compacto */
+:root[data-modo='celular'] .portada-stand__pregunta { font-size: 2.5rem; }
+:root[data-modo='celular'] .portada-stand__evento { margin-left: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portada-stand__brillo, .portada-stand__tocar { animation: none; }
+}
+
+/* =========================================================
+   8c. Conozca a Proli (segunda pantalla)
+   ========================================================= */
+/* Sigue el tema de la app, como elegir proyecto. Fondo con el verde de Proli abajo y el índigo arriba */
+.proli-intro {
+  isolation: isolate;
+  background: radial-gradient(80% 55% at 50% 30%, var(--verde-fondo), transparent 70%),
+              radial-gradient(120% 60% at 100% 0%, var(--violeta-tenue), var(--papel) 60%);
+}
+.marca-agua--proli-intro { left: -9rem; bottom: 4rem; width: 30rem; transform: rotate(14deg); }
+.proli-intro__contenido {
+  flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 1.2rem; padding: 1.3rem 1.4rem 1.6rem;
+  width: 100%; max-width: 46rem; margin: 0 auto;
+}
+/* Ningún bloque se encoge: si no cabe, la columna se desplaza (el globo no recorta su texto) */
+.proli-intro__contenido > * { flex: none; }
+.proli-intro__marca { display: flex; align-items: center; gap: 0.8rem; }
+.proli-intro__marca .logo-empresa { height: 2rem; }
+/* En oscuro, logo blanco con la «o» verde: el índigo sobre navy queda con bajo contraste (manual, uso incorrecto) */
+:root[data-tema='oscuro'] .proli-intro .logo-trozo { filter: brightness(0) invert(1); }
+
+/* Proli grande, con un halo verde que respira detrás */
+.proli-intro__heroe { display: flex; align-items: center; gap: 1.2rem; margin-top: auto; }
+.proli-intro__figura { position: relative; flex: none; display: grid; place-items: center; width: 11rem; aspect-ratio: 1; }
+.proli-intro__halo {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(circle, rgba(123, 198, 137, 0.45), rgba(123, 198, 137, 0) 68%);
+  animation: halo-proli 3.2s ease-in-out infinite;
+}
+@keyframes halo-proli { 0%, 100% { transform: scale(0.92); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
+.proli-intro__img { position: relative; height: 10rem; width: auto; user-select: none; transform-origin: 50% 90%;
+  filter: drop-shadow(0 0.8rem 1.4rem rgba(22, 43, 42, 0.25)); }
+.proli-intro__presenta { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+.proli-intro__nombre { font-size: 2.9rem; }
+.proli-intro__presenta .acento { font-size: 1.35rem; }
+
+/* El saludo: globo que sale de Proli y se escribe solo */
+.proli-intro__globo {
+  position: relative; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r);
+  box-shadow: var(--sombra); padding: 0.9rem 1.15rem; font-size: 1.05rem; line-height: 1.45; color: var(--tinta);
+  min-height: 4.6rem;
+}
+.proli-intro__globo::before {
+  content: ''; position: absolute; top: -0.55rem; left: 4.4rem; width: 1rem; height: 1rem; rotate: 45deg;
+  background: var(--blanco); border-left: 1px solid var(--linea); border-top: 1px solid var(--linea);
+}
+.proli-intro__cursor { display: inline-block; width: 0.5rem; height: 1.05em; margin-left: 0.15rem; vertical-align: -0.15em;
+  background: var(--verde); border-radius: 1px; animation: cursor-proli 0.9s steps(1) infinite; }
+@keyframes cursor-proli { 50% { opacity: 0; } }
+
+/* Lo que hace Proli: tres tarjetas cortas */
+.proli-intro__ayudas { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
+.proli-intro__ayuda {
+  display: flex; align-items: center; gap: 0.85rem; padding: 0.6rem 0.9rem;
+  background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r);
+}
+.proli-intro__ayuda b { display: block; font-size: 0.98rem; color: var(--tinta); }
+.proli-intro__ayuda small { display: block; font-size: 0.82rem; line-height: 1.35; color: var(--suave); margin-top: 0.1rem; }
+.proli-intro__icono-caja { flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%;
+  background: var(--verde-suave); color: var(--verde-texto); }
+.proli-intro__icono { width: 1.35rem; height: 1.35rem; }
+
+/* Pedidos: frases que el visitante le puede decir a Proli; hoy son accesos directos a los demos */
+.proli-intro__pedidos { display: flex; flex-direction: column; gap: 0.5rem; }
+.proli-intro__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.proli-intro__chip {
+  border: 1.5px solid var(--violeta); background: var(--blanco); color: var(--violeta-osc);
+  border-radius: 99rem; padding: 0.6rem 1rem; font-size: 0.92rem; font-weight: 500;
+  transition: background 0.2s, color 0.2s;
+}
+.proli-intro__chip:hover:not(:disabled) { background: var(--violeta-suave); }
+.proli-intro__chip:disabled { cursor: default; }
+.proli-intro__accion { margin-bottom: auto; padding-top: 0.2rem; }
+
+/* Tótem: más grande y con más aire */
+:root[data-modo='stand'] .proli-intro__contenido, :root[data-modo='auto'] .proli-intro__contenido { gap: 1.1rem; padding: 1.5rem 1.8rem 1.6rem; }
+:root[data-modo='stand'] .proli-intro__figura, :root[data-modo='auto'] .proli-intro__figura { width: 11.5rem; }
+:root[data-modo='stand'] .proli-intro__img, :root[data-modo='auto'] .proli-intro__img { height: 10.5rem; }
+:root[data-modo='stand'] .proli-intro__nombre, :root[data-modo='auto'] .proli-intro__nombre { font-size: 3rem; }
+:root[data-modo='stand'] .proli-intro__chip { padding: 0.65rem 1rem; font-size: 0.95rem; }
+/* PC: Proli y el saludo a la izquierda; ayudas y pedidos a la derecha */
+:root[data-modo='escritorio'] .proli-intro__contenido {
+  max-width: 76rem; padding: 2.2rem 3rem; display: grid; align-content: center; column-gap: 3rem; row-gap: 1.3rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: 'marca marca' 'heroe ayudas' 'globo ayudas' 'globo pedidos' 'globo accion';
+}
+:root[data-modo='escritorio'] .proli-intro__marca { grid-area: marca; }
+:root[data-modo='escritorio'] .proli-intro__heroe { grid-area: heroe; margin-top: 0; }
+:root[data-modo='escritorio'] .proli-intro__globo { grid-area: globo; align-self: start; }
+:root[data-modo='escritorio'] .proli-intro__ayudas { grid-area: ayudas; align-self: end; }
+:root[data-modo='escritorio'] .proli-intro__pedidos { grid-area: pedidos; }
+:root[data-modo='escritorio'] .proli-intro__accion { grid-area: accion; margin-bottom: 0; }
+:root[data-modo='escritorio'] .proli-intro__accion .boton--ancho { width: auto; padding-inline: 2.2rem; }
+/* Celular: Proli un poco más chico para que quepa el nombre al lado */
+:root[data-modo='celular'] .proli-intro__figura { width: 8rem; }
+:root[data-modo='celular'] .proli-intro__img { height: 7.2rem; }
+:root[data-modo='celular'] .proli-intro__nombre { font-size: 2.3rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .proli-intro__halo, .proli-intro__cursor { animation: none; }
+}
+
+/* =========================================================
    9. Página de inicio (elegir proyecto)
    ========================================================= */
 /* Icono de Movilidad+: misma paleta, fondo violeta y letra/cruz en crema */

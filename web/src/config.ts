@@ -40,6 +40,50 @@ export const SEGUNDOS_ANIMACION_LOGO = 5.3    // el logo alterna "Matrícula+" �
 // Problema y Acción incluyen la animación del proceso en la localidad.
 export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado: 12, laboratorio: 6, metodo: 8 }
 
+// --- Portada del stand (primera pantalla, antes de elegir proyecto) ---
+// Pantalla de atracción: se ve desde lejos y se toca para entrar. Voz del manual: la pregunta es
+// retadora (señala el problema), Proli es cercano y el eslogan es el cierre del manual de marca.
+export const PORTADA_STAND = {
+  evento: 'GovTech Summit 2026 · Bogotá · 3 y 4 de noviembre',
+  kicker: 'Decisiones públicas con datos abiertos',
+  // La parte entre corchetes va resaltada (segunda voz del titular)
+  pregunta: '¿Y si los datos de su entidad [ya tuvieran la respuesta]?',
+  bajada: 'Dos decisiones reales de Bogotá, resueltas con datos abiertos en un minuto: dónde cabe cada niño y qué esquina conviene arreglar primero.',
+  eslogan: 'Hacemos simple lo complejo',
+  acento: 'Inyectamos capacidades que multiplican posibilidades',
+  proli: '¡Hola! Soy Proli. Toque la pantalla y se lo muestro.',
+  tocar: 'Toque la pantalla para empezar',
+  boton: 'Empezar →',
+}
+// Modo automático: segundos en la portada antes de pasar a conocer a Proli
+export const SEGUNDOS_PORTADA_AUTO = 7
+
+// --- Conozca a Proli (segunda pantalla) ---
+// Presenta a Proli como el guía del stand. Personalidad del manual de marca (pág. 17): curioso,
+// inteligente, inquieto, optimista y un poco retador; voz cercana, ingeniosa y clara.
+// Los «pedidos» son acciones reales (entran a un demo); cuando Proli converse con IA, esta misma
+// zona será la entrada a la conversación. No prometer aquí nada que la app todavía no haga.
+export const PROLI_INTRO = {
+  kicker: 'Su guía en este stand',
+  nombre: 'Proli',
+  saludo: '¡Hola! Soy Proli, el curioso de Proliferante. Hoy le muestro dos retos reales de Bogotá y lo acompaño en cada paso.',
+  esencia: 'Siempre hay otra posibilidad por descubrir',
+  ayudas: [
+    { icono: 'guia', titulo: 'Lo guío paso a paso', texto: 'Del problema a la decisión, en un minuto.' },
+    { icono: 'cifra', titulo: 'Le explico cada cifra', texto: 'Qué significa y de dónde sale.' },
+    { icono: 'equipo', titulo: 'Lo conecto con el equipo', texto: 'Para verlo con los datos de su entidad.' },
+  ],
+  pedidosTitulo: 'Pídamelo así',
+  // Uno por demo; «ver los dos» es el botón principal de la pantalla
+  pedidos: [
+    { texto: '«Muéstreme dónde faltan cupos»', proyecto: 'educacion' },
+    { texto: '«¿Qué esquina arreglo primero?»', proyecto: 'movilidad' },
+  ] as { texto: string; proyecto: IdProyecto | null }[],
+  boton: 'Ver los demos →',
+}
+// Modo automático: segundos con Proli antes de pasar a elegir proyecto
+export const SEGUNDOS_PROLI_AUTO = 9
+
 // --- Página de inicio (elegir proyecto) ---
 // Nombre y pregunta de la sección de movilidad (se cambian aquí)
 export const NOMBRE_MOVILIDAD = 'Movilidad+'
