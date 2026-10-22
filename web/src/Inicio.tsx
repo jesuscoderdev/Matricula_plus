@@ -72,8 +72,6 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
   const reducir = useReducedMotion()
   return (
     <div className="app inicio">
-      {/* Orbes de luz que se mueven despacio detrás del vidrio de las tarjetas */}
-      <div className="inicio__orbes" aria-hidden><i /><i /><i /></div>
       <div className="inicio__contenido">
         <motion.header className="inicio__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa />
