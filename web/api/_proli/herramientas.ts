@@ -1,0 +1,59 @@
+/**
+ * Herramientas de Proli: acciones sobre la interfaz que ejecuta el NAVEGADOR (src/proli/ordenes.ts),
+ * no el servidor. Por eso solo mueven pantallas y controles del demo; ninguna envía datos ni escribe
+ * nada. Los valores son listas cerradas (enum) y `strict` garantiza entradas válidas.
+ *
+ * Los nombres y valores deben coincidir con los que entiende src/proli/ordenes.ts.
+ */
+import type Anthropic from '@anthropic-ai/sdk'
+import { LOCALIDADES_MATRICULA, LOCALIDADES_MOVILIDAD } from './conocimiento.js'
+
+type Herramienta = Anthropic.Beta.Messages.BetaTool
+
+const objeto = (propiedades: Record<string, unknown>, requeridas = Object.keys(propiedades)) => ({
+  type: 'object' as const,
+  properties: propiedades,
+  required: requeridas,
+  additionalProperties: false,
+})
+
+// eager_input_streaming: las entradas se transmiten a medida que se generan; el navegador valida
+// cada una contra estas mismas listas antes de ejecutarla (ver src/proli/ordenes.ts)
+const h = (name: string, description: string, input_schema: ReturnType<typeof objeto>): Herramienta => ({
+  name, description, input_schema, strict: true, eager_input_streaming: true,
+})
+
+export const HERRAMIENTAS: Herramienta[] = [
+  h('ir_a_pantalla', 'Lleva al visitante a una pantalla fuera de los demos: la portada, la presentación de Proli o la página para elegir demo.',
+    objeto({ pantalla: { type: 'string', enum: ['portada', 'conozca_a_proli', 'elegir_demo'] } })),
+  h('abrir_demo', 'Abre uno de los dos demos desde su inicio.',
+    objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
+  h('abrir_agenda', 'Lleva al capítulo con el código QR para agendar una conversación con el equipo de Proliferante, en el demo indicado.',
+    objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
+
+  // --- Movilidad+ (abre el demo si no está abierto) ---
+  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Usted decide; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; fuentes; cierre = Hablemos (QR).',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'metodo', 'presupuesto', 'fuentes', 'cierre'] } })),
+  h('movilidad_localidad', 'Movilidad+: acerca el mapa a una localidad (o vuelve a toda Bogotá) en el capítulo «Usted decide».',
+    objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MOVILIDAD, 'TODA_BOGOTA'] } })),
+  h('movilidad_presupuesto', 'Movilidad+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
+    objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),
+  h('movilidad_tipo_via', 'Movilidad+: en El método, muestra la comparación de calles de barrio o de avenidas.',
+    objeto({ zona: { type: 'string', enum: ['barrio', 'avenidas'] } })),
+  h('movilidad_anio_mapa', 'Movilidad+: en Pasó un año, muestra el mapa de 2024 o el de 2025.',
+    objeto({ anio: { type: 'string', enum: ['2024', '2025'] } })),
+
+  // --- Matrícula+ (abre el demo si no está abierto) ---
+  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; metodo; caso = Simula una familia; explorar = UPZ por UPZ; agendar.',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'metodo', 'caso', 'explorar', 'agendar'] } })),
+  h('matricula_localidad', 'Matrícula+: elige la localidad y muestra en el capítulo Problema cómo se asignan hoy los cupos allí.',
+    objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MATRICULA] } })),
+  h('matricula_reglas', 'Matrícula+: cambia las reglas de prioridad en el capítulo Acción. equilibrada = cercanía, hermanos y vulnerabilidad pesan igual; cercania = primero quien vive cerca; familias = primero quien tiene hermanos; equidad = primero las familias vulnerables.',
+    objeto({ reglas: { type: 'string', enum: ['equilibrada', 'cercania', 'familias', 'equidad'] } })),
+  h('matricula_colegio_nuevo', 'Matrícula+: pone (o quita) un colegio nuevo de 1.200 cupos en uno de los proyectos reales de la Secretaría de Educación, en el capítulo Acción.',
+    objeto({ ubicacion: { type: 'string', enum: ['tibabuyes', 'suba', 'bosa', 'kennedy', 'ciudad_bolivar', 'ninguno'] } })),
+  h('matricula_jornada_unica', 'Matrícula+: activa o desactiva la jornada única (−10 % de capacidad en todas las sedes) en el capítulo Acción.',
+    objeto({ activa: { type: 'boolean' } })),
+  h('matricula_asignar', 'Matrícula+: toca ▶ Asignar en el capítulo Acción para ver la asignación con las reglas elegidas, ronda por ronda.',
+    objeto({})),
+]

@@ -3,6 +3,9 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/proli.ts": { "maxDuration": 60 }
+  },
   "cleanUrls": false,
   "headers": [
     {

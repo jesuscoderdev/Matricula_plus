@@ -16,9 +16,12 @@ import '@fontsource/caveat-brush/latin-400.css'
 import './estilos.css'
 import './tema'  // aplica el tema (claro/oscuro) antes del primer render
 import Inicio from './Inicio'
+import Asistente from './proli/Asistente'
 
+// Proli vive fuera de las pantallas: la conversación sigue aunque el visitante cambie de pantalla o de demo
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Inicio />
+    <Asistente />
   </StrictMode>,
 )
