@@ -28,9 +28,11 @@
   --violeta-osc: #5b2bc4;
   --violeta-claro: #a88cf0;
   --violeta-suave: #f1ebfe;
-  --marca-tinta: #1b1e3c;    /* logo Matrícula+ */
-  --marca-crema: #f7f5ef;
-  --marca-violeta: #7c3aed;
+  /* Marcas (Matrícula+, Movilidad+): colores de Proliferante, violeta de sus letras y verde de su «o» */
+  --marca-texto: #7f45ee;    /* palabra «Matrícula» */
+  --marca-tinta: #7f45ee;    /* fondo del icono */
+  --marca-crema: #ffffff;    /* letra del icono */
+  --marca-violeta: #8bc68e;  /* la cruz «+» (verde Proliferante) */
   --verde: #8bc68e;          /* Proli */
   --verde-osc: #3f8a46;
   --teal: #268484;           /* reubicados */
@@ -76,13 +78,11 @@
   --linea: #2b2d52;
   --linea-2: #3c3e69;
 
-  --violeta: #8b5cf6;
+  --violeta: #7f45ee;
   --violeta-osc: #b89cff;
   --violeta-claro: #b9a2f7;
   --violeta-suave: #2a2258;
-  --marca-tinta: #f7f5ef;
-  --marca-crema: #1b1e3c;
-  --marca-violeta: #a78bfa;
+  --marca-texto: #f3f1fa;
   --verde-osc: #86cf8c;
   --teal: #4fb8b8;
   --teal-suave: #123a3c;
@@ -154,7 +154,7 @@ h1, h2, h3, p { margin: 0; }
 .cabecera__extra { margin-left: auto; display: flex; gap: 0.35rem; }
 .marca-app {
   font-family: var(--f-marca); font-weight: 700; font-size: 1.25rem;
-  letter-spacing: -0.03em; color: var(--marca-tinta); white-space: nowrap;
+  letter-spacing: -0.03em; color: var(--marca-texto); white-space: nowrap;
 }
 .marca-app__mas { color: var(--marca-violeta); margin-left: 0.1em; }
 /* La cruz sube con top (no con transform) para que al girar lo haga sobre su propio centro */
@@ -446,10 +446,10 @@ h1, h2, h3, p { margin: 0; }
 /* Intro: continúa la pantalla de carga (index.html) y arma el logo: icono M+ y "Matrícula" letra a letra */
 .intro {
   position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; justify-items: center; gap: 1.3rem;
-  background: radial-gradient(circle at 50% 44%, #efeaf9, var(--papel) 60%); color: var(--marca-tinta);
+  background: radial-gradient(circle at 50% 44%, #efeaf9, var(--papel) 60%); color: var(--marca-texto);
 }
 :root[data-tema='oscuro'] .intro { background: radial-gradient(circle at 50% 44%, #2c235b, var(--papel) 60%); }
-.intro .icono-app { width: 5.6rem; height: 5.6rem; filter: drop-shadow(0 0.6rem 1.4rem rgba(27, 30, 60, 0.28)); }
+.intro .icono-app { width: 5.6rem; height: 5.6rem; filter: drop-shadow(0 0.6rem 1.4rem rgba(127, 69, 238, 0.3)); }
 .intro__marca { display: flex; align-items: flex-start; font-family: var(--f-marca); font-size: 2.6rem; font-weight: 700; letter-spacing: -0.03em; }
 .intro__letra { display: inline-block; }
 .intro__mas { display: inline-block; position: relative; top: 0.1em; color: var(--marca-violeta); margin-left: 0.1em; }
@@ -642,9 +642,10 @@ h1, h2, h3, p { margin: 0; }
    9. Página de inicio (elegir proyecto)
    ========================================================= */
 /* Icono de Movilidad+: misma paleta, fondo violeta y letra/cruz en crema */
-.icono-app--violeta .icono-app__fondo { fill: var(--marca-violeta); }
-.icono-app--violeta .icono-app__m { fill: var(--marca-crema); }
-.icono-app--violeta .icono-app__cruz { stroke: var(--marca-crema); }
+/* Movilidad+: el mismo icono en versión clara (cuadro blanco, M violeta, cruz verde) */
+.icono-app--violeta .icono-app__fondo { fill: #ffffff; stroke: var(--violeta-claro); stroke-width: 3; }
+.icono-app--violeta .icono-app__m { fill: var(--marca-tinta); }
+.icono-app--violeta .icono-app__cruz { stroke: var(--marca-violeta); }
 
 .inicio { background: radial-gradient(120% 60% at 85% 0%, var(--violeta-tenue), var(--papel) 60%); }
 .inicio__contenido {

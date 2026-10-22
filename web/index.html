@@ -23,17 +23,17 @@
       @font-face { font-family: 'Montserrat Alternates'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fuentes/montserrat-alternates-800.woff2') format('woff2'); }
       html, body { margin: 0; height: 100%; background: #fbfaf7; }
       .esq {
-        --esq-fondo: #fbfaf7; --esq-halo: #efeaf9; --esq-tinta: #1b1e3c; --esq-crema: #f7f5ef; --esq-cruz: #7c3aed;
-        --esq-suave: #6b6884; --esq-orbita: #d9d3ea; --esq-ic-fondo: #1b1e3c; --esq-ic-m: #f7f5ef;
+        --esq-fondo: #fbfaf7; --esq-halo: #efeaf9; --esq-tinta: #7f45ee; --esq-crema: #ffffff; --esq-cruz: #8bc68e;
+        --esq-suave: #6b6884; --esq-orbita: #d9d3ea; --esq-ic-fondo: #7f45ee; --esq-ic-m: #ffffff;
         position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem;
         padding: 1.5rem; background: radial-gradient(circle at 50% 44%, var(--esq-halo), var(--esq-fondo) 60%);
         color: var(--esq-tinta); font-family: system-ui, sans-serif; text-align: center; overflow: hidden;
       }
       @media (prefers-color-scheme: dark) {
         html, body { background: #14162d; }
-        .esq { --esq-fondo: #14162d; --esq-halo: #2c235b; --esq-tinta: #f7f5ef; --esq-crema: #1b1e3c; --esq-cruz: #a78bfa; --esq-suave: #b5b1d0; --esq-orbita: #3a3470;
-          /* Icono invertido (crema con M azul), como en la versión oscura del logo */
-          --esq-ic-fondo: #f7f5ef; --esq-ic-m: #1b1e3c; }
+        .esq { --esq-fondo: #14162d; --esq-halo: #2c235b; --esq-tinta: #f3f1fa; --esq-crema: #ffffff; --esq-cruz: #8bc68e; --esq-suave: #b5b1d0; --esq-orbita: #3a3470;
+          /* El icono sigue violeta con M blanca y cruz verde (colores de Proliferante) */
+          --esq-ic-fondo: #7f45ee; --esq-ic-m: #ffffff; }
       }
       .esq__escena { position: relative; width: 17rem; height: 17rem; max-width: 80vw; max-height: 80vw; display: grid; place-items: center; }
       .esq__orbita { position: absolute; inset: 12%; border: 2px dashed var(--esq-orbita); border-radius: 50%; animation: esq-girar 24s linear infinite; }
@@ -42,10 +42,10 @@
         position: absolute; left: 50%; top: 50%; width: 0.75rem; height: 0.75rem; margin: -0.375rem; border-radius: 50%;
         background: var(--c); opacity: 0; animation: esq-llega 2.8s cubic-bezier(0.5, 0, 0.3, 1) var(--d) infinite;
       }
-      .esq__icono { position: relative; width: 5.6rem; height: 5.6rem; filter: drop-shadow(0 0.6rem 1.4rem rgba(27, 30, 60, 0.28)); animation: esq-latir 1.4s ease-in-out infinite; }
+      .esq__icono { position: relative; width: 5.6rem; height: 5.6rem; filter: drop-shadow(0 0.6rem 1.4rem rgba(127, 69, 238, 0.3)); animation: esq-latir 1.4s ease-in-out infinite; }
       .esq__icono rect { fill: var(--esq-ic-fondo); }
       .esq__icono text { fill: var(--esq-ic-m); font: 800 56px 'Montserrat Alternates', system-ui, sans-serif; }
-      .esq__icono path { stroke: #7c3aed; fill: none; stroke-width: 8.7; stroke-linecap: round; transform-origin: 75.3px 24.3px; animation: esq-cruz 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+      .esq__icono path { stroke: var(--esq-cruz); fill: none; stroke-width: 8.7; stroke-linecap: round; transform-origin: 75.3px 24.3px; animation: esq-cruz 2.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
       .esq__nombre { display: inline-flex; align-items: flex-start; font: 700 1.9rem 'Montserrat Alternates', system-ui, sans-serif; letter-spacing: -0.03em; }
       .esq__nombre svg { width: 0.42em; height: 0.42em; margin: -0.04em 0 0 0.1em; color: var(--esq-cruz); }
       .esq__estado { display: flex; align-items: center; gap: 0.7rem; color: var(--esq-suave); font: 500 0.72rem ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -58,9 +58,9 @@
       .esq__iconos .esq__icono { width: 4.4rem; height: 4.4rem; }
       .esq__iconos .esq__icono:first-child { transform: rotate(-6deg); animation-name: esq-latir-izq; }
       .esq__iconos .esq__icono:last-child { transform: rotate(6deg); animation-name: esq-latir-der; animation-delay: 0.7s; }
-      .esq__icono--violeta rect { fill: var(--esq-cruz); }
-      .esq__icono--violeta text { fill: var(--esq-crema); }
-      .esq__icono--violeta path { stroke: var(--esq-crema); }
+      .esq__icono--violeta rect { fill: #ffffff; stroke: #a88cf0; stroke-width: 3; }
+      .esq__icono--violeta text { fill: var(--esq-ic-fondo); }
+      .esq__icono--violeta path { stroke: var(--esq-cruz); }
       .esq__logo { height: 2.6rem; width: auto; display: block; }
       @keyframes esq-latir-izq { 0%, 100% { transform: rotate(-6deg) scale(1); } 50% { transform: rotate(-6deg) scale(1.06); } }
       @keyframes esq-latir-der { 0%, 100% { transform: rotate(6deg) scale(1); } 50% { transform: rotate(6deg) scale(1.06); } }
