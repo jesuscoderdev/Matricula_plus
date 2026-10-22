@@ -6,6 +6,9 @@
 export const APP_NAME = 'Matrícula+'
 export const TITULO_SIMULADOR = '¿Dónde cabe cada niño?'
 export const EMPRESA = 'Proliferante'
+// Web de la empresa (footer: enlace en celular y PC; QR en el tótem, donde un enlace sacaría de la app)
+export const URL_EMPRESA = 'https://proliferante.com'
+export const LEMA_EMPRESA = 'Innovación aplicada a retos de crecimiento'
 
 // --- Imágenes configurables (en web/public/) ---
 // Vacío = no se pide ningún archivo (así no hay errores en consola si todavía no existe).

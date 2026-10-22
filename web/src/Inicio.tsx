@@ -9,10 +9,11 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, PROYECTOS, SEGUNDOS_INICIO_AUTO, type IdProyecto } from './config'
-import { leerModo, modoAutomatico, type Modo } from './modo'
+import { EMPRESA, LEMA_EMPRESA, PROYECTOS, SEGUNDOS_INICIO_AUTO, URL_EMPRESA, type IdProyecto } from './config'
+import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, IconoApp, LogoEmpresa, NombreApp } from './componentes/Marca'
 import Esqueleto from './componentes/Esqueleto'
+import Qr from './componentes/Qr'
 import App from './App'
 
 // Movilidad+ se descarga aparte, solo si se entra a ella
@@ -119,11 +120,28 @@ function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: Id
           ))}
         </div>
       </div>
-      <footer className="pie">
-        <span className="pie__marca">{EMPRESA} · GovTech 2026</span>
-        <span>Datos abiertos de Bogotá · funciona sin internet</span>
-      </footer>
+      <PieEmpresa modo={modo} />
     </div>
+  )
+}
+
+/**
+ * Footer del inicio: quién está detrás y cómo encontrarlo. En celular y PC, enlace a la web de
+ * Proliferante (otra pestaña); en el tótem, un QR, porque un enlace sacaría a la gente de la app.
+ */
+function PieEmpresa({ modo }: { modo: Modo }) {
+  const dominio = URL_EMPRESA.replace(/^https?:\/\//, '').replace(/\/$/, '')
+  return (
+    <footer className="pie-empresa">
+      <div className="pie-empresa__marca">
+        <LogoEmpresa animado={false} />
+        <span>{LEMA_EMPRESA}</span>
+      </div>
+      <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos · funciona sin internet</span>
+      {esTotem(modo)
+        ? <Qr texto={URL_EMPRESA} etiqueta={<>Conoce {EMPRESA}<br /><b>{dominio}</b></>} />
+        : <a className="pie-empresa__enlace" href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">Conoce {EMPRESA} · <b>{dominio}</b> ↗</a>}
+    </footer>
   )
 }
 

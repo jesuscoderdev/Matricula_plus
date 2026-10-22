@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { cargarDatos, decimal, type Datos } from './datos'
 import { palancasIniciales, supuestosIniciales, useResultados, type Palancas } from './estado'
 import type { ColegioNuevo, Supuestos } from './motor'
-import { DURACION_PASOS, EMPRESA, SEGUNDOS_INACTIVIDAD } from './config'
+import { DURACION_PASOS, EMPRESA, SEGUNDOS_INACTIVIDAD, URL_EMPRESA } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import MapaEscena from './mapa/MapaEscena'
 import { BotonTema, LogoReinicio, pulsoLogo } from './componentes/Marca'
@@ -362,7 +362,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
 
       {/* Supuestos siempre visibles */}
       <footer className="pie">
-        <span className="pie__marca">{EMPRESA} · GovTech 2026</span>
+        <span className="pie__marca">{esTotem(modo) ? EMPRESA : <a href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">{EMPRESA} ↗</a>} · GovTech 2026</span>
         {editados && <span className="pie__aviso">Supuestos editados</span>}
         <span>Familias sintéticas (1 = {datos.familias.estudiantes_por_familia} niños) · SED 03.2025 · hasta {supuestos.opciones} colegios por familia ·
           reubicación ≤ {decimal(supuestos.radioReubicacionKm)} km · distancia en línea recta{datos.indice.fuente === 'sintetica' && ' · DATOS SINTÉTICOS'}</span>

@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { DURACION_PASOS_MOVILIDAD, EMPRESA, ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, SEGUNDOS_INACTIVIDAD } from '../config'
+import { DURACION_PASOS_MOVILIDAD, EMPRESA, ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, SEGUNDOS_INACTIVIDAD, URL_EMPRESA } from '../config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from '../modo'
 import { BotonTema, LogoReinicio, pulsoLogo } from '../componentes/Marca'
 import Intro from '../componentes/Intro'
@@ -277,7 +277,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
       </div>
 
       <footer className="pie">
-        <span className="pie__marca">{EMPRESA} · GovTech 2026</span>
+        <span className="pie__marca">{esTotem(modo) ? EMPRESA : <a href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">{EMPRESA} ↗</a>} · GovTech 2026</span>
         <span>Siniestros graves agregados por hexágono de {tamanoHex(datos)} · SDM {r.periodo_estimacion[0]}–{r.anio_validacion} ·
           © colaboradores de OpenStreetMap · estimaciones, no compromisos · modelo {r.version}</span>
         {modo === 'escritorio' && <span className="atajos"><kbd>←</kbd> <kbd>→</kbd> capítulos · <kbd>F</kbd> pantalla completa</span>}
