@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { APP_NAME, EMPRESA, SEGUNDOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } from '../config'
-import logoProliferante from '../assets/logo-proliferante.webp'
 import logoLetras from '../assets/logo-proliferante-letras.webp'
 import logoO from '../assets/logo-proliferante-o.webp'
 import iconoProliferante from '../assets/icono-proliferante.webp'
@@ -169,9 +168,11 @@ const PASO_NACIMIENTO = 0.07  // s entre una letra y la siguiente
  */
 export function LogoEmpresa({ className = '', animado = true }: { className?: string; animado?: boolean }) {
   if (!animado) {
+    // Letras y «o» en capas, como el animado: así en oscuro las letras pasan a blanco y la «o» sigue verde
     return (
-      <span className={`logo-empresa ${className}`} role="img" aria-label={EMPRESA}>
-        <img src={logoProliferante} alt="" draggable={false} />
+      <span className={`logo-empresa logo-empresa--quieto ${className}`} role="img" aria-label={EMPRESA}>
+        <img className="logo-letras" src={logoLetras} alt="" draggable={false} />
+        <img className="logo-o" src={logoO} alt="" draggable={false} />
       </span>
     )
   }
@@ -224,10 +225,10 @@ export function BotonTema() {
 }
 
 /** Botón "← Inicio": vuelve a la página de inicio (elegir proyecto). */
-export function BotonInicio({ alInicio }: { alInicio: () => void }) {
+export function BotonInicio({ alInicio, etiqueta = 'Volver al inicio (elegir proyecto)' }: { alInicio: () => void; etiqueta?: string }) {
   return (
     <button type="button" className="boton-tema boton-atras boton-inicio" onClick={(e) => { e.stopPropagation(); alInicio() }}
-            title="Volver al inicio" aria-label="Volver al inicio (elegir proyecto)">
+            title="Volver al inicio" aria-label={etiqueta}>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d="M19 12H5M11 6l-6 6 6 6" />
       </svg>

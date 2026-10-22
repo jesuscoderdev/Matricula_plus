@@ -534,6 +534,9 @@ h1, h2, h3, p { margin: 0; }
 .qr figcaption { font-size: 0.66rem; color: var(--suave); text-align: center; max-width: 8rem; }
 .logo-empresa { height: 1.5rem; aspect-ratio: 400 / 121; display: block; position: relative; flex: none; }
 .logo-empresa > img { display: block; height: 100%; width: auto; }
+.logo-empresa--quieto .logo-o { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* Tema oscuro: el logo en su versión blanca con la «o» verde («blanco sobre navy» del manual) */
+:root[data-tema='oscuro'] .logo-trozo, :root[data-tema='oscuro'] .logo-letras { filter: brightness(0) invert(1); }
 /* Logo vivo (Proliferante prolifera): la «o» nace, de ella salen puntitos que florecen en letras;
    luego las letras vuelven a puntitos, regresan a la «o» y la hacen brillar. Ciclo de 11 s.
    La «o» verde está en 24,9 % · 35,1 % de la imagen. */
@@ -822,7 +825,6 @@ h1, h2, h3, p { margin: 0; }
 .proli-intro__marca { display: flex; align-items: center; gap: 0.8rem; }
 .proli-intro__marca .logo-empresa { height: 2rem; }
 /* En oscuro, logo blanco con la «o» verde: el índigo sobre navy queda con bajo contraste (manual, uso incorrecto) */
-:root[data-tema='oscuro'] .proli-intro .logo-trozo { filter: brightness(0) invert(1); }
 
 /* Proli grande, con un halo verde que respira detrás */
 .proli-intro__heroe { display: flex; align-items: center; gap: 1.2rem; margin-top: auto; }

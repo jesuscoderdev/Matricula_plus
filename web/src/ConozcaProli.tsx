@@ -65,7 +65,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
       <MarcaDeAgua className="marca-agua--proli-intro" />
       <div className="proli-intro__contenido">
         <motion.header className="proli-intro__marca" {...entrar} transition={{ delay: 0.05 }}>
-          {!auto && <BotonInicio alInicio={alVolver} />}
+          {!auto && <BotonInicio alInicio={alVolver} etiqueta="Volver a la portada" />}
           <LogoEmpresa />
         </motion.header>
 
