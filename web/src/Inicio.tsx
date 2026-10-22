@@ -1,8 +1,9 @@
 /**
- * Entrada de la app: portada del stand → elegir proyecto (Matrícula+, Movilidad+…) → proyecto.
+ * Entrada de la app: portada del stand → conozca a Proli → elegir proyecto (Matrícula+,
+ * Movilidad+…) → proyecto.
  *
  *  ?proyecto=educacion|movilidad → entra directo a uno, sin portada (útil para el tótem)
- *  ?modo=auto sin ?proyecto      → portada, elegir proyecto y un recorrido de cada uno, en bucle
+ *  ?modo=auto sin ?proyecto      → portada, Proli, elegir proyecto y un recorrido de cada uno, en bucle
  *  ?modo=stand sin ?proyecto     → la inactividad vuelve a la portada (pantalla de atracción)
  *
  * Los datos de cada proyecto solo se cargan al entrar a él (cada proyecto es su propio módulo).
@@ -17,6 +18,7 @@ import Esqueleto from './componentes/Esqueleto'
 import Qr from './componentes/Qr'
 import App from './App'
 import PortadaStand from './PortadaStand'
+import ConozcaProli from './ConozcaProli'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -33,8 +35,9 @@ const pedido = (): IdProyecto | null => {
 export default function Inicio() {
   const fijo = useMemo(pedido, [])
   const [proyecto, setProyecto] = useState<IdProyecto | null>(fijo)
-  // Pantallas antes de los proyectos. Quien entra con ?proyecto= va directo, sin portada.
-  const [etapa, setEtapa] = useState<'portada' | 'elegir'>(fijo ? 'elegir' : 'portada')
+  // Pantallas antes de los proyectos: portada → conozca a Proli → elegir proyecto.
+  // Quien entra con ?proyecto= va directo, sin portada.
+  const [etapa, setEtapa] = useState<'portada' | 'proli' | 'elegir'>(fijo ? 'elegir' : 'portada')
   const [modo, setModo] = useState<Modo>(leerModo)
   const [turno, setTurno] = useState(0)   // auto: qué proyecto sigue
 
@@ -55,7 +58,10 @@ export default function Inicio() {
 
   const volver = useCallback(() => setProyecto(null), [])
   const aPortada = useCallback(() => { setProyecto(null); setEtapa('portada') }, [])
+  const aProli = useCallback(() => setEtapa('proli'), [])
   const aElegir = useCallback(() => setEtapa('elegir'), [])
+  // Un pedido a Proli entra directo al demo; al salir de él se vuelve a elegir proyecto
+  const aProyecto = useCallback((p: IdProyecto) => { setEtapa('elegir'); setProyecto(p) }, [])
   const alternar = modo === 'auto' && !fijo
   // Auto: al terminar el recorrido de un proyecto, la vuelta siguiente empieza en la portada
   const terminarVuelta = useCallback(() => { setTurno((t) => t + 1); aPortada() }, [aPortada])
@@ -67,9 +73,9 @@ export default function Inicio() {
     return () => window.clearTimeout(id)
   }, [alternar, proyecto, etapa, turno])
 
-  // Tótem táctil: si nadie toca la pantalla de elegir proyecto, vuelve a la portada
+  // Tótem táctil: si nadie toca la pantalla (Proli o elegir proyecto), vuelve a la portada
   useEffect(() => {
-    if (modo !== 'stand' || fijo || proyecto || etapa !== 'elegir') return
+    if (modo !== 'stand' || fijo || proyecto || etapa === 'portada') return
     let id = window.setTimeout(aPortada, SEGUNDOS_INACTIVIDAD * 1000)
     const alTocar = () => { window.clearTimeout(id); id = window.setTimeout(aPortada, SEGUNDOS_INACTIVIDAD * 1000) }
     window.addEventListener('pointerdown', alTocar)
@@ -91,7 +97,8 @@ export default function Inicio() {
       </Suspense>
     )
   }
-  if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aElegir} />
+  if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aProli} />
+  if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alElegir={aProyecto} alVolver={aPortada} />
   return <Hub modo={modo} entrar={setProyecto} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }
 

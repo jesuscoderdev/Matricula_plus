@@ -1,7 +1,7 @@
 /**
  * Portada del stand: la primera pantalla. Es la pantalla de atracción del tótem (se lee desde lejos)
  * y la puerta de entrada en celular y PC. Toda la pantalla es el botón: tocar en cualquier parte
- * entra a elegir proyecto.
+ * sigue a la pantalla siguiente (conozca a Proli).
  *
  * Fondo navy con letras blancas y foco verde, como la portada del manual de marca («blanco sobre
  * navy»); el logo va en su versión blanca con la «o» verde. Es igual en tema claro y oscuro.
