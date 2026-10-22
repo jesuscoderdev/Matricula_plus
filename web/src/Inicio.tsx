@@ -15,6 +15,9 @@ import { BotonTema, IconoApp, LogoEmpresa, NombreApp } from './componentes/Marca
 import Esqueleto from './componentes/Esqueleto'
 import Qr from './componentes/Qr'
 import App from './App'
+import faviconProliferante from './assets/favicon-proliferante.png'
+import faviconMatricula from './assets/favicon-matricula.png'
+import faviconMovilidad from './assets/favicon-movilidad.png'
 
 // Movilidad+ se descarga aparte, solo si se entra a ella
 const Movilidad = lazy(() => import('./movilidad/Movilidad'))
@@ -32,6 +35,13 @@ export default function Inicio() {
   const [turno, setTurno] = useState(0)   // auto: qué proyecto sigue
 
   useEffect(() => { if (!proyecto) document.documentElement.dataset.modo = modo }, [modo, proyecto])
+  // La pestaña dice dónde estás: la «o» de Proliferante en el inicio y el icono de cada proyecto dentro
+  useEffect(() => {
+    const p = PROYECTOS.find((x) => x.id === proyecto)
+    const icono = proyecto === 'educacion' ? faviconMatricula : proyecto === 'movilidad' ? faviconMovilidad : faviconProliferante
+    document.querySelector('link[rel="icon"]')?.setAttribute('href', icono)
+    document.title = p ? `${p.nombre} · ${p.pregunta}` : `${EMPRESA} · ${PROYECTOS.filter((x) => !x.proximamente).map((x) => x.nombre).join(' y ')}`
+  }, [proyecto])
   useEffect(() => {
     if (!modoAutomatico()) return
     const alCambiar = () => setModo(leerModo())

@@ -12,7 +12,8 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import DeckGL from '@deck.gl/react'
-import { FlyToInterpolator, WebMercatorViewport, type PickingInfo } from '@deck.gl/core'
+import { FlyToInterpolator, type PickingInfo } from '@deck.gl/core'
+import { encuadrar } from '../mapa/encuadre'
 import { PolygonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import { useTema, type Tema } from '../tema'
 import type { Bbox, DatosMovilidad, Nivel } from './datos'
@@ -158,17 +159,7 @@ export default function MapaMovilidad({
   // ---------------------------------------------------------------- cámara
   const marco: Bbox = encuadre ?? (localidad != null ? datos.bboxLocalidad[localidad] : datos.bboxCiudad)
   const viewState = useMemo(() => {
-    const W = Math.max(w, 60), H = Math.max(h, 60)
-    const pad = Math.round(Math.min(W, H) * 0.04)
-    const lado = (a: number | undefined, total: number) => Math.min((a ?? 0) + pad, total * 0.42)
-    let vp: { longitude: number; latitude: number; zoom: number }
-    try {
-      vp = new WebMercatorViewport({ width: W, height: H }).fitBounds(marco, {
-        padding: { top: lado(margen.arriba, H), bottom: lado(margen.abajo, H), left: lado(margen.izquierda, W), right: lado(margen.derecha, W) },
-      })
-    } catch {
-      vp = new WebMercatorViewport({ width: W, height: H }).fitBounds(marco)
-    }
+    const vp = encuadrar(marco, w, h, margen)
     return { longitude: vp.longitude, latitude: vp.latitude, zoom: Math.min(vp.zoom, 16), pitch: 0, bearing: 0,
       transitionDuration: 1000, transitionInterpolator: new FlyToInterpolator({ speed: 1.8 }) }
   }, [marco[0][0], marco[0][1], marco[1][0], marco[1][1], w, h, margen.arriba, margen.abajo, margen.izquierda, margen.derecha, centrar])  // eslint-disable-line react-hooks/exhaustive-deps

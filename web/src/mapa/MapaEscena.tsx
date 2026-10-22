@@ -16,7 +16,8 @@
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import DeckGL from '@deck.gl/react'
-import { FlyToInterpolator, WebMercatorViewport, type PickingInfo } from '@deck.gl/core'
+import { FlyToInterpolator, type PickingInfo } from '@deck.gl/core'
+import { encuadrar } from './encuadre'
 import { GeoJsonLayer, LineLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import { decimal, entero, type Bbox, type Datos, type Feature, type PropsUpz } from '../datos'
 import type { ColegioNuevo, Supuestos } from '../motor'
@@ -189,18 +190,7 @@ export default function MapaEscena(props: Props) {
     return datos.bboxLocalidad[localidad]
   }, [escena, caso?.lon, caso?.lat, caso?.viaje?.sedes.join(), localidad, fams, f, datos])  // eslint-disable-line react-hooks/exhaustive-deps
   const viewState = useMemo(() => {
-    const W = Math.max(w, 60), H = Math.max(h, 60)
-    const pad = Math.round(Math.min(W, H) * 0.05)
-    // El relleno nunca puede dejar sin espacio al mapa (fitBounds falla si no cabe)
-    const lado = (a: number | undefined, total: number) => Math.min((a ?? 0) + pad, total * 0.42)
-    let vp: { longitude: number; latitude: number; zoom: number }
-    try {
-      vp = new WebMercatorViewport({ width: W, height: H }).fitBounds(encuadre, {
-        padding: { top: lado(margen.arriba, H), bottom: lado(margen.abajo, H), left: lado(margen.izquierda, W), right: lado(margen.derecha, W) },
-      })
-    } catch {
-      vp = new WebMercatorViewport({ width: W, height: H }).fitBounds(encuadre)
-    }
+    const vp = encuadrar(encuadre, w, h, margen)
     return { longitude: vp.longitude, latitude: vp.latitude, zoom: vp.zoom, pitch: 0, bearing: 0,
       transitionDuration: 1100, transitionInterpolator: new FlyToInterpolator({ speed: 1.7 }) }
   }, [encuadre, w, h, margen.arriba, margen.abajo, margen.izquierda, margen.derecha, centrar])
