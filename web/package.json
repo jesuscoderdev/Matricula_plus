@@ -8,9 +8,12 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview --host --port 4173 --strictPort",
     "build:archivo": "tsc -b && vite build --mode archivo && node -e \"require('fs').copyFileSync('dist-archivo/index.html','demo-offline.html')\"",
-    "verificar": "node scripts/verificar-motor.ts"
+    "verificar": "node scripts/verificar-motor.ts",
+    "proli:conocimiento": "node scripts/proli-conocimiento.mjs",
+    "proli:local": "node scripts/servidor-local.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0",
     "@deck.gl/core": "^9.4.0",
     "@deck.gl/layers": "^9.4.0",
     "@deck.gl/react": "^9.4.0",

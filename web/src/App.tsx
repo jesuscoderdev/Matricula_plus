@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { cargarDatos, decimal, type Datos } from './datos'
-import { palancasIniciales, supuestosIniciales, useResultados, type Palancas } from './estado'
-import type { ColegioNuevo, Supuestos } from './motor'
+import { cargarDatos, decimal, entero, type Datos } from './datos'
+import { describir, metricasDe, palancasIniciales, supuestosIniciales, useResultados, type Palancas } from './estado'
+import type { ColegioNuevo, Metricas, Supuestos } from './motor'
 import { DURACION_PASOS, EMPRESA, SEGUNDOS_INACTIVIDAD, URL_EMPRESA } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import MapaEscena from './mapa/MapaEscena'
@@ -19,6 +19,7 @@ import Metodo from './capitulos/Metodo'
 import Caso, { alternarColegio, casoInicial, cercanos, resolverCaso, viajeDe, type Cual, type EstadoCaso } from './capitulos/Caso'
 import Explorar from './capitulos/Explorar'
 import Agendar from './capitulos/Agendar'
+import { informarPantalla, registrar } from './proli/ordenes'
 
 const ORDEN: Vista[] = ['portada', ...CAPITULOS.map((c) => c.id)]
 
@@ -141,6 +142,100 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
   const asignar = useCallback(() => { setAsignado(true); setReproduccion((x) => x + 1) }, [])
   const repetir = useCallback(() => setReproduccion((x) => x + 1), [])
   const alTerminar = useCallback(() => setTerminado(true), [])
+
+  // Proli puede mover este demo (src/proli/ordenes.ts). Se registra con los datos cargados para
+  // validar localidades y opciones; lo que llegó mientras cargaba se aplica en ese momento.
+  const refIr = useRef(ir)
+  refIr.current = ir
+  // Lo último calculado, para que Proli lea los mismos resultados que muestra la pantalla
+  const refR = useRef(r)
+  refR.current = r
+  const refSupuestos = useRef(supuestos)
+  refSupuestos.current = supuestos
+  const refPalancas = useRef(palancas)
+  refPalancas.current = palancas
+  useEffect(() => {
+    if (!datos) return
+    const vistas: Vista[] = ['portada', ...CAPITULOS.map((c) => c.id), 'caso', 'explorar', 'agendar']
+    const nombreVista = (v: Vista) => CAPITULOS.find((c) => c.id === v)?.nombre
+      ?? { portada: 'portada', caso: 'Simula una familia', explorar: 'Explorar', agendar: 'Agendar' }[v as string] ?? v
+    return registrar('matricula', (o) => {
+      const e = o.entrada
+      switch (o.nombre) {
+        case 'matricula_capitulo': {
+          const v = String(e.capitulo) as Vista
+          if (!vistas.includes(v)) return 'Capítulo no reconocido.'
+          refIr.current(v)
+          return `Listo: Matrícula+ muestra ${v === 'portada' ? 'su portada' : `el capítulo ${nombreVista(v)}`}.`
+        }
+        case 'matricula_localidad': {
+          const l = String(e.localidad)
+          if (!datos.localidades.includes(l)) return 'Localidad no reconocida en Matrícula+.'
+          setLocalidad(l); refIr.current('problema')
+          return `Listo: el capítulo Problema muestra cómo se asignan hoy los cupos en ${l}.`
+        }
+        case 'matricula_reglas': {
+          const p = datos.indice.presets.find((x) => x.clave === e.reglas)
+          if (!p) return 'Reglas no reconocidas.'
+          cambiarPalancas({ preset: p.clave, pesos: datos.indice.pesos_presets[p.clave] }); refIr.current('accion')
+          return `Listo: reglas «${p.etiqueta}» (${p.descripcion.toLowerCase()}) en el capítulo Acción.`
+        }
+        case 'matricula_colegio_nuevo': {
+          if (e.ubicacion === 'ninguno') { cambiarPalancas({ colegioNuevo: null }); refIr.current('accion'); return 'Listo: sin colegio nuevo.' }
+          const u = datos.indice.colegio_nuevo.find((x) => x.clave === e.ubicacion)
+          if (!u) return 'Ubicación no reconocida.'
+          cambiarPalancas({ colegioNuevo: { clave: u.clave, lon: u.lon, lat: u.lat } }); refIr.current('accion')
+          return `Listo: colegio nuevo de ${u.cupos} cupos en ${u.etiqueta}.`
+        }
+        case 'matricula_jornada_unica': {
+          if (typeof e.activa !== 'boolean') return 'Valor no reconocido.'
+          cambiarPalancas({ jornadaUnica: e.activa }); refIr.current('accion')
+          return `Listo: jornada única ${e.activa ? 'activada' : 'desactivada'}.`
+        }
+        case 'matricula_resultados': {
+          // Las mismas cifras del capítulo Resultado, con las reglas y supuestos que el visitante tiene ahora
+          const res = refR.current, s = refSupuestos.current, p = refPalancas.current
+          if (!res || !s || !p) return 'Los resultados todavía se están calculando; intente de nuevo en un momento.'
+          const donde = String(e.ambito)
+          let m: { hoy: Metricas; pol: Metricas }
+          let nombre: string
+          if (donde === 'BOGOTA') { m = res.bogota; nombre = 'Bogotá' }
+          else if (donde === 'ZONA_CRITICA') { m = res.zona; nombre = 'la zona crítica (Tibabuyes y El Rincón)' }
+          else if (datos.localidades.includes(donde)) { m = metricasDe(datos, res, s, donde); nombre = donde }
+          else return 'Localidad no reconocida en Matrícula+.'
+          if (e.mostrar === true) {
+            if (donde !== 'BOGOTA' && donde !== 'ZONA_CRITICA') setLocalidad(donde)
+            setAlcance(donde === 'BOGOTA' ? 'bogota' : donde === 'ZONA_CRITICA' ? 'zona' : 'localidad')
+            refIr.current('resultado')
+          }
+          const par = (k: 'pctFueraDeOpciones' | 'pctPrimera' | 'pctSinCupo' | 'pctVulnerablesFuera' | 'pctViajeLargo') =>
+            `hoy ${decimal(m.hoy[k])} % → con estas reglas ${decimal(m.pol[k])} %`
+          return `Consulté los resultados de ${nombre}${e.mostrar === true ? ' y los muestro en Resultados' : ''} | `
+            + `Simulación en pantalla para ${nombre} (${describir(datos, p)}; ${s.opciones} opciones por familia; «hoy» = asignación actual por orden de llegada): `
+            + `${entero(m.hoy.estudiantes)} estudiantes nuevos. Fuera de todas sus opciones: ${par('pctFueraDeOpciones')} `
+            + `(${entero(m.hoy.fueraDeOpciones)} → ${entero(m.pol.fueraDeOpciones)} niños). En su primera opción: ${par('pctPrimera')}. `
+            + `Sin ningún cupo cercano tras la reubicación: ${par('pctSinCupo')}. Vulnerables fuera de sus opciones: ${par('pctVulnerablesFuera')}. `
+            + `Viajes de más de ${decimal(s.umbralViajeLargoKm)} km: ${par('pctViajeLargo')}.`
+        }
+        case 'matricula_asignar':
+          refIr.current('accion')
+          // Después del efecto que anula la asignación cuando cambian las reglas (ver arriba)
+          window.setTimeout(asignar, 120)
+          return 'Listo: se tocó ▶ Asignar; la asignación corre ronda por ronda en el mapa.'
+      }
+      return 'Acción no reconocida en Matrícula+.'
+    })
+  }, [datos, cambiarPalancas, asignar])
+  // Qué está viendo el visitante (Proli lo recibe como contexto)
+  useEffect(() => {
+    if (!datos || !palancas) return
+    const cap = CAPITULOS.find((c) => c.id === vista)?.nombre
+      ?? { portada: 'portada', caso: 'Simula una familia', explorar: 'Explorar', agendar: 'Agendar' }[vista as string] ?? vista
+    const reglas = datos.indice.presets.find((x) => x.clave === palancas.preset)?.etiqueta ?? 'personalizadas'
+    const nuevo = palancas.colegioNuevo ? `, colegio nuevo en ${datos.indice.colegio_nuevo.find((x) => x.clave === palancas.colegioNuevo!.clave)?.etiqueta ?? 'un punto del mapa'}` : ''
+    informarPantalla(`Matrícula+, capítulo ${cap}${localidad ? `, localidad ${localidad}` : ''}, reglas ${reglas}${nuevo}${palancas.jornadaUnica ? ', jornada única' : ''}`)
+  }, [datos, vista, localidad, palancas])
+
   const ubicar = useCallback((lon: number, lat: number) => {
     if (!r || !supuestos) return
     setCaso((c) => ({ ...c, lon, lat, hermanoEn: null, quien: null, colegios: cercanos(r.pol.pos, lon, lat, supuestos.opciones).map((x) => x.s) }))

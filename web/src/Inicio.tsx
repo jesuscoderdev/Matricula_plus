@@ -19,6 +19,7 @@ import Qr from './componentes/Qr'
 import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
+import { informarPantalla, registrar } from './proli/ordenes'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -81,6 +82,28 @@ export default function Inicio() {
     window.addEventListener('pointerdown', alTocar)
     return () => { window.clearTimeout(id); window.removeEventListener('pointerdown', alTocar) }
   }, [modo, fijo, proyecto, etapa, aPortada])
+
+  // Proli puede llevar al visitante a estas pantallas y abrir los demos (src/proli/ordenes.ts)
+  useEffect(() => registrar('inicio', (o) => {
+    if (o.nombre === 'ir_a_pantalla') {
+      const destino = { portada: 'portada', conozca_a_proli: 'proli', elegir_demo: 'elegir' }[String(o.entrada.pantalla)] as typeof etapa | undefined
+      if (!destino) return 'Pantalla no reconocida.'
+      setProyecto(null); setEtapa(destino)
+      return `Listo: el visitante está en ${destino === 'proli' ? 'Conozca a Proli' : destino === 'elegir' ? 'la página para elegir demo' : 'la portada'}.`
+    }
+    if (o.nombre === 'abrir_demo') {
+      const demo = o.entrada.demo === 'matricula' ? 'educacion' : o.entrada.demo === 'movilidad' ? 'movilidad' : null
+      if (!demo) return 'Demo no reconocido.'
+      aProyecto(demo)
+      return `Listo: se abrió ${demo === 'movilidad' ? 'Movilidad+' : 'Matrícula+'}.`
+    }
+    return 'Acción no reconocida.'
+  }), [aProyecto])
+  // Qué está viendo el visitante fuera de los demos (dentro, lo informa cada demo)
+  useEffect(() => {
+    if (proyecto) return
+    informarPantalla(etapa === 'portada' ? 'portada del stand' : etapa === 'proli' ? 'Conozca a Proli' : 'página para elegir demo')
+  }, [proyecto, etapa])
 
   const salidas = {
     alSalir: volver,

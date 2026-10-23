@@ -13,7 +13,8 @@ import { esTotem, leerModo, modoAutomatico, type Modo } from '../modo'
 import { BotonTema, LogoReinicio, pulsoLogo } from '../componentes/Marca'
 import Intro from '../componentes/Intro'
 import Esqueleto from '../componentes/Esqueleto'
-import { cargarMovilidad, type Bbox, type DatosMovilidad, type Nivel } from './datos'
+import { cargarMovilidad, nombreLocalidad, type Bbox, type DatosMovilidad, type Nivel } from './datos'
+import { informarPantalla, registrar } from '../proli/ordenes'
 import MapaMovilidad from './MapaMovilidad'
 import {
   Anio, CAPITULOS_MOV, Cierre, Decide, Fuentes, Giro, Metodo, PortadaMov, Presupuesto, numeroMov, tamanoHex,
@@ -101,6 +102,60 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
     window.addEventListener('popstate', alVolver)
     return () => window.removeEventListener('popstate', alVolver)
   }, [modo, alSalir])
+
+  // Proli puede mover este demo (src/proli/ordenes.ts). Se registra cuando ya hay datos, para poder
+  // validar la localidad; las órdenes que llegaron mientras cargaba se aplican en ese momento.
+  const refIr = useRef(ir)
+  refIr.current = ir
+  useEffect(() => {
+    if (!datos) return
+    return registrar('movilidad', (o) => {
+      const e = o.entrada
+      switch (o.nombre) {
+        case 'movilidad_capitulo': {
+          const v = String(e.capitulo) as VistaMov
+          if (!ORDEN.includes(v)) return 'Capítulo no reconocido.'
+          refIr.current(v)
+          return `Listo: Movilidad+ muestra ${v === 'portada' ? 'su portada' : `el capítulo ${CAPITULOS_MOV.find((c) => c.id === v)!.nombre}`}.`
+        }
+        case 'movilidad_localidad': {
+          if (e.localidad === 'TODA_BOGOTA') { setLocalidad(null); refIr.current('decide'); return 'Listo: el mapa muestra toda Bogotá.' }
+          const i = datos.sitios.localidades.indexOf(String(e.localidad))
+          if (i < 0) return 'Localidad no reconocida en Movilidad+.'
+          setLocalidad(i); refIr.current('decide')
+          return `Listo: el mapa de «Usted decide» se acercó a ${nombreLocalidad(datos.sitios.localidades[i])}.`
+        }
+        case 'movilidad_presupuesto': {
+          const n = String(e.nivel) as Nivel
+          const esc = datos.experiencia.pantalla_presupuesto_barrio.escenarios
+          if (!(n in esc)) return 'Nivel de presupuesto no reconocido.'
+          setNivel(n); refIr.current('presupuesto')
+          return `Listo: el capítulo Presupuesto muestra $${esc[n].presupuesto_millones} millones.`
+        }
+        case 'movilidad_tipo_via': {
+          if (e.zona !== 'barrio' && e.zona !== 'avenidas') return 'Tipo de vía no reconocido.'
+          setZona(e.zona); refIr.current('metodo')
+          return `Listo: El método muestra la comparación en ${e.zona === 'barrio' ? 'calles de barrio' : 'avenidas'}.`
+        }
+        case 'movilidad_anio_mapa': {
+          if (e.anio !== '2024' && e.anio !== '2025') return 'Año no reconocido.'
+          setAnio(e.anio === '2024' ? 'k24' : 'k25'); refIr.current('anio')
+          return `Listo: Pasó un año muestra el mapa de ${e.anio}.`
+        }
+      }
+      return 'Acción no reconocida en Movilidad+.'
+    })
+  }, [datos])
+  // Qué está viendo el visitante (Proli lo recibe como contexto)
+  useEffect(() => {
+    if (!datos) return
+    const cap = vista === 'portada' ? 'portada' : CAPITULOS_MOV.find((c) => c.id === vista)?.nombre ?? vista
+    const extra = vista === 'decide' && localidad != null ? `, mapa acercado a ${nombreLocalidad(datos.sitios.localidades[localidad])}`
+      : vista === 'presupuesto' ? `, presupuesto de $${datos.experiencia.pantalla_presupuesto_barrio.escenarios[nivel].presupuesto_millones} millones`
+        : vista === 'metodo' ? `, comparación en ${zona === 'barrio' ? 'calles de barrio' : 'avenidas'}`
+          : vista === 'decide' || vista === 'anio' ? `, ${tocadas.length} esquinas tocadas` : ''
+    informarPantalla(`Movilidad+, capítulo ${cap}${extra}`)
+  }, [datos, vista, localidad, nivel, zona, tocadas.length])
 
   // Tocar una esquina: se agrega (o se quita si ya estaba); con todas, la más vieja sale
   const tocar = useCallback((i: number) => {
