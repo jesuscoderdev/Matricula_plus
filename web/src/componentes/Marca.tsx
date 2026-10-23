@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { APP_NAME, EMPRESA, SEGUNDOS_ANIMACION_LOGO, SEGUNDOS_REINICIO_LOGO } from '../config'
 import logoLetras from '../assets/logo-proliferante-letras.webp'
 import logoO from '../assets/logo-proliferante-o.webp'
 import iconoProliferante from '../assets/icono-proliferante.webp'
-import { alternarTema, useTema } from '../tema'
+import { elegirTema, usePreferenciaTema, type Preferencia } from '../tema'
 
 // Ritmo del logo de la cabecera: "Matrícula+" un rato, se agrupa en "M+", se queda así otro rato
 // y se abre de nuevo (cada SEGUNDOS_ANIMACION_LOGO)
@@ -218,24 +218,34 @@ export function MarcaDeAgua({ className = '' }: { className?: string }) {
   return <span className={`marca-agua ${className}`} aria-hidden style={{ ['--icono' as string]: `url(${iconoProliferante})` }} />
 }
 
-/** Botón ☾/☀: cambia entre modo claro y oscuro (por defecto sigue al sistema). */
-export function BotonTema() {
-  const tema = useTema()
-  const oscuro = tema === 'oscuro'
+const icono = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+const OPCIONES_TEMA: { p: Preferencia; nombre: string; icono: ReactNode }[] = [
+  { p: 'sistema', nombre: 'Tema del sistema', icono: <svg viewBox="0 0 24 24" aria-hidden {...icono}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8.5 20h7M12 16v4" /></svg> },
+  { p: 'claro', nombre: 'Tema claro', icono: <svg viewBox="0 0 24 24" aria-hidden {...icono}><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" /></svg> },
+  { p: 'oscuro', nombre: 'Tema oscuro', icono: <svg viewBox="0 0 24 24" aria-hidden {...icono}><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" /></svg> },
+]
+
+/**
+ * Selector de tema: Sistema · Claro · Oscuro, con una pastilla índigo que se desliza a la opción
+ * elegida. `sobreOscuro` lo adapta a fondos navy fijos (la portada del stand).
+ */
+export function BotonTema({ sobreOscuro = false }: { sobreOscuro?: boolean }) {
+  const preferencia = usePreferenciaTema()
   return (
-    <button type="button" className="boton-tema" onClick={(e) => { e.stopPropagation(); alternarTema() }}
-            title={oscuro ? 'Modo claro' : 'Modo oscuro'} aria-label={oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}>
-      {oscuro ? (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden>
-          <circle cx="12" cy="12" r="4.2" />
-          <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
-        </svg>
-      ) : (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" aria-hidden>
-          <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
-        </svg>
-      )}
-    </button>
+    // Los toques no siguen hacia la pantalla de atrás (la portada del stand avanza al tocarla)
+    <div role="radiogroup" aria-label="Tema de colores" className={`selector-tema ${sobreOscuro ? 'selector-tema--sobre-oscuro' : ''}`}
+         onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+      {OPCIONES_TEMA.map((o) => {
+        const activa = preferencia === o.p
+        return (
+          <button key={o.p} type="button" role="radio" aria-checked={activa} aria-label={o.nombre} title={o.nombre}
+                  className="selector-tema__op" onClick={() => elegirTema(o.p)}>
+            {activa && <motion.span layoutId="tema-activo" className="selector-tema__activo" transition={{ type: 'spring', stiffness: 420, damping: 32 }} />}
+            {o.icono}
+          </button>
+        )
+      })}
+    </div>
   )
 }
 

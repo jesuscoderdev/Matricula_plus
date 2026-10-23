@@ -517,7 +517,28 @@ h1, h2, h3, p { margin: 0; }
 .intro__mas { display: inline-block; position: relative; top: 0.1em; color: var(--marca-violeta); margin-left: 0.1em; }
 .intro__lema { font-family: var(--f-mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--violeta-osc); }
 
-/* Botón de tema ☾/☀ */
+/* Selector de tema: Sistema · Claro · Oscuro */
+.selector-tema { flex: none; display: inline-flex; gap: 0.1rem; padding: 0.18rem; border-radius: 99rem; background: var(--hundido); border: 1px solid var(--linea); }
+.selector-tema__op {
+  position: relative; width: 1.95rem; height: 1.75rem; padding: 0; border: 0; border-radius: 99rem; background: none;
+  display: grid; place-items: center; color: var(--suave); transition: color 0.2s;
+}
+.selector-tema__op svg { position: relative; z-index: 1; width: 0.98rem; height: 0.98rem; }
+.selector-tema__op:hover:not([aria-checked='true']) { color: var(--tinta); }
+.selector-tema__op[aria-checked='true'] { color: #ffffff; }
+.selector-tema__op:focus-visible { outline: 2px solid var(--p-verde); outline-offset: 1px; }
+.selector-tema__activo { position: absolute; inset: 0; border-radius: 99rem; background: var(--p-indigo); box-shadow: 0 0.15rem 0.4rem rgba(90, 68, 221, 0.4); }
+/* Sobre el navy fijo de la portada del stand */
+.selector-tema--sobre-oscuro { background: rgba(255, 255, 255, 0.07); border-color: rgba(199, 215, 236, 0.25); }
+.selector-tema--sobre-oscuro .selector-tema__op { color: var(--p-azul); }
+.selector-tema--sobre-oscuro .selector-tema__op:hover:not([aria-checked='true']) { color: #ffffff; }
+/* En el tótem, botones del tamaño de un dedo */
+:root[data-modo='stand'] .selector-tema__op, :root[data-modo='auto'] .selector-tema__op { width: 2.6rem; height: 2.3rem; }
+:root[data-modo='stand'] .selector-tema__op svg { width: 1.2rem; height: 1.2rem; }
+.portada__marca .selector-tema, .proli-intro__marca .selector-tema, .portada-stand__marca .selector-tema { margin-left: auto; }
+.portada__marca .etiqueta + .selector-tema, .portada-stand__evento + .selector-tema { margin-left: 0; }
+
+/* Botón redondo de la cabecera (← volver al inicio) */
 .boton-tema {
   flex: none; width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 1px solid var(--linea-2); background: var(--blanco);
   display: grid; place-items: center; color: var(--tinta); padding: 0;
@@ -731,8 +752,8 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-.cabecera > .boton-tema:not(.boton-atras) { margin-left: auto; }
-.cabecera__extra + .boton-tema { margin-left: 0; }
+.cabecera > .selector-tema { margin-left: auto; }
+.cabecera__extra + .selector-tema { margin-left: 0; }
 /* Simula una familia en pantallas chicas: duelo y viaje más compactos */
 .duelo__destino b { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 :root[data-modo='celular'] .duelo { padding-block: 0.7rem 0.6rem; gap: 0.4rem; }

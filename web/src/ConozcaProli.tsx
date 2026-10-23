@@ -10,7 +10,7 @@ import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PROLI_INTRO, SEGUNDOS_PROLI_AUTO, type IdProyecto } from './config'
 import type { Modo } from './modo'
-import { BotonInicio, LogoEmpresa, MarcaDeAgua } from './componentes/Marca'
+import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua } from './componentes/Marca'
 import ProliAnimado from './componentes/ProliAnimado'
 
 const entrar = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 } }
@@ -67,6 +67,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
         <motion.header className="proli-intro__marca" {...entrar} transition={{ delay: 0.05 }}>
           {!auto && <BotonInicio alInicio={alVolver} etiqueta="Volver a la portada" />}
           <LogoEmpresa alTocar={auto ? undefined : alVolver} />
+          {!auto && <BotonTema />}
         </motion.header>
 
         <div className="proli-intro__heroe">

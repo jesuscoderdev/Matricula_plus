@@ -11,7 +11,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { PORTADA_STAND, SEGUNDOS_PORTADA_AUTO } from './config'
 import { esTotem, type Modo } from './modo'
-import { LogoEmpresa, MarcaDeAgua } from './componentes/Marca'
+import { BotonTema, LogoEmpresa, MarcaDeAgua } from './componentes/Marca'
 import Proli from './componentes/Proli'
 
 const entrar = { initial: { opacity: 0, y: 18 }, animate: { opacity: 1, y: 0 } }
@@ -47,6 +47,7 @@ export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alCont
         <motion.header className="portada-stand__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa />
           <span className="portada-stand__evento">{p.evento}</span>
+          {modo !== 'auto' && <BotonTema sobreOscuro />}
         </motion.header>
 
         <div className="portada-stand__cabeza">
