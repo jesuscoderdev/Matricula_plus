@@ -100,7 +100,7 @@ function sugerencias(pantalla: string): Sugerencia[] {
 }
 
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms))
-/** Mantiene vivo el tótem mientras Proli habla (los temporizadores de inactividad escuchan pointerdown). */
+/** Mantiene vivo el tótem mientras Proli habla o el visitante escribe (los temporizadores de inactividad escuchan pointerdown). */
 const avisarActividad = () => window.dispatchEvent(new Event('pointerdown'))
 
 class SinConexion extends Error {}
@@ -295,7 +295,7 @@ export default function Asistente() {
               ))}
             </div>
             <form className="proli-panel__escribir" onSubmit={enviar}>
-              <input value={texto} onChange={(e) => setTexto(e.target.value)} maxLength={500} placeholder="Escriba su pregunta…"
+              <input value={texto} onChange={(e) => { setTexto(e.target.value); avisarActividad() }} maxLength={500} placeholder="Escriba su pregunta…"
                      disabled={ocupado} aria-label="Su pregunta para Proli" enterKeyHint="send" />
               <button type="submit" className="boton boton--violeta" disabled={ocupado || !texto.trim()}>Enviar</button>
             </form>
