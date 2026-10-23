@@ -55,26 +55,31 @@ Capítulos (en orden): Usted decide (el visitante toca 3 esquinas en el mapa de 
 
 ### Contexto de la ciudad (Anuario de Siniestralidad Vial 2025, Secretaría Distrital de Movilidad)
 - ${fmt(exp.contexto_ciudad.fallecidos_2025)} personas fallecieron en siniestros viales en Bogotá en 2025 y ${fmt(exp.contexto_ciudad.lesionados_2025)} resultaron lesionadas (criterio de 30 días).
-- Fallecidos: ${pct(exp.contexto_ciudad.variacion_fallecidos_2025_pct)} frente a ${fmt(exp.contexto_ciudad.fallecidos_2024_segun_anuario_2025)} en 2024. Los peatones fueron el único grupo con más muertes (+${exp.contexto_ciudad.peatones_aumento_muertes_2025_pct} %); los mayores de 60 años son el ${exp.contexto_ciudad.mayores_60_entre_peatones_fallecidos_pct} % de los peatones fallecidos.
+- Fallecidos: ${pct(exp.contexto_ciudad.variacion_fallecidos_2025_pct)} frente a ${fmt(exp.contexto_ciudad.fallecidos_2024_segun_anuario_2025)} en 2024. Las muertes de peatones aumentaron (+${exp.contexto_ciudad.peatones_aumento_muertes_2025_pct} %); los mayores de 60 años son el ${exp.contexto_ciudad.mayores_60_entre_peatones_fallecidos_pct} % de los peatones fallecidos.
 
 ### El hallazgo (regresión a la media)
 - Las ${ref30()} peores esquinas de barrio de 2024 sumaban ${exp.pantalla_2_pasa_un_anio.referencia_30_peores_esquinas_de_barrio_2024.graves_2024} siniestros graves; en 2025 tuvieron ${exp.pantalla_2_pasa_un_anio.referencia_30_peores_esquinas_de_barrio_2024.graves_2025}. Bajaron ${exp.pantalla_2_pasa_un_anio.referencia_30_peores_esquinas_de_barrio_2024.esquinas_que_bajaron} de 30. El análisis no considera obras hechas en esos sitios: no se puede afirmar que «bajaron solas».
-- Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Quien interviene las esquinas con más siniestros del último año promete más de lo que va a pasar, y luego atribuye a la obra una mejora que habría ocurrido de todos modos.
+- Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Quien interviene las esquinas con más siniestros del último año promete más de lo que va a pasar, y luego puede atribuir a la obra una mejora que en buena parte se esperaba sin obra.
 - Validación (se estimó con ${res.periodo_estimacion.join('–')} y se comparó con ${res.anio_validacion}, un año que el modelo no vio), 30 esquinas de barrio de mayor riesgo: la práctica intuitiva prometía ${fmt(m4.calles_de_barrio_30_sitios.regla_simple.promete)} y ocurrieron ${m4.calles_de_barrio_30_sitios.regla_simple.ocurrio} (+${m4.calles_de_barrio_30_sitios.regla_simple.sobrestimacion_pct} %); el método de Proliferante prometía ${fmt(m4.calles_de_barrio_30_sitios.metodo_proliferante.promete)} y ocurrieron ${m4.calles_de_barrio_30_sitios.metodo_proliferante.ocurrio} (+${m4.calles_de_barrio_30_sitios.metodo_proliferante.sobrestimacion_pct} %). Las dos listas coinciden en ${m4.calles_de_barrio_30_sitios.esquinas_en_comun} de 30 esquinas.
 - En avenidas (30 sitios): práctica intuitiva +${m4.avenidas_30_sitios.regla_simple.sobrestimacion_pct} %, método +${m4.avenidas_30_sitios.metodo_proliferante.sobrestimacion_pct} %.
 - La diferencia que le queda al método es del orden de la caída general de 2025: ${pct(100 * v.local.tendencia_2025_vs_promedio)} en calles de barrio y ${pct(100 * v.arterial.tendencia_2025_vs_promedio)} en avenidas frente al promedio 2023–2024.
 - Mensaje clave: ${m4.mensaje_clave} El método NO encuentra esquinas «escondidas» ni elige sitios con más siniestros futuros: corrige cuánto se puede prometer.
 
 ### El método, en simple
-- Bogotá se dividió en hexágonos de 115 m (el mismo tamaño que usa la Secretaría de Movilidad). Cada hexágono es de barrio o de avenida según la red vial de OpenStreetMap.
+- Bogotá se dividió en hexágonos de 115 m. Cada hexágono es de barrio o de avenida según la red vial de OpenStreetMap.
 - Bayes empírico (Hauer, 1997): el riesgo de cada esquina mezcla lo que pasó en ella con lo normal en esquinas parecidas. Ejemplo: si en un grupo la media es 4 y la varianza 10, una esquina con 12 siniestros se estima en 0,4 × 4 + 0,6 × 12 = 8,8. Parte de esos 12 fue mala suerte.
-- Problema de la mochila: con un presupuesto, se busca la mejor combinación de esquinas en lugar de recorrer la lista de mayor a menor.
-- 2022 se excluyó porque sus coordenadas se publicaron redondeadas (unos 110 m de error).
-- Es el mismo tipo de análisis que ya usa la ciudad (hexágonos de 115 m, métodos de Hauer), llevado a las calles de barrio. Se actualiza cada vez que llegan datos nuevos.
+- Con un presupuesto, se eligen las esquinas de mayor riesgo corregido que alcanzan (todas cuestan lo mismo, así que es la lista ordenada de mayor a menor).
+- 2022 se excluyó porque sus coordenadas se publicaron con menos precisión.
+- Es un método reconocido en seguridad vial (Hauer), llevado a las calles de barrio. Se puede actualizar cada vez que llegan datos nuevos.
+- No afirmes que la Secretaría de Movilidad usa este mismo análisis ni cómo prioriza: no está en las fuentes.
 
 ### Presupuesto (estimaciones de orden de magnitud, no compromisos)
 - Intervención: ${pres.intervencion}. Reducción: ${pres.reduccion_supuesta_pct} % de siniestros con heridos (${sup.local.efectividad_fuente.split(';')[0]}). Costo ≈ $${pres.costo_por_esquina_millones} millones por esquina (Unidad de Mantenimiento Vial 2022, ajustado por IPC).
-${Object.entries(pres.escenarios).map(([, e]) => `- Con $${fmt(e.presupuesto_millones)} millones: ${fmt(e.esquinas)} esquinas de barrio; se esperaría evitar ≈ ${fmt(e.se_esperaria_evitar_por_anio)} siniestros graves al año (la práctica intuitiva prometería ${fmt(e.la_practica_intuitiva_prometeria)}).`).join('\n')}
+${Object.entries(pres.escenarios).map(([nivel, e]) => {
+  const ojo = res.asignacion_presupuesto?.barrio?.[nivel]?.lista_por_conteo_bruto?.esperado_evitados_anual_eb
+  return `- Con $${fmt(e.presupuesto_millones)} millones: ${fmt(e.esquinas)} esquinas de barrio; con el método se esperaría evitar ≈ ${fmt(e.se_esperaria_evitar_por_anio)} siniestros graves al año. Elegidas a ojo, según el riesgo corregido se evitarían ≈ ${fmt(ojo ?? e.se_esperaria_evitar_por_anio)} (casi lo mismo), pero se prometerían ${fmt(e.la_practica_intuitiva_prometeria)}.`
+}).join('\n')}
+- Mensaje del presupuesto: el método no evita más que elegir a ojo; promete mucho menos de más. Ni siquiera el método es exacto: frente a lo ocurrido en 2025 también prometía algo de más, sobre todo con presupuestos grandes.
 - En avenidas se consideró el intervalo peatonal anticipado (−14 % de siniestros con heridos, CMF Clearinghouse ficha 9917), con un costo de cota superior de ≈ $${sup.arterial.costo_millones_cop} millones por intersección.
 - Advertencia: ${fue.advertencia}
 

@@ -87,7 +87,7 @@ export function casoDePersonaje(p: Personaje, datos: Datos, pos: [number, number
 type Destino = ResultadoCaso['hoy']
 /** Menor = mejor: primero quedar en sus opciones, luego reubicada, luego sin cupo; y la distancia. */
 const puntaje = (x: Destino) => (x.opcion >= 0 ? 0 : x.reubicado ? 100 : 1000) + x.dist
-const corto = (x: Destino) => (x.opcion >= 0 ? `${x.opcion + 1}.ª opción · ${decimal(x.dist)} km` : x.reubicado ? `reubicada a ${decimal(x.dist)} km` : 'sin cupo')
+const corto = (x: Destino) => (x.opcion >= 0 ? `${x.opcion + 1}.ª opción · ${decimal(x.dist)} km` : x.reubicado ? `reubicada a ${decimal(x.dist)} km` : 'sin cupo cercano')
 
 function veredicto(r: ResultadoCaso): { texto: string; tono: 'mejor' | 'igual' | 'peor' } {
   const { hoy, matricula: m } = r
@@ -250,7 +250,7 @@ export default function Caso({ datos, r, modo, supuestos, caso, setCaso, ubicar,
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span key={x ? `${x.sede}-${x.opcion}-${x.reubicado}` : 'nada'} className="duelo__destino"
                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={transicion}>
-          <b>{!x ? 'Elige un colegio' : x.sede >= 0 ? nombreColegio(datos, x.sede) : 'Sin colegio'}</b>
+          <b>{!x ? 'Elige un colegio' : x.sede >= 0 ? nombreColegio(datos, x.sede) : 'Sin cupo cercano'}</b>
           {x && <Insignia x={x} largo />}
         </motion.span>
       </AnimatePresence>
@@ -293,7 +293,8 @@ export default function Caso({ datos, r, modo, supuestos, caso, setCaso, ubicar,
                 <span className="caso-colegio__nombre">
                   {nombreColegio(datos, s)}{caso.hermanoEn === s && <> · <b>hermano aquí</b></>}
                   {rz && <small className="caso-colegio__razon">Matrícula+: {rz.motivo === 'lleno' ? 'no tiene cupos para nuevos'
-                    : <>lleno con familias de más prioridad{rz.ultimaDist != null && <> (la última vive a {decimal(rz.ultimaDist)} km)</>}</>}</small>}
+                    : rz.motivo === 'optimizacion' ? 'tenía cupo aquí; pasó a otra de sus opciones para que cupiera otra familia'
+                      : <>lleno con familias de más prioridad{rz.ultimaDist != null && <> (la última vive a {decimal(rz.ultimaDist)} km)</>}</>}</small>}
                 </span>
                 <span className="caso-colegio__marcas">
                   {o >= 0 && <><Marca quien="Hoy" m={h} /><Marca quien="M+" m={m} /></>}

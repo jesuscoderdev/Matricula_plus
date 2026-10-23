@@ -8,7 +8,7 @@ interface Fila { clave: Clave; nombre: string; detalle?: string; mejorSiBaja: bo
 export const filasMetricas = (s: Supuestos): Fila[] => [
   { clave: 'pctFueraDeOpciones', nombre: 'No entran a ninguno de sus colegios', detalle: `de los ${s.opciones} que pidieron`, mejorSiBaja: true },
   { clave: 'pctPrimera', nombre: 'Entran a su primera opción', mejorSiBaja: false },
-  { clave: 'pctSinCupo', nombre: 'Se quedan sin colegio cerca', detalle: `ni con la reubicación (hasta ${decimal(s.radioReubicacionKm)} km)`, mejorSiBaja: true },
+  { clave: 'pctSinCupo', nombre: 'Sin cupo cercano', detalle: `ni con la reubicación (hasta ${decimal(s.radioReubicacionKm)} km)`, mejorSiBaja: true },
   { clave: 'pctVulnerablesFuera', nombre: 'Vulnerables que no entran a sus colegios', mejorSiBaja: true },
   { clave: 'pctViajeLargo', nombre: `Viajan más de ${decimal(s.umbralViajeLargoKm)} km a su colegio`, mejorSiBaja: true },
   { clave: 'distanciaKm', nombre: 'Distancia promedio a su colegio', mejorSiBaja: true, km: true },
@@ -59,7 +59,7 @@ const TRAMOS = [
   { k: 'primera', nombre: '1.ª opción', color: rgb(COLOR.primera) },
   { k: 'otra', nombre: 'otra opción', color: rgb(COLOR.otra) },
   { k: 'reub', nombre: 'reubicados', color: rgb(COLOR.reubicado) },
-  { k: 'sin', nombre: 'sin cupo', color: rgb(COLOR.sin) },
+  { k: 'sin', nombre: 'sin cupo cercano', color: rgb(COLOR.sin) },
 ] as const
 
 /** Dónde queda cada niño: barras apiladas hoy vs Matrícula+. */

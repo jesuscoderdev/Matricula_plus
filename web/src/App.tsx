@@ -194,7 +194,8 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
         }
         case 'matricula_colegio_sugerido': {
           // Donde más rinde para la localidad elegida (o el mejor proyecto SED para Bogotá)
-          const pa = refPalancas.current, su = refSupuestos.current, loc = refLocalidad.current
+          // Acción abre con Suba si no había localidad: el cálculo usa la misma que verá el visitante
+          const pa = refPalancas.current, su = refSupuestos.current, loc = refLocalidad.current ?? 'Suba'
           if (!pa || !su) return 'La pantalla todavía no está lista.'
           const ops = calcularOpciones(datos, su, pa.pesos, pa.jornadaUnica, loc)
           recordarOpciones(su, pa.pesos, pa.jornadaUnica, loc, ops)

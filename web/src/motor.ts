@@ -216,9 +216,13 @@ export interface Optimizacion { asign: Int32Array; opcion: Int8Array; movidos: n
  * máxima). Nadie que ya tenía cupo lo pierde: a lo sumo pasa a otra de las opciones que pidió.
  * Se atiende primero a quien tiene más prioridad y, para abrir espacio, se mueve primero a quien
  * tiene menos. `cl` es la clave de prioridad (menor = más prioridad), como en la diferida.
+ * `fijos` marca familias que no se mueven: en Matrícula+, las que quedaron en el colegio de su
+ * hermano (no se separan hermanos). Con familias fijas el máximo es «el máximo posible sin moverlas».
+ * Ojo: para que quepa una familia más, otra con más prioridad puede pasar a otra de sus opciones; por
+ * eso el resultado final no es estable en el sentido de Gale-Shapley (la diferida sí lo es).
  */
 export function optimizarCupos(prefs: Int32Array, cl: Float64Array, cap: Int32Array, asign0: Int32Array, opcion0: Int8Array,
-                               n: number, k: number, activas?: number[]): Optimizacion {
+                               n: number, k: number, activas?: number[], fijos?: Uint8Array): Optimizacion {
   const asign = Int32Array.from(asign0), opcion = Int8Array.from(opcion0)
   const S = cap.length
   const libres = Int32Array.from(cap)
@@ -248,6 +252,7 @@ export function optimizarCupos(prefs: Int32Array, cl: Float64Array, cap: Int32Ar
     for (let q = 0; q < cola.length && fin < 0; q++) {
       const s = cola[q]
       for (const x of inscritos[s]) {
+        if (fijos && fijos[x]) continue            // familias que no se mueven (p. ej., en el colegio de su hermano)
         for (let o = 0; o < k; o++) {
           const s2 = prefs[x * k + o]
           if (s2 < 0 || s2 === s || muerta[s2] || visto[s2] === marca) continue
@@ -272,6 +277,13 @@ export function optimizarCupos(prefs: Int32Array, cl: Float64Array, cap: Int32Ar
     }
   }
   return { asign, opcion, movidos, ganados }
+}
+
+/** Familias que quedaron en el colegio de su hermano: la optimización no las mueve. */
+export function conHermano(asign: Int32Array, hermano: Int32Array): Uint8Array {
+  const fijos = new Uint8Array(asign.length)
+  for (let i = 0; i < asign.length; i++) if (asign[i] >= 0 && asign[i] === hermano[i]) fijos[i] = 1
+  return fijos
 }
 
 export interface Llegada { asign: Int32Array; opcion: Int8Array; turno: Int32Array }
@@ -387,7 +399,7 @@ export function simular(f: DatosFamilias, ctx: Contexto, s: Supuestos, p: Politi
   }
   const cl = claves(f, at, pref, p.pesos, s.pesoDesempate)
   const t = diferidaPorRondas(pref.prefs, cl, cap, f.n, pref.k)
-  const opt = optimizarCupos(pref.prefs, cl, cap, t.asign, t.opcion, f.n, pref.k)
+  const opt = optimizarCupos(pref.prefs, cl, cap, t.asign, t.opcion, f.n, pref.k, undefined, conHermano(t.asign, at.hermano))
   return { politica: p, pref, at, cap, pos, fase1: opt.asign, opcion: opt.opcion, traza: t, llegada: null, optimizados: opt.ganados,
     fase2: reubicarDiferida(f, at, pos, cap, opt.asign, s.radioReubicacionKm, p.pesos, s.pesoDesempate) }
 }
@@ -454,7 +466,7 @@ export interface ResultadoCaso {
   hoy: { sede: number; opcion: number; reubicado: boolean; dist: number }
   matricula: { sede: number; opcion: number; reubicado: boolean; dist: number }
   /** por qué no quedó en las opciones anteriores con Matrícula+ */
-  razones: { sede: number; motivo: 'lleno' | 'prioridad'; ultimaDist?: number }[]
+  razones: { sede: number; motivo: 'lleno' | 'prioridad' | 'optimizacion'; ultimaDist?: number }[]
 }
 
 /**
@@ -493,18 +505,22 @@ export function simularCaso(f: DatosFamilias, ctx: Contexto, s: Supuestos, p: Po
   const cl = new Float64Array(n * k)
   for (let x = 0; x < n; x++) for (let o = 0; o < k; o++) cl[x * k + o] = clave(x, prefs[x * k + o], dist[x * k + o], fc, at2, p.pesos, s.pesoDesempate)
   const d = diferidaPorRondas(prefs, cl, cap, n, k)
-  const t = optimizarCupos(prefs, cl, cap, d.asign, d.opcion, n, k)   // igual que Matrícula+ en el resto de la app
+  // igual que Matrícula+ en el resto de la app: diferida + optimización (sin separar hermanos)
+  const t = optimizarCupos(prefs, cl, cap, d.asign, d.opcion, n, k, undefined, conHermano(d.asign, at2.hermano))
   const r2 = reubicarDiferida(fc, at2, pos, cap, t.asign, s.radioReubicacionKm, p.pesos, s.pesoDesempate)
-  // Por qué no quedó en sus opciones anteriores: el colegio se llenó con familias de más prioridad
+  // Por qué no quedó en sus opciones anteriores. Se mira la asignación por prioridad (la diferida):
+  // ahí el colegio se llenó con familias de más prioridad. Si en la diferida sí quedaba en esa
+  // opción, fue la optimización la que la pasó a otra para que cupiera otra familia.
   const razones: ResultadoCaso['razones'] = []
   const hasta = t.opcion[i] >= 0 ? t.opcion[i] : k
   for (let o = 0; o < hasta; o++) {
     const sd = prefs[i * k + o]
     if (sd < 0) continue
+    if (d.asign[i] === sd) { razones.push({ sede: sd, motivo: 'optimizacion' }); continue }
     let ultima = -Infinity, ud: number | undefined
-    for (let x = 0; x < n; x++) if (t.asign[x] === sd) {
-      const kx = cl[x * k + t.opcion[x]]
-      if (kx > ultima) { ultima = kx; ud = dist[x * k + t.opcion[x]] }
+    for (let x = 0; x < n; x++) if (d.asign[x] === sd) {
+      const kx = cl[x * k + d.opcion[x]]
+      if (kx > ultima) { ultima = kx; ud = dist[x * k + d.opcion[x]] }
     }
     razones.push({ sede: sd, motivo: cap[sd] === 0 ? 'lleno' : 'prioridad', ultimaDist: ud })
   }

@@ -64,7 +64,7 @@ export default function Problema({ datos, r, modo, supuestos, localidad, elegirL
           <div className="gran-cifra">
             <span className="gran-cifra__n" style={{ color: 'var(--naranja)' }}>{entero(hoy.fueraDeOpciones)}</span>
             <span className="gran-cifra__t" style={{ color: '#c7d7ec' }}>niños fuera de sus opciones ({decimal(hoy.pctFueraDeOpciones)}%):
-              {' '}{entero(hoy.fueraDeOpciones - hoy.sinCupo)} reubicados lejos y {entero(hoy.sinCupo)} sin ningún cupo cercano.</span>
+              {' '}{entero(hoy.fueraDeOpciones - hoy.sinCupo)} reubicados en otro colegio y {entero(hoy.sinCupo)} sin ningún cupo cercano.</span>
           </div>
         </div>
       ) : (

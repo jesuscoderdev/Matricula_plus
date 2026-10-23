@@ -134,6 +134,8 @@ function usePuntero(ref: React.RefObject<HTMLSpanElement | null>, activo: boolea
     if (!activo) { setV(null); return }
     let ultimo = 0, quieto = 0
     const mover = (e: PointerEvent) => {
+      // El aviso interno de actividad (un pointerdown sin coordenadas) no mueve los ojos
+      if (!Number.isFinite(e.clientX) || !Number.isFinite(e.clientY)) return
       window.clearTimeout(quieto)
       quieto = window.setTimeout(() => setV(null), 4000)
       // Como mucho unas 30 veces por segundo (sin depender de requestAnimationFrame)

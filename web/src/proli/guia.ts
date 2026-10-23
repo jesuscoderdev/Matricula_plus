@@ -73,12 +73,12 @@ export function guia(pantalla: string, paso: number): Paso | null {
       opciones: [
         { texto: 'Otras reglas', ordenes: [cap('matricula', 'accion')], respuesta: 'Volvamos a las reglas.' },
         { texto: '¿Y si cambian los supuestos?', ordenes: [cap('matricula', 'laboratorio')], respuesta: 'Mueva un supuesto y todo se recalcula.' },
-        { texto: 'Quiero esto con mis datos', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Escanee el código y agendamos con el equipo.' },
+        { texto: 'Quiero esto con mis datos', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' },
       ],
     }
     if (c === 'Supuestos' || c === 'Método') return {
       pregunta: '¿Lo vemos con los datos de su entidad?',
-      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Escanee el código y agendamos con el equipo.' }],
+      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' }],
     }
     return null
   }
@@ -102,13 +102,13 @@ export function guia(pantalla: string, paso: number): Paso | null {
       ],
     }
     if (c === 'El giro') return {
-      pregunta: '¿Le muestro cómo se evita ese error?',
+      pregunta: '¿Le muestro cómo se corrige?',
       opciones: [{ texto: 'Sí, el método', ordenes: [cap('movilidad', 'metodo')], respuesta: 'Se compara con lo que se esperaba sin obra.' }],
     }
     if (c === 'El método') return {
       pregunta: '¿Comparamos calles de barrio o avenidas?',
       opciones: [
-        { texto: 'Calles de barrio', ordenes: [o('movilidad_tipo_via', { zona: 'barrio' })], respuesta: 'Las calles de barrio, donde casi nadie mira.' },
+        { texto: 'Calles de barrio', ordenes: [o('movilidad_tipo_via', { zona: 'barrio' })], respuesta: 'Las calles de barrio, donde hay menos datos.' },
         { texto: 'Avenidas', ordenes: [o('movilidad_tipo_via', { zona: 'avenidas' })], respuesta: 'Las avenidas, que la ciudad ya vigila.' },
         { texto: 'Llevarlo al presupuesto', ordenes: [cap('movilidad', 'presupuesto')], respuesta: 'Elija cuánto invertir.' },
       ],
@@ -123,7 +123,7 @@ export function guia(pantalla: string, paso: number): Paso | null {
     }
     if (c === 'Fuentes' || c === 'Hablemos') return {
       pregunta: '¿Lo vemos con los datos de su entidad?',
-      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Escanee el código y agendamos con el equipo.' }],
+      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' }],
     }
   }
   return null

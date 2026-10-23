@@ -96,6 +96,7 @@ function optimizacion(nombre: string, sim: Simulacion, sup: Supuestos) {
   let nDa = 0, nOpt = 0
   for (let i = 0; i < f.n; i++) {
     if (da.asign[i] >= 0) { nDa++; if (sim.fase1[i] < 0) { fallas++; console.log(`✗ ${nombre}: la familia ${i} perdió su cupo al optimizar`); return } }
+    if (da.asign[i] >= 0 && da.asign[i] === sim.at.hermano[i] && sim.fase1[i] !== da.asign[i]) { fallas++; console.log(`✗ ${nombre}: la optimización separó a la familia ${i} de su hermano`); return }
     if (sim.fase1[i] >= 0) nOpt++
   }
   const hoy = simular(f, ctx, sup, { ...sim.politica, mecanismo: 'llegada' })
@@ -138,5 +139,5 @@ for (const [nombre, s, p] of editados) {
 }
 console.log(fallas
   ? `✗ ${fallas} verificaciones fallaron`
-  : `✓ Asignación diferida idéntica a Python en ${corridas} escenarios + base · capacidad, unicidad y estabilidad OK también con supuestos editados · la optimización no le quita el cupo a nadie y nunca queda por debajo de la diferida ni del orden de llegada (+${entero(ganadosTotal * f.estudiantes_por_familia)} niños en sus opciones, sumando todos los escenarios) · ${(tiempo / corridas).toFixed(0)} ms por simulación completa`)
+  : `✓ Asignación diferida idéntica a Python en ${corridas} escenarios + base · capacidad, unicidad y estabilidad OK también con supuestos editados · la optimización no le quita el cupo a nadie, no separa hermanos y nunca queda por debajo de la diferida ni del orden de llegada (+${entero(ganadosTotal * f.estudiantes_por_familia)} niños en sus opciones, sumando todos los escenarios) · ${(tiempo / corridas).toFixed(0)} ms por simulación completa`)
 process.exit(fallas ? 1 : 0)

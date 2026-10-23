@@ -14,6 +14,7 @@ import type { Orden } from './ordenes'
 
 const MS_VUELO = 650
 const MS_TOQUE = 380
+const MS_MAXIMO = 2500     // si algo interrumpe el vuelo, la orden sigue igual
 
 /** El control de la pantalla que corresponde a una orden, si tiene uno. */
 export function selectorDe(o: Orden): string | null {
@@ -23,7 +24,8 @@ export function selectorDe(o: Orden): string | null {
     case 'matricula_capitulo': case 'movilidad_capitulo': return `[data-proli="cap-${v('capitulo')}"]`
     case 'matricula_reglas': return `[data-proli="reglas-${v('reglas')}"]`
     case 'matricula_colegio_nuevo': return `[data-proli="colegio-${v('ubicacion')}"]`
-    case 'matricula_colegio_sugerido': return '[data-proli="colegio-sugerido"], [data-proli="colegio-tibabuyes"]'
+    // El colegio que queda elegido (se sabe cuál solo después de aplicar la orden)
+    case 'matricula_colegio_sugerido': return '.chip--colegio.chip--activo'
     case 'matricula_jornada_unica': return '[data-proli="jornada"]'
     case 'matricula_asignar': return '[data-proli="asignar"]'
     case 'movilidad_presupuesto': return `[data-proli="presupuesto-${v('nivel')}"]`
@@ -65,12 +67,18 @@ export function senalar(selector: string): Promise<void> {
   el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   const desde = casa ? centro(casa) : { x: window.innerWidth - 60, y: window.innerHeight - 120 }
   return new Promise((resolver) => {
-    avisar(true)
-    lanzar!({ desde, hasta: centro(el), fin: () => {
+    let hecho = false
+    const terminar = () => {
+      if (hecho) return
+      hecho = true
       el.classList.add('proli-tocado')
       window.setTimeout(() => el.classList.remove('proli-tocado'), 900)
       resolver()
-    } })
+    }
+    avisar(true)
+    lanzar!({ desde, hasta: centro(el), fin: terminar })
+    // Por si el vuelo se interrumpe (otro vuelo, o Proli se oculta): la orden no queda esperando
+    window.setTimeout(() => { if (!hecho) { terminar(); avisar(false) } }, MS_MAXIMO)
   })
 }
 
@@ -80,8 +88,10 @@ export function CursorProli() {
   const [fase, setFase] = useState<'ida' | 'toque' | 'vuelta'>('ida')
   useEffect(() => {
     let n = 0
-    lanzar = (v) => { setFase('ida'); setVuelo({ ...v, id: ++n }) }
-    return () => { lanzar = null }
+    let actual: Vuelo | null = null
+    // Un vuelo nuevo reemplaza al anterior, pero el anterior se da por terminado (su orden sigue)
+    lanzar = (v) => { actual?.fin(); actual = v; setFase('ida'); setVuelo({ ...v, id: ++n }) }
+    return () => { actual?.fin(); avisar(false); lanzar = null }
   }, [])
   if (!vuelo) return null
   const { desde, hasta } = vuelo

@@ -12,20 +12,22 @@ Un **atlas interactivo** en 5 capítulos, con un solo mapa que cambia de escena:
    los colegios se llenan, quien llega tarde no cabe y la SED **reubica** a quien puede en el colegio con cupo más cercano
    (en Bogotá, 37.460 niños nuevos quedan fuera de sus opciones).
 2. **Acción:** decide las reglas (prioridad **Equilibrada** / Cercanía / Familias / Equidad, pesos finos en PC), un
-   **colegio nuevo** en uno de 5 proyectos reales de la SED **o en cualquier punto del mapa**, jornada única y cuántos
-   colegios puede pedir cada familia (3–5). Con ▶ Asignar ve la **asignación diferida por rondas** y la reubicación,
-   con pausa, ronda a ronda y velocidad. Al tocar una familia se ve su historia (hoy vs Matrícula+); al tocar un colegio, sus cupos.
+   **colegio nuevo** según la localidad (los proyectos reales de la SED que le ayudan y «el mejor lugar» que sugiere la
+   simulación, cada uno con cuántos niños ayuda) **o en cualquier punto del mapa**, jornada única y cuántos colegios
+   puede pedir cada familia (3–5). Con ▶ Asignar ve la **asignación diferida por rondas**, la **optimización de cupos**
+   (para que quepan más niños en sus opciones, sin separar hermanos) y la reubicación, con pausa, ronda a ronda y velocidad. Al tocar una familia se ve su historia (hoy vs Matrícula+); al tocar un colegio, sus cupos.
 3. **Resultado:** la localidad, Bogotá y la **zona crítica de la SED** (Tibabuyes y El Rincón), con una frase de lectura,
    dónde queda cada niño (1.ª opción / otra / reubicado / sin cupo) y las métricas con su cambio.
 4. **Supuestos editables:** % de vulnerables y de hermanos, cupos del colegio nuevo, distancia de reubicación, costo de
-   la jornada única y umbral de viaje largo. Todo se vuelve a simular en el navegador (~30 ms por simulación).
+   la jornada única y umbral de viaje largo. Todo se vuelve a simular en el navegador (~40 ms por simulación).
 5. **Método** Proliferante + Proli + QR para agendar una cita.
 
 Además: **Simula una familia** (dónde vive, cuántos niños, vulnerable, hermano, sus colegios y cuándo llega → dónde queda
 hoy y con Matrícula+, y por qué), **Explorar** UPZ por UPZ y **Agendar**. Los supuestos van siempre en el pie.
 
-El navegador corre el mismo algoritmo que Python y da exactamente el mismo resultado en la fase de asignación
-(`npm run verificar`: 48 escenarios + base).
+El navegador corre la misma asignación diferida que Python y da exactamente el mismo resultado (`npm run verificar`:
+48 escenarios + base); después aplica la optimización de cupos, que verifica por su cuenta (nadie pierde su cupo, no se
+separan hermanos, nunca queda por debajo de la diferida ni del orden de llegada). Ver [docs/supuestos.md](docs/supuestos.md).
 
 Recorrido de respaldo para el stand (60 s): [docs/recorrido-60s.gif](docs/recorrido-60s.gif)
 
@@ -120,8 +122,8 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
   la cita, tiempos del kiosco y del modo auto, y colores.
 - `web/src/estilos.css`: identidad del Manual de marca de Proliferante. Navy `#162B2A` (base; fondo del modo oscuro),
   verde `#7BC689` (foco), índigo `#5A44DD` (acción: botones e interactivos), azul claro `#C7D7EC` (respiro) y pizarra
-  `#505B7D` (soporte de textos); papel blanco. Para los datos se conservan naranja (sin cupo) `#E0662A` y verde azulado
-  (reubicados) `#268484`. Tipografías **MuseoModerno** (titulares y logo Matrícula+), **Poppins** (interfaz, cuerpo y
+  `#505B7D` (soporte de textos); papel blanco. En los datos: índigo (en sus opciones), pizarra
+  (reubicados) y verde (sin cupo cercano). Tipografías **MuseoModerno** (titulares y logo Matrícula+), **Poppins** (interfaz, cuerpo y
   cifras) y **Caveat Brush** (acento emocional, una frase por sección: clase `.acento`), incluidas localmente.
 - `engine/simulador/config.py`: totales de nuevos, % de hermanos y vulnerables, pesos de prioridad, presets,
   ubicaciones y cupos del colegio nuevo, reducción por jornada única, zona crítica y semilla.
@@ -146,9 +148,9 @@ Browser) con pantalla completa, orientación vertical y pantalla siempre encendi
 | Criterio | Estado |
 |---|---|
 | Capacidad cuadra con la SED (785.191, error < 1%) | ✅ 784.632 (−0,07%), con un test |
-| Ningún colegio supera su capacidad · cero pares bloqueantes · misma semilla = mismo resultado · casos a mano | ✅ tests, más la verificación de estabilidad en los 324 escenarios |
+| Ningún colegio supera su capacidad · cero pares bloqueantes · misma semilla = mismo resultado · casos a mano | ✅ tests y verificación de estabilidad de la asignación diferida en los 324 escenarios (la optimización posterior no es estable: ver docs/supuestos.md) |
 | Precálculo en < 10 min | ✅ ~1–3 min |
-| Respuesta del frontend < 200 ms | ✅ ~30 ms por simulación completa (medido); se corren dos (hoy y la política) |
+| Respuesta del frontend < 200 ms | ✅ ~40 ms por simulación completa (medido); se corren dos (hoy y la política) |
 | Funciona sin conexión | ✅ servidor apagado + service worker, y `demo-offline.html` desde `file://` |
 | 2 h sin errores en consola · recarga < 30 s | ver `PENDIENTES.md` |
 

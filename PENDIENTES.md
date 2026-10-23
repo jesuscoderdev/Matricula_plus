@@ -1,15 +1,18 @@
 # Pendientes — Matrícula+ · ¿Dónde cabe cada niño?
 
+Estado al 23-10-2026: además de lo de abajo, identidad del manual de marca, Proli asistente (IA, guía paso a paso y
+cursor), optimización de cupos en Matrícula+ (sin separar hermanos) y colegio nuevo según la localidad.
+
 Estado al 20-10-2026: las fases 0 a 4 del brief están hechas y la interfaz se rediseñó por completo (diseño "atlas",
 reubicación como la SED, Equilibrada por defecto, zona crítica SED, 3–5 opciones, supuestos editables, simula una
 familia, fichas de familia y colegio, modo presentación). Evento: 3 y 4 de noviembre.
 
 ## 1. Necesito de ustedes (bloquea el evento)
-- [ ] **Imagen del QR** para agendar cita: ponla en `web/public/` (p. ej. `qr-cita.png`) y su ruta en `QR_IMAGEN`
-      (`web/src/config.ts`). Mientras no esté, el capítulo 5 muestra un recuadro "QR" de aviso. Después de agregarla, regenera
+- [ ] **Enlace de reservas de Google Calendar** (Programa de citas de paola.a@proliferante.com): va en `AGENDA_CITA`
+      (`web/src/config.ts`). Mientras esté vacío, los QR y botones de cita llevan a WhatsApp. Después, regenera
       `demo-offline.html` con `cd web && npm run build:archivo`.
-- [ ] **Número de WhatsApp o enlace de Calendly** para el botón "Agendar" del celular: `WHATSAPP_CITA` /
-      `CALENDLY_CITA` en `web/src/config.ts`. Ahora hay un número de prueba (`570000000000`).
+- [ ] **Confirmar el número de WhatsApp** de Proliferante: hoy `WHATSAPP_CITA = '573125888421'`. El QR se genera
+      solo desde `URL_CITA`; `QR_IMAGEN` solo hace falta si se quiere una imagen propia.
 - [x] **Marca Proliferante:** Proli y el logo oficial (`web/src/assets/`) en la portada, el método y Agendar.
 - [ ] **Hardware del tótem:** ¿Windows o Android? ¿Táctil? ¿Resolución exacta? Probar `totem\lanzar-totem.bat`
       en el equipo real. No se ha ejecutado completo porque abre Chrome en kiosco; sí se probó la URL que arma.
@@ -44,3 +47,4 @@ familia, fichas de familia y colegio, modo presentación). Evento: 3 y 4 de novi
 - `web/public/_previa-stand.html` es una herramienta de desarrollo y se publica con el build. Es inofensiva.
 - En la consola aparecen mensajes **DEBUG** de luma.gl ("uniform block reflection failed…"). Son informativos
   de la librería del mapa, no errores.
+- [ ] Validar en Python la optimización de cupos y la reubicación optimizada (hoy solo las verifica `npm run verificar`).

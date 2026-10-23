@@ -58,4 +58,4 @@ createServer(async (req, res) => {
   if (!ruta.startsWith(DIST) || !existsSync(ruta) || statSync(ruta).isDirectory()) ruta = join(DIST, 'index.html')
   res.writeHead(200, { 'Content-Type': TIPOS[extname(ruta)] ?? 'application/octet-stream' })
   res.end(readFileSync(ruta))
-}).listen(PUERTO, () => console.log(`Sitio y Proli en http://localhost:${PUERTO}`))
+}).listen(PUERTO, '127.0.0.1', () => console.log(`Sitio y Proli en http://localhost:${PUERTO}`))

@@ -33,6 +33,7 @@ type Bloque = Anthropic.Beta.Messages.BetaContentBlock
 
 const MAX_PASOS = 4            // vueltas de acciones por pregunta
 const MAX_PREGUNTAS = 12       // por conversación (en el stand, cada visitante tiene la suya)
+const MAX_MENSAJES_HISTORIAL = 44 // el servidor acepta 60; cada pregunta con acciones suma unos 6
 const PAUSA_ACCION_MS = 350    // entre acciones, para que la pantalla alcance a cambiar
 const SEGUNDOS_LECTURA = 20    // margen extra para leer la respuesta antes de la inactividad del tótem
 const ALTO_MINIMO_PX = 340     // si el mapa es más bajo, el panel cubre también la cabecera
@@ -60,7 +61,8 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
       const r = mapa?.getBoundingClientRect()
       if (!texto || !r || r.height === 0 || texto.top < r.bottom - 2) { setZona(null); return }
       const top = r.height >= ALTO_MINIMO_PX ? r.top + MARGEN_PX : MARGEN_PX
-      setZona({ top, bottom: Math.max(MARGEN_PX, window.innerHeight - r.bottom + MARGEN_PX) })
+      const bottom = Math.max(MARGEN_PX, window.innerHeight - r.bottom + MARGEN_PX)
+      setZona((z) => (z && z.top === top && z.bottom === bottom ? z : { top, bottom }))
     }
     const obs = new ResizeObserver(medir)
     // El demo puede tardar en montarse (o cambiar de demo): se busca el mapa hasta encontrarlo
@@ -85,7 +87,7 @@ interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string }
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
     texto: 'Quiero verlo con mis datos', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }],
-    sinConexion: 'Con gusto. Proliferante lo arma con los datos y las reglas de su entidad. Escanee el código QR para agendar una conversación con el equipo.',
+    sinConexion: 'Con gusto. Proliferante lo arma con los datos y las reglas de su entidad. Agende una conversación con el equipo: con el código QR o con el botón de la pantalla.',
   })
   if (pantalla.startsWith('Movilidad+')) return [
     { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, se busca dónde se evitan más siniestros graves con un presupuesto, y cuánto se puede prometer sin exagerar.' },
@@ -210,7 +212,7 @@ export default function Asistente() {
     setLineas([]); setOcupado(false); setTexto('')
   }, [])
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
-  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false); setDicho(''); setSaludando(true) } }, [pantalla, reiniciar])
+  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
   useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas])
   // Tiempo de lectura: cuando Proli termina de responder con el panel abierto, se da un margen
   // antes de que el tótem vuelva a la portada por inactividad. Si el visitante se fue, el tótem
@@ -267,20 +269,24 @@ export default function Asistente() {
       return
     }
     preguntas.current++
+    // El servidor acepta hasta 60 mensajes: antes de llegar, Proli empieza una conversación nueva
+    if (historial.current.length > MAX_MENSAJES_HISTORIAL) { historial.current = []; contextoEnviado.current = '' }
     setOcupado(true)
     const control = new AbortController()
     cancelar.current = control
+    const h = historial.current          // si el visitante reinicia a mitad de camino, esta conversación se abandona
     // Contexto de pantalla: va como mensaje de sistema solo cuando cambió (el historial no se edita)
     const conContexto = () => {
       const c = `Pantalla actual: ${leerPantalla()}`
-      if (c !== contextoEnviado.current) { historial.current.push({ role: 'system', content: c }); contextoEnviado.current = c }
+      if (c !== contextoEnviado.current) { h.push({ role: 'system', content: c }); contextoEnviado.current = c }
     }
     try {
-      historial.current.push({ role: 'user', content: pregunta.slice(0, 500) })
+      h.push({ role: 'user', content: pregunta.slice(0, 500) })
       conContexto()
       for (let paso = 0; paso < MAX_PASOS; paso++) {
-        const { contenido, stop } = await llamar(historial.current, (d) => { escribir(d); avisarActividad() }, control.signal)
-        historial.current.push({ role: 'assistant', content: contenido as unknown as Anthropic.Beta.Messages.BetaContentBlockParam[] })
+        const { contenido, stop } = await llamar(h, (d) => { escribir(d); avisarActividad() }, control.signal)
+        if (control.signal.aborted || historial.current !== h) return
+        h.push({ role: 'assistant', content: contenido as unknown as Anthropic.Beta.Messages.BetaContentBlockParam[] })
         setSinConexion(false)
         if (stop === 'refusal' || stop === 'max_tokens') {
           // No se ejecutan acciones a medias; la próxima pregunta empieza una conversación nueva
@@ -298,8 +304,9 @@ export default function Asistente() {
           // traen «resumen | detalle»: en el panel va solo el resumen; Proli recibe todo
           agregar({ quien: 'accion', texto: resultado.split(' | ')[0].replace(/^Listo: /, '').replace(/ Listo: /, ' ') })
           await dormir(PAUSA_ACCION_MS)
+          if (control.signal.aborted || historial.current !== h) return
         }
-        historial.current.push({ role: 'user', content: resultados })
+        h.push({ role: 'user', content: resultados })
         conContexto()
       }
     } catch (e) {
@@ -411,7 +418,7 @@ export default function Asistente() {
             <div className="proli-panel__sugerencias">
               {opciones.map((s, i) => (
                 <button key={s.texto} type="button" className={`proli-panel__chip ${propuso && i === 0 ? 'proli-panel__chip--si' : ''}`}
-                        disabled={ocupado} onClick={() => preguntar(s.texto, s)}>{s.texto}</button>
+                        disabled={ocupado || guiando} onClick={() => preguntar(s.texto, s)}>{s.texto}</button>
               ))}
             </div>
             <form className="proli-panel__escribir" onSubmit={enviar}>

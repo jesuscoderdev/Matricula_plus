@@ -210,7 +210,7 @@ function PieEmpresa({ modo }: { modo: Modo }) {
         <LogoEmpresa animado={false} />
         <span>{LEMA_EMPRESA}</span>
       </div>
-      <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos · funciona sin internet</span>
+      <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos · los demos funcionan sin internet</span>
       {esTotem(modo)
         ? <Qr texto={URL_EMPRESA} etiqueta={<>Conoce {EMPRESA}<br /><b>{dominio}</b></>} />
         : <a className="pie-empresa__enlace" href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">Conoce {EMPRESA} · <b>{dominio}</b> ↗</a>}

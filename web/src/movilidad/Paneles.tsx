@@ -289,11 +289,11 @@ export function Metodo({ datos, modo, ir, zona, setZona }: PropsMov) {
       )}
       <div className="promesas">
         <Promesa titulo="Práctica intuitiva" sub={`promedio de lo ocurrido en ${p0}–${p1}`} promete={c.regla_simple.promete} ocurrio={c.regla_simple.ocurrio} max={max} sobre={c.regla_simple.sobrestimacion_pct} />
-        <Promesa titulo="Con el método" sub="riesgo corregido (Bayes empírico, Hauer)" promete={c.metodo_proliferante.promete} ocurrio={c.metodo_proliferante.ocurrio} max={max} sobre={c.metodo_proliferante.sobrestimacion_pct} />
+        <Promesa titulo="Con el método" sub="riesgo corregido: mezcla lo que pasó en la esquina con lo normal en esquinas parecidas" promete={c.metodo_proliferante.promete} ocurrio={c.metodo_proliferante.ocurrio} max={max} sobre={c.metodo_proliferante.sobrestimacion_pct} />
       </div>
       <p className="lectura">{m.mensaje_clave} Las dos listas coinciden en <b>{entero(c.esquinas_en_comun)} de {entero(n)}</b> esquinas.</p>
       <p className="nota mov-sec">La diferencia que queda es del orden de la caída de siniestros graves {zona === 'barrio' ? 'en calles de barrio' : 'en avenidas'} en {anioVal(datos)} frente al promedio {p0}–{p1} (<b>{pctFraccion(datos.resumen.validacion_2025[zona === 'barrio' ? 'local' : 'arterial'].tendencia_2025_vs_promedio)}</b>), que ninguna lista podía anticipar.
-        Es el mismo tipo de análisis que ya usa la ciudad (hexágonos de {tamanoHex(datos)}, método de Hauer), llevado a las calles de barrio, y se actualiza cada vez que llegan datos nuevos.</p>
+        Es un método reconocido en seguridad vial (Hauer), aplicado aquí en hexágonos de {tamanoHex(datos)} y llevado a las calles de barrio; se puede actualizar cada vez que llegan datos nuevos.</p>
       <div className="panel__pie">
         {modo !== 'auto' && <button className="boton boton--ancho boton--violeta" onClick={() => ir('presupuesto')}>Llevarlo al presupuesto →</button>}
       </div>
@@ -324,9 +324,8 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
       <Veredicto etiqueta={<>Con {millones(e.presupuesto_millones)} en reductores de velocidad</>}
                  cifra={`≈ ${entero(e.se_esperaria_evitar_por_anio)}`}
                  frase="siniestros graves menos al año en calles de barrio"
-                 nota={<>Es la <b>mejor combinación de esquinas</b> que alcanza con este presupuesto: {entero(e.esquinas)} esquinas de barrio, las de mayor
-                   riesgo corregido, a ≈ {entero(p.costo_por_esquina_millones)} millones cada una. Es una estimación: supone que cada obra reduce un
-                   {' '}{entero(p.reduccion_supuesta_pct)}% los siniestros con heridos.</>} />
+                 nota={<>Son las <b>{entero(e.esquinas)} esquinas de barrio de mayor riesgo corregido</b> que alcanzan con este presupuesto, a ≈ {entero(p.costo_por_esquina_millones)} millones
+                   cada una. Es una estimación: supone que cada obra reduce un {entero(p.reduccion_supuesta_pct)} % los siniestros con heridos.</>} />
       <h2 className="subtitulo">¿Y si las esquinas se eligen a ojo?</h2>
       <div className="promesa promesa--sola">
         <div className="promesa__fila">
@@ -335,17 +334,17 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
         </div>
         {ojoReal != null && (
           <div className="promesa__fila">
-            <span className="promesa__etiqueta">A ojo, en realidad se evitarían</span>
+            <span className="promesa__etiqueta">A ojo, según el riesgo corregido, se evitarían</span>
             <span className="promesa__pista"><i className="promesa__barra promesa__barra--promete" style={{ width: ancho(ojoReal / max), opacity: 0.55 }} /><b>≈ {entero(ojoReal)}</b></span>
           </div>
         )}
         <div className="promesa__fila">
-          <span className="promesa__etiqueta">Con el método (optimizado)</span>
-          <span className="promesa__pista"><i className="promesa__barra promesa__barra--ocurrio" style={{ width: ancho(e.se_esperaria_evitar_por_anio / max) }} /><b>≈ {entero(e.se_esperaria_evitar_por_anio)}</b></span>
+          <span className="promesa__etiqueta">Con el método se prometerían</span>
+          <span className="promesa__pista"><i className="promesa__barra promesa__barra--metodo" style={{ width: ancho(e.se_esperaria_evitar_por_anio / max) }} /><b>≈ {entero(e.se_esperaria_evitar_por_anio)}</b></span>
         </div>
       </div>
       <p className="lectura mov-sec">Elegir a ojo evitaría casi lo mismo, pero <b>promete {entero(e.la_practica_intuitiva_prometeria - (ojoReal ?? e.se_esperaria_evitar_por_anio))} siniestros
-        de más</b>: toma un año malo como si fuera lo normal. El método optimiza el presupuesto y dice cuánto se puede prometer de verdad.</p>
+        de más</b>: toma unos años malos como si fueran lo normal. El método no evita más; promete mucho menos de más.</p>
       <div className="aviso-mov" role="note"><b>Ojo:</b> {datos.fuentes.advertencia}</div>
       <p className="nota mov-sec">Obra supuesta: {p.intervencion}.</p>
       <div className="panel__pie">

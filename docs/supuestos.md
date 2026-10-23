@@ -84,24 +84,42 @@ nombre de la sede también sale ahora del DANE de sede y no del punto más cerca
    En pantalla se muestran 4 presets: **Equilibrada** (medio / medio / medio, la que se propone por defecto),
    **Cercanía** (alto / bajo / bajo), **Familias** (medio / alto / bajo) y **Equidad** (medio / medio / alto).
    En PC se pueden afinar los pesos en 5 niveles. Los 27 niveles quedan precalculados en Python de todas formas.
-6. **Algoritmo.** Asignación diferida (Gale-Shapley) con propuesta de los estudiantes. Es estable (cero pares
-   bloqueantes, verificado en cada uno de los 324 escenarios), respeta la capacidad y es reproducible con
-   la misma semilla.
-6b. **El proceso en la pantalla.** El navegador vuelve a correr el algoritmo (asignación diferida por rondas,
-   `web/src/motor.ts`) para animarlo en la localidad elegida. Usa las mismas distancias y desempates redondeados
-   a 4 decimales que Python, y `npm run verificar` comprueba que la asignación coincide en los 48 escenarios de la
-   interfaz (4 presets × 6 colegios × 2 jornadas) y en la línea base, y que capacidad, unicidad y estabilidad se
-   cumplen también con supuestos editados. Cada punto del mapa es una familia sintética (10 niños).
+6. **Algoritmo (dos fases).**
+   - *Asignación diferida* (Gale-Shapley) con propuesta de los estudiantes: estable (cero pares
+     bloqueantes, verificado en cada uno de los 324 escenarios), respeta la capacidad y es
+     reproducible con la misma semilla. Es la que calcula Python y la que se anima ronda a ronda.
+   - *Optimización de cupos* (solo en el navegador, `optimizarCupos` en `web/src/motor.ts`): desde la
+     diferida, busca cadenas de cambios entre las opciones de cada familia (un niño pasa a otra de
+     SUS opciones con cupo y deja su lugar a quien no tenía ninguno) hasta que no quede ninguna. Así
+     entra el máximo posible de niños a alguno de los colegios que pidieron (emparejamiento de
+     cardinalidad máxima), con dos reglas: nadie pierde el cupo que tenía y **no se separan
+     hermanos** (quien quedó en el colegio de su hermano no se mueve). Se atiende primero a quien
+     tiene más prioridad y, para abrir espacio, se mueve primero a quien tiene menos.
+   - El resultado final **no es estable**: para que quepa una familia más, otra con más prioridad
+     puede pasar a otra de sus opciones. Es el precio de que quepan más niños (ver *Limitaciones*).
+6b. **El proceso en la pantalla.** El navegador vuelve a correr todo (`web/src/motor.ts`) para animarlo
+   en la localidad elegida: las rondas de la diferida, luego la optimización y la reubicación. Usa las
+   mismas distancias y desempates redondeados a 4 decimales que Python, y `npm run verificar`
+   comprueba que **la diferida** (antes de optimizar) coincide en los 48 escenarios de la interfaz
+   (4 presets × 6 colegios × 2 jornadas) y en la línea base; que capacidad, unicidad y estabilidad
+   de la diferida se cumplen también con supuestos editados, y que la optimización no le quita el
+   cupo a nadie, no separa hermanos y nunca queda por debajo de la diferida ni del orden de llegada.
+   Cada punto del mapa es una familia sintética (10 niños).
 7. **Línea base ("hoy").** Orden de llegada: un orden aleatorio con semilla, y cada familia toma su primera
    opción con cupo disponible.
 7b. **Reubicación (como la SED).** Quien no queda en ninguna de sus opciones recibe un cupo libre cercano, hasta
    **3 km** (editable). Hoy, en orden de llegada, el colegio con cupo más cercano. Con Matrícula+, una segunda
-   asignación diferida sobre los cupos libres (los 8 más cercanos dentro del radio) con la misma prioridad. Si no hay
+   asignación diferida sobre los cupos libres (los 12 más cercanos dentro del radio) con la misma prioridad,
+   también optimizada para reubicar al máximo de niños. Si no hay
    cupo dentro del radio, el niño queda **sin cupo**. La reubicación solo corre en el navegador; Python valida la fase 1.
 8. **Palancas.**
-   - *Colegio nuevo:* +1.200 cupos (el dataset no trae cupos) en uno de 5 proyectos reales de la SED:
-     Ciudadela Cafam II (Tibabuyes), Theilard de Chardin (Suba), Indusel (Bosa Occidental), Boita (Timiza)
-     y Hacienda Casa Blanca (Arborizadora).
+   - *Colegio nuevo:* +1.200 cupos (el dataset no trae cupos). Las opciones dependen de la localidad
+     elegida en Problema (`web/src/colegioNuevo.ts`): los proyectos reales de la SED que le ayudan
+     —Ciudadela Cafam II (Tibabuyes), Teilhard de Chardin (Suba), Indusel (Bosa Occidental), Boita
+     (Timiza) y Hacienda Casa Blanca (Arborizadora)—, ordenados por cuántos niños de la localidad
+     entran gracias a ellos, y «el mejor lugar en {localidad}»: la simulación prueba el centro de la
+     demanda de cada UPZ de la localidad y elige donde más rinde (una sugerencia, no un lote real).
+     También se puede poner en cualquier punto del mapa.
    - *Jornada única:* −10% de capacidad en todas las sedes (configurable).
 9. **Zona crítica.** Las UPZ con insuficiencia **muy alta** según el Estudio de insuficiencia SED 2025:
    **Tibabuyes** y **El Rincón** (Suba). Es la misma en todos los escenarios.
@@ -135,23 +153,31 @@ elige el visitante y vuelve a correr las dos asignaciones completas.
 
 ## Resultados principales (datos reales, supuestos por defecto)
 
-| | 1.ª opción | Fuera de opciones | Reubicados | Sin cupo | Viajes > 2 km | Vulnerables fuera | Zona crítica fuera |
+| | 1.ª opción | Fuera de opciones | Reubicados | Sin cupo cercano | Viajes > 2 km | Vulnerables fuera | Zona crítica fuera |
 |---|---|---|---|---|---|---|---|
 | Hoy (orden de llegada) | 53,2% | 23,6% | 9,9% | 13,7% | 6,3% | 22,5% | 23,1% |
-| Equilibrada | 54,3% | 24,0% | 10,1% | 14,0% | 3,5% | 1,8% | 23,6% |
-| Equidad | 55,4% | 24,2% | 10,2% | 14,0% | 3,6% | 0,7% | 22,9% |
-| Equilibrada + colegio en Tibabuyes | 54,6% | 23,7% | 10,4% | 13,3% | 3,5% | 1,8% | 17,1% |
-| Equilibrada + 5 opciones | 52,1% | 20,7% | 6,7% | 14,0% | 3,6% | 0,7% | 19,0% |
-| Equilibrada + jornada única | 49,5% | 29,7% | 7,0% | 22,7% | 1,7% | 2,7% | 28,5% |
+| Equilibrada | 43,7% | 17,7% | 4,1% | 13,7% | 2,3% | 0,4% | 17,7% |
+| Equidad | 44,5% | 17,6% | 3,9% | 13,7% | 2,1% | 0,0% | 17,8% |
+| Equilibrada + colegio en Tibabuyes | 43,9% | 17,1% | 4,2% | 12,9% | 2,3% | 0,4% | 7,4% |
+| Equilibrada + 5 opciones | 41,1% | 14,5% | 0,8% | 13,7% | 1,4% | 0,2% | 12,2% |
+| Equilibrada + jornada única | 40,4% | 25,3% | 2,6% | 22,7% | 0,8% | 0,7% | 23,3% |
 
 Lecturas:
-- **Las prioridades deciden *quién* cabe, no *cuántos*.** Fuera de sus opciones se mantiene en unos 24%, pero los
-  vulnerables fuera bajan de 22,5% a 1,8% y los viajes largos casi a la mitad (6,3% → 3,5%).
-- **La capacidad decide cuántos.** Un colegio de 1.200 cupos en Tibabuyes baja la zona crítica de 23,6% a 17,1%
-  (con las mismas reglas Equilibradas); la jornada única sin ampliar capacidad sube los niños sin cupo de 13,7% a 22,7%.
-- **Más opciones** (5 en vez de 3) bajan "fuera de sus opciones", pero no los niños sin cupo: el faltante es real.
+- **Matrícula+ hace que quepan más niños en sus opciones, con cualquier regla.** Fuera de sus opciones
+  baja de 23,6% a 17,7% (de 37.460 a 28.180 niños), sin separar hermanos. Las reglas de prioridad
+  deciden sobre todo *quién* entra: con Equilibrada o Equidad, los vulnerables fuera pasan de 22,5% a
+  menos de 0,5%.
+- **El precio:** menos niños en su 1.ª opción (53,2% → 43,7%), porque algunos pasan a otra de sus opciones.
+- **La capacidad decide cuántos quedan sin ningún cupo cercano** (13,7% en todos los casos sin colegio
+  nuevo). Un colegio de 1.200 cupos en Tibabuyes baja la zona crítica de 17,7% a 7,4% fuera de sus
+  opciones y los sin cupo cercano de 13,7% a 12,9%; la jornada única sin ampliar capacidad los sube a 22,7%.
+- **Más opciones** (5 en vez de 3) bajan «fuera de sus opciones», pero no los niños sin cupo cercano:
+  el faltante es real.
 
 ## Limitaciones
+- **La optimización no es estable:** para que quepa una familia más, otra con más prioridad puede pasar a
+  otra de las opciones que pidió (nunca pierde su cupo ni se separa de su hermano). Python valida solo
+  la fase diferida; la optimización la valida `npm run verificar`.
 - **Ubicación de la demanda:** viene de proyecciones de población, no del lugar de residencia real de
   quienes piden cupo (eso está en SIMAT y no es público). Dentro de la UPZ se usan manzanas residenciales pesadas
   por número de predios: un predio no es una vivienda exacta (cuenta también locales, garajes o depósitos en

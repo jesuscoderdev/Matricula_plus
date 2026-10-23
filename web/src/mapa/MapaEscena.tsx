@@ -331,7 +331,7 @@ export default function MapaEscena(props: Props) {
           : p < 0.7 ? 'Cada familia toma el primer colegio de su lista que todavía tenga cupo.'
             : 'Los colegios se llenan. Quien llega tarde encuentra sus opciones sin cupo.')
         : !terminado ? `La SED reubica a quienes no cupieron en el colegio con cupo más cercano, hasta ${decimal(supuestos.radioReubicacionKm)} km.`
-          : `En ${localidad}: ${entero(c.reubicados * f.estudiantes_por_familia)} niños reubicados lejos de sus opciones y ${entero(c.sinCupo * f.estudiantes_por_familia)} sin ningún cupo cercano.`
+          : `En ${localidad}: ${entero(c.reubicados * f.estudiantes_por_familia)} niños reubicados en otro colegio y ${entero(c.sinCupo * f.estudiantes_por_familia)} sin ningún cupo cercano.`
       return { colorFam, radioFam, lineas, ocupado, c, paso, texto }
     }
     // diferida

@@ -50,7 +50,8 @@ export function registrar(ambito: Ambito, manejador: Manejador): () => void {
  */
 export async function ejecutar(orden: Orden): Promise<string> {
   const selector = selectorDe(orden)
-  const estaba = !!selector && !!visible(selector)
+  // Si el control se conoce solo al aplicar la orden (el colegio sugerido), Proli lo toca después
+  const estaba = !!selector && orden.nombre !== 'matricula_colegio_sugerido' && !!visible(selector)
   if (estaba) await senalar(selector!)
   const r = await aplicarOrden(orden)
   if (selector && !estaba) {
