@@ -46,12 +46,28 @@ function permitido(ip: string): boolean {
   return true
 }
 
-const CONTEXTO = /^Pantalla actual: [^\n]{1,300}$/
+// El contexto de pantalla lo arma el navegador, así que es un dato del visitante y no una orden:
+// solo se aceptan letras, números y puntuación simple, y nunca llega a Claude como mensaje de
+// sistema (que tiene la autoridad de las instrucciones), sino como texto marcado en su turno
+const CONTEXTO = /^Pantalla actual: ([\p{L}\p{N} ,.+$·()–-]{1,300})$/u
+
+// Bloques que la API devuelve en un mensaje de Proli; el navegador los reenvía tal cual
+const BLOQUES_ASISTENTE = new Set(['text', 'thinking', 'redacted_thinking', 'tool_use', 'fallback'])
+const NOMBRES_HERRAMIENTAS = new Set(HERRAMIENTAS.map((h) => h.name))
+const MAX_TEXTO_ASISTENTE = 4000
+function bloqueAsistenteValido(b: unknown): boolean {
+  if (!b || typeof b !== 'object') return false
+  const { type, text, name } = b as { type?: unknown; text?: unknown; name?: unknown }
+  if (typeof type !== 'string' || !BLOQUES_ASISTENTE.has(type)) return false
+  if (type === 'text') return typeof text === 'string' && text.length <= MAX_TEXTO_ASISTENTE
+  if (type === 'tool_use') return typeof name === 'string' && NOMBRES_HERRAMIENTAS.has(name)
+  return true
+}
 
 /**
  * Revisa la conversación que manda el navegador. El visitante podría alterarla, así que solo se
- * aceptan: preguntas de texto cortas, resultados de acciones, mensajes de sistema con el formato
- * exacto de contexto de pantalla y los mensajes de Proli tal como los devolvió la API.
+ * aceptan: preguntas de texto cortas, resultados de acciones, contexto de pantalla con el formato
+ * exacto y los mensajes de Proli con los bloques que devuelve la API.
  */
 function validar(cuerpo: unknown): Mensaje[] | string {
   if (!cuerpo || typeof cuerpo !== 'object' || !Array.isArray((cuerpo as { mensajes?: unknown }).mensajes)) return 'formato'
@@ -72,12 +88,26 @@ function validar(cuerpo: unknown): Mensaje[] | string {
         if (!ok || !content.length) return 'resultado'
       } else return 'usuario'
     } else if (role === 'assistant') {
-      if (!Array.isArray(content)) return 'asistente'
+      if (!Array.isArray(content) || !content.length || !content.every(bloqueAsistenteValido)) return 'asistente'
     } else return 'rol'
   }
+  if ((mensajes[0] as { role: string }).role !== 'user') return 'inicio'
   const ultimo = mensajes[mensajes.length - 1] as { role: string }
   if (ultimo.role === 'assistant') return 'turno'
-  return mensajes as Mensaje[]
+  // Contexto de pantalla → texto marcado en el turno del visitante, sin autoridad de sistema.
+  // La conversión es igual en cada petición: el historial no cambia y la caché sigue sirviendo.
+  return (mensajes as { role: string; content: unknown }[]).map((m) => (m.role === 'system'
+    ? { role: 'user', content: [{ type: 'text', text: `<pantalla>${CONTEXTO.exec(m.content as string)![1]}</pantalla>` }] }
+    : m)) as Mensaje[]
+}
+
+/** Solo el propio sitio puede llamar desde un navegador: una página de otro dominio queda fuera. */
+function mismoSitio(request: Request): boolean {
+  const sitio = request.headers.get('sec-fetch-site')
+  if (sitio && sitio !== 'same-origin') return false
+  const origen = request.headers.get('origin')
+  if (!origen) return true
+  try { return new URL(origen).host === new URL(request.url).host } catch { return false }
 }
 
 const json = (status: number, datos: unknown) =>
@@ -85,6 +115,7 @@ const json = (status: number, datos: unknown) =>
 
 export async function POST(request: Request): Promise<Response> {
   if (!process.env.ANTHROPIC_API_KEY) return json(503, { error: 'sin_clave' })
+  if (!mismoSitio(request)) return json(403, { error: 'origen' })
   const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'local'
   if (!permitido(ip)) return json(429, { error: 'demasiadas_peticiones' })
   const texto = await request.text()
