@@ -1223,3 +1223,7 @@ h1, h2, h3, p { margin: 0; }
 /* En celular, sobre el mapa, el botón cerrado es solo la cara de Proli para no tapar la leyenda */
 :root[data-modo='celular'] .proli-boton--sobre-mapa { padding: 0.3rem; }
 :root[data-modo='celular'] .proli-boton--sobre-mapa .proli-boton__texto { display: none; }
+/* Ventana ancha con diseño vertical (por ejemplo ?modo=stand en un PC): el panel no ocupa todo el ancho */
+@media (min-width: 900px) and (orientation: landscape) {
+  .proli-panel--sobre-mapa { max-width: 34rem; margin-left: auto; }
+}

@@ -33,9 +33,11 @@ const MARGEN_PX = 8
 const BOTON_SOBRE_MAPA_PX = 36 // el botón cerrado, en el borde inferior del mapa (sobre la atribución)
 
 /**
- * En pantallas verticales (tótem y celular) los demos ponen el mapa arriba y el texto con las cifras
- * abajo. El panel (y el botón, cerrado) se acomodan sobre el mapa para no tapar el texto: mide el mapa en vivo (cambia de
- * alto según el capítulo) y devuelve dónde ubicarse. En escritorio, o fuera de los demos, no aplica.
+ * Cuando un demo pone el mapa arriba y el texto con las cifras abajo (tótem, celular o cualquier
+ * ventana en ese diseño), el panel (y el botón, cerrado) se acomodan sobre el mapa para no tapar el
+ * texto. Se decide midiendo la pantalla real, no por el modo: el mapa cambia de alto según el
+ * capítulo y el diseño puede cambiar al redimensionar. Con mapa y texto lado a lado (escritorio), o
+ * fuera de los demos, no aplica.
  */
 function useZonaSobreMapa(activo: boolean, pantalla: string) {
   const [zona, setZona] = useState<{ top: number; bottom: number } | null>(null)
@@ -43,9 +45,11 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
     if (!activo) { setZona(null); return }
     let mapa: Element | null = null
     const medir = () => {
-      // Solo en capítulos: en la portada de cada demo el mapa ocupa toda la pantalla y no hay panel debajo
-      const r = document.querySelector('.escena__panel') ? mapa?.getBoundingClientRect() : null
-      if (!r || r.height === 0) { setZona(null); return }
+      // Solo en capítulos (en la portada de cada demo el mapa ocupa toda la pantalla y no hay panel)
+      // y solo si el texto está debajo del mapa
+      const texto = document.querySelector('.escena__panel')?.getBoundingClientRect()
+      const r = mapa?.getBoundingClientRect()
+      if (!texto || !r || r.height === 0 || texto.top < r.bottom - 2) { setZona(null); return }
       const top = r.height >= ALTO_MINIMO_PX ? r.top + MARGEN_PX : MARGEN_PX
       setZona({ top, bottom: Math.max(MARGEN_PX, window.innerHeight - r.bottom + MARGEN_PX) })
     }
@@ -150,7 +154,7 @@ export default function Asistente() {
   const preguntas = useRef(0)
   const cancelar = useRef<AbortController | null>(null)
   const refLista = useRef<HTMLDivElement>(null)
-  const zona = useZonaSobreMapa(modo !== 'escritorio' && modo !== 'auto', pantalla)
+  const zona = useZonaSobreMapa(modo !== 'auto', pantalla)
 
   const reiniciar = useCallback(() => {
     cancelar.current?.abort()
