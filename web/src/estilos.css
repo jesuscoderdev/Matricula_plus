@@ -1191,25 +1191,46 @@ h1, h2, h3, p { margin: 0; }
 .proli-flotante > * { pointer-events: auto; }
 :root[data-modo='escritorio'] .proli-flotante { bottom: 3rem; right: 1.4rem; }
 :root[data-modo='stand'] .proli-flotante { bottom: 10.5rem; }
-.proli-flotante__boton {
-  display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.85rem 0.25rem 0.25rem;
-  border: 0; border-radius: 99rem; background: var(--p-indigo); color: #ffffff;
-  box-shadow: 0 0.4rem 1.2rem rgba(22, 43, 42, 0.28); font-weight: 600; font-size: 0.85rem;
+/* Proli mismo es el botón: sin pastilla, solo el personaje con su sombra */
+.proli-flotante__boton { border: 0; background: none; padding: 0; border-radius: 50%; cursor: pointer; }
+.proli-flotante__boton:focus-visible { outline: 3px solid var(--p-verde); outline-offset: 4px; }
+.proli-flotante__figura { position: relative; display: inline-flex; filter: drop-shadow(0 0.5rem 0.8rem rgba(22, 43, 42, 0.35)); transition: transform 0.15s; }
+.proli-flotante__boton:hover .proli-flotante__figura { transform: translateY(-3px) rotate(-3deg); }
+.proli-flotante__boton:active .proli-flotante__figura { transform: scale(0.94); }
+/* «?»: Proli tiene algo que proponer en esta pantalla */
+.proli-flotante__aviso {
+  position: absolute; top: -0.2rem; left: -0.3rem; width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  display: grid; place-items: center; background: var(--p-indigo); color: #fff; font-weight: 700; font-size: 0.85rem;
+  box-shadow: 0 0 0 3px var(--papel); animation: aviso-proli 2s ease-in-out infinite;
 }
-.proli-flotante__boton:focus-visible { outline-color: var(--p-verde); }
-.proli-flotante__figura { display: inline-flex; margin: -1.4rem 0 -0.2rem -0.2rem; filter: drop-shadow(0 0.3rem 0.5rem rgba(22, 43, 42, 0.3)); }
-/* El globo: la pregunta de la guía y sus opciones de un toque */
+@keyframes aviso-proli { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+/* El globo (tooltip) de Proli: lo que dice, o sus opciones al tocarlo */
 .proli-flotante__globo {
   position: relative; background: var(--blanco); color: var(--tinta); border: 1px solid var(--linea);
-  border-radius: var(--r) var(--r) 0.2rem var(--r); padding: 0.65rem 0.75rem 0.7rem; box-shadow: var(--sombra);
+  border-radius: var(--r) var(--r) 0.2rem var(--r); padding: 0.7rem 0.8rem; box-shadow: 0 0.6rem 1.8rem rgba(22, 43, 42, 0.22);
+  text-align: left; font: inherit;
 }
-.proli-flotante__globo p { font-size: 0.86rem; font-weight: 600; line-height: 1.3; padding-right: 1rem; }
-.proli-flotante__opciones { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
-.proli-flotante__opciones .proli-panel__chip { padding: 0.35rem 0.7rem; font-size: 0.76rem; }
-.proli-flotante__ocultar { position: absolute; top: 0.2rem; right: 0.35rem; border: 0; background: none; color: var(--tenue); font-size: 1.1rem; line-height: 1; padding: 0.15rem; }
-/* En celular, sobre el mapa, solo la cara de Proli para no tapar la leyenda */
-:root[data-modo='celular'] .proli-flotante--sobre-mapa .proli-flotante__boton { padding: 0.25rem; }
-:root[data-modo='celular'] .proli-flotante--sobre-mapa .proli-flotante__texto { display: none; }
+.proli-flotante__globo::after {
+  content: ''; position: absolute; right: 1.6rem; bottom: -0.45rem; width: 0.9rem; height: 0.9rem; transform: rotate(45deg);
+  background: var(--blanco); border-right: 1px solid var(--linea); border-bottom: 1px solid var(--linea);
+}
+.proli-flotante__globo p { font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+.proli-flotante__dicho { font-size: 0.92rem; line-height: 1.4; cursor: pointer; }
+.proli-flotante__cursor { display: inline-block; width: 2px; height: 1em; margin-left: 2px; vertical-align: -0.15em; background: var(--p-verde); animation: parpadeo 0.8s step-end infinite; }
+.proli-flotante__menu { display: flex; flex-direction: column; gap: 0.45rem; width: min(19rem, calc(100vw - 1.8rem)); }
+.proli-flotante__opciones { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.proli-flotante__opciones .proli-panel__chip { padding: 0.4rem 0.75rem; font-size: 0.78rem; }
+.proli-flotante__seccion { margin-top: 0.2rem; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--tenue); }
+.proli-flotante__preguntas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.proli-flotante__preguntas button {
+  width: 100%; text-align: left; border: 0; border-top: 1px solid var(--linea); background: none; color: var(--tinta);
+  padding: 0.5rem 0.1rem; font-size: 0.84rem; line-height: 1.3;
+}
+.proli-flotante__preguntas button:hover:not(:disabled) { color: var(--violeta-osc); }
+.proli-flotante__preguntas button:disabled { opacity: 0.5; }
+.proli-flotante__escribir { color: var(--violeta-osc) !important; font-weight: 600; }
+/* En celular, sobre el mapa, Proli un poco más chico para no tapar la leyenda */
+:root[data-modo='celular'] .proli-flotante--sobre-mapa .proli-animado { height: 3.6rem !important; }
 
 /* Proli como cursor: vuela hasta el control que va a cambiar y lo toca */
 .proli-cursor { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; margin: -0.6rem 0 0 -0.4rem;

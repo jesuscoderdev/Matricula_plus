@@ -18,7 +18,8 @@ const SEGUNDOS_HABLANDO = 2.4  // al aparecer con un globo, Proli «dice» la fr
 
 /**
  * Proli, la mascota de Proliferante. Se mece suavemente (salvo con "reducir movimiento"),
- * parpadea y, si lleva un globo de diálogo, mueve la boca mientras aparece la frase.
+ * parpadea, sigue el puntero con los ojos y, si lleva un globo de diálogo, saluda con la mano y
+ * mueve la boca mientras aparece la frase.
  */
 export default function Proli({ tamano = 6, globo, lado = 'izquierda', className = '' }: {
   /** alto en rem */
@@ -41,7 +42,7 @@ export default function Proli({ tamano = 6, globo, lado = 'izquierda', className
       <motion.span className="proli__img"
                    animate={reducir ? undefined : { rotate: [0, -4, 0, 4, 0], y: [0, -3, 0, -3, 0] }}
                    transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}>
-        <ProliAnimado tamano={tamano} hablando={hablando} />
+        <ProliAnimado tamano={tamano} hablando={hablando} saludar={hablando} seguir />
       </motion.span>
       {globo && (
         <motion.div className="proli__globo" initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}

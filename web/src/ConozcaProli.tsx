@@ -77,7 +77,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
             <motion.span className="proli-intro__img"
                          animate={reducir ? undefined : { rotate: [0, -6, 0, 6, 0], y: [0, -6, 0, -6, 0] }}
                          transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}>
-              <ProliAnimado hablando={!escrito} />
+              <ProliAnimado hablando={!escrito} saludar={!escrito} seguir />
             </motion.span>
           </motion.div>
           <div className="proli-intro__presenta">

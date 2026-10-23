@@ -1,8 +1,11 @@
 /**
- * Proli, el asistente: siempre en pantalla (salvo la portada, que es la pantalla de atracción, y el
- * modo automático, donde no hay visitante). Proli parpadea, habla y, con la guía paso a paso
- * (guia.ts), pregunta qué probar según lo que se ve; al elegir, vuela hasta el control y lo cambia
- * (cursor.tsx). Al tocarlo se abre el panel de conversación.
+ * Proli, el asistente: un personaje flotante, siempre en pantalla (salvo la portada, que es la
+ * pantalla de atracción, y el modo automático, donde no hay visitante). Saluda con la mano, respira,
+ * parpadea y sigue el puntero con los ojos. Al tocarlo aparecen, como un globo, lo que puede hacer
+ * en esta pantalla (la guía paso a paso, guia.ts) y preguntas frecuentes:
+ *  · una acción: Proli lo dice, vuela hasta el control y lo cambia (cursor.tsx);
+ *  · una pregunta: Proli responde moviendo la boca mientras aparece el texto.
+ * Las dos funcionan sin IA y sin conexión. «Escribir otra pregunta» abre la conversación con Claude.
  *
  * Conversación: el navegador guarda el historial y lo manda a /api/proli (api/proli.ts), que llama a
  * Claude. Cuando Proli pide acciones (tool_use), se ejecutan aquí con src/proli/ordenes.ts y se le
@@ -35,7 +38,8 @@ const SEGUNDOS_LECTURA = 20    // margen extra para leer la respuesta antes de l
 const ALTO_MINIMO_PX = 340     // si el mapa es más bajo, el panel cubre también la cabecera
 const MARGEN_PX = 8
 const BOTON_SOBRE_MAPA_PX = 36 // el botón cerrado, en el borde inferior del mapa (sobre la atribución)
-const SEGUNDOS_RESPUESTA = 2.8 // cuánto se ve lo que Proli dice al aplicar una opción de la guía
+const MS_LETRA = 28            // velocidad con que aparece lo que Proli dice
+const SEGUNDOS_SALUDO = 4      // el saludo al aparecer
 
 /**
  * Cuando un demo pone el mapa arriba y el texto con las cifras abajo (tótem, celular o cualquier
@@ -114,6 +118,18 @@ const avisarActividad = () => window.dispatchEvent(new Event('pointerdown'))
 
 class SinConexion extends Error {}
 
+/** El texto aparece letra por letra, como si Proli lo fuera diciendo. */
+function useEscribiendo(texto: string) {
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    setN(0)
+    if (!texto) return
+    const id = window.setInterval(() => setN((x) => (x >= texto.length ? x : x + 1)), MS_LETRA)
+    return () => window.clearInterval(id)
+  }, [texto])
+  return texto.slice(0, n)
+}
+
 /** Una llamada a /api/proli: transmite el texto mientras llega y devuelve el mensaje completo. */
 async function llamar(mensajes: Mensaje[], alTexto: (d: string) => void, senal: AbortSignal): Promise<{ contenido: Bloque[]; stop: string }> {
   let r: Response
@@ -164,12 +180,27 @@ export default function Asistente() {
   // Guía paso a paso: el paso vuelve a 0 al cambiar de capítulo; el globo se puede ocultar hasta entonces
   const lugar = `${pantalla.split(',')[0]}|${capituloDe(pantalla)}`
   const [paso, setPaso] = useState(0)
-  const [globoOculto, setGloboOculto] = useState(false)
-  const [respuesta, setRespuesta] = useState('')
+  const [menu, setMenu] = useState(false)
+  const [dicho, setDicho] = useState('')          // lo que Proli está diciendo en su globo
+  const [saludando, setSaludando] = useState(true)
   const [guiando, setGuiando] = useState(false)
+  const visible = useEscribiendo(dicho)
+  const hablando = visible.length < dicho.length
+  // Al aparecer (y con cada visitante nuevo) Proli saluda con la mano
+  useEffect(() => {
+    if (!saludando) return
+    const id = window.setTimeout(() => setSaludando(false), SEGUNDOS_SALUDO * 1000)
+    return () => window.clearTimeout(id)
+  }, [saludando])
+  // Lo dicho se queda un rato después de terminar de aparecer (más si es largo) y se va solo
+  useEffect(() => {
+    if (!dicho || hablando) return
+    const id = window.setTimeout(() => setDicho(''), 3500 + dicho.length * 30)
+    return () => window.clearTimeout(id)
+  }, [dicho, hablando])
   const lugarActual = useRef(lugar)
   lugarActual.current = lugar
-  useEffect(() => { setPaso(0); setGloboOculto(false) }, [lugar])
+  useEffect(() => { setPaso(0); setMenu(false) }, [lugar])
   const pasoGuia = guia(pantalla, paso)
 
   const reiniciar = useCallback(() => {
@@ -178,7 +209,7 @@ export default function Asistente() {
     setLineas([]); setOcupado(false); setTexto('')
   }, [])
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
-  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false) } }, [pantalla, reiniciar])
+  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false); setDicho(''); setSaludando(true) } }, [pantalla, reiniciar])
   useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas])
   // Tiempo de lectura: cuando Proli termina de responder con el panel abierto, se da un margen
   // antes de que el tótem vuelva a la portada por inactividad. Si el visitante se fue, el tótem
@@ -210,14 +241,21 @@ export default function Asistente() {
   const elegir = useCallback(async (op: Opcion) => {
     if (guiando || ocupado) return
     const desde = lugarActual.current
-    setGuiando(true); setRespuesta(op.respuesta); avisarActividad()
+    setGuiando(true); setMenu(false); setSaludando(false); setDicho(op.respuesta); avisarActividad()
     if (abierto) { agregar({ quien: 'visitante', texto: op.texto }); agregar({ quien: 'proli', texto: op.respuesta }) }
     for (const o of op.ordenes) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
     // Si la opción llevó a otro capítulo, la guía ya empezó de cero allí: no se avanza
     if (lugarActual.current === desde) setPaso((x) => x + 1)
     setGuiando(false); avisarActividad()
-    window.setTimeout(() => setRespuesta(''), SEGUNDOS_RESPUESTA * 1000)
   }, [guiando, ocupado, abierto])
+
+  /** Una pregunta frecuente: Proli responde con la boca (y, si la respuesta muestra algo, vuela a hacerlo). */
+  const responder = useCallback(async (s: Sugerencia) => {
+    if (guiando) return
+    setGuiando(true); setMenu(false); setSaludando(false); setDicho(s.sinConexion); avisarActividad()
+    for (const o of s.ordenes ?? []) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
+    setGuiando(false)
+  }, [guiando])
 
   const preguntar = useCallback(async (pregunta: string, s?: Sugerencia) => {
     if (ocupado || !pregunta.trim()) return
@@ -294,26 +332,41 @@ export default function Asistente() {
                       style={{ ...(zona ? { bottom: zona.bottom + BOTON_SOBRE_MAPA_PX } : {}), opacity: volando ? 0 : 1 }}
                       initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
             <AnimatePresence mode="wait">
-              {(respuesta || (pasoGuia && !globoOculto)) && (
-                <motion.div key={respuesta || pasoGuia!.pregunta} className="proli-flotante__globo" role="status"
-                            initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6 }}>
-                  {respuesta ? <p>{respuesta}</p> : (
+              {menu ? (
+                <motion.div key="menu" className="proli-flotante__globo proli-flotante__menu" role="menu"
+                            initial={{ opacity: 0, y: 10, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }}>
+                  {pasoGuia && (
                     <>
-                      <button type="button" className="proli-flotante__ocultar" onClick={() => setGloboOculto(true)} aria-label="Ocultar la pregunta">×</button>
-                      <p>{pasoGuia!.pregunta}</p>
+                      <p>{pasoGuia.pregunta}</p>
                       <div className="proli-flotante__opciones">
-                        {pasoGuia!.opciones.map((op) => (
-                          <button key={op.texto} type="button" className="proli-panel__chip" disabled={guiando} onClick={() => elegir(op)}>{op.texto}</button>
+                        {pasoGuia.opciones.map((op) => (
+                          <button key={op.texto} type="button" role="menuitem" className="proli-panel__chip proli-panel__chip--si" disabled={guiando} onClick={() => elegir(op)}>{op.texto}</button>
                         ))}
                       </div>
                     </>
                   )}
+                  <span className="proli-flotante__seccion">Pregúnteme</span>
+                  <ul className="proli-flotante__preguntas">
+                    {sugerencias(pantalla).map((s) => (
+                      <li key={s.texto}><button type="button" role="menuitem" disabled={guiando} onClick={() => responder(s)}>{s.texto}</button></li>
+                    ))}
+                    <li><button type="button" role="menuitem" className="proli-flotante__escribir" onClick={() => { setMenu(false); setAbierto(true) }}>✎ Escribir otra pregunta</button></li>
+                  </ul>
                 </motion.div>
-              )}
+              ) : (dicho || saludando) ? (
+                <motion.button key={dicho || 'saludo'} type="button" className="proli-flotante__globo proli-flotante__dicho" aria-live="polite"
+                               onClick={() => { setDicho(''); setSaludando(false) }}
+                               initial={{ opacity: 0, y: 10, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }}>
+                  {dicho ? <>{visible}{hablando && <i className="proli-flotante__cursor" />}</> : <>¡Hola! Soy <b>Proli</b>. Tóqueme y le muestro qué podemos hacer aquí.</>}
+                </motion.button>
+              ) : null}
             </AnimatePresence>
-            <button type="button" className="proli-flotante__boton" onClick={() => setAbierto(true)} aria-label="Hablar con Proli">
-              <span className="proli-flotante__figura"><ProliAnimado tamano={3.6} hablando={!!respuesta} /></span>
-              <span className="proli-flotante__texto">Pregúntele a Proli</span>
+            <button type="button" className="proli-flotante__boton" onClick={() => { setMenu((m) => !m); setDicho(''); setSaludando(false) }}
+                    aria-label={menu ? 'Cerrar las opciones de Proli' : 'Ver qué puede hacer Proli'} aria-expanded={menu}>
+              <span className="proli-flotante__figura">
+                <ProliAnimado tamano={4.6} hablando={hablando} saludar={saludando} seguir />
+                {pasoGuia && !menu && !dicho && <span className="proli-flotante__aviso" aria-hidden>?</span>}
+              </span>
             </button>
           </motion.div>
         )}
@@ -325,7 +378,7 @@ export default function Asistente() {
                           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
                           transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
             <header className="proli-panel__cabeza">
-              <ProliAnimado tamano={2.6} hablando={ocupado || !!respuesta} className="proli-panel__avatar" />
+              <ProliAnimado tamano={2.6} hablando={ocupado || hablando} className="proli-panel__avatar" />
               <div>
                 <b>Proli</b>
                 <small>{ocupado ? 'Escribiendo…' : sinConexion ? 'Sin conexión: respuestas guardadas' : 'Su guía en el stand'}</small>
