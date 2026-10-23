@@ -36,4 +36,6 @@ export interface PropsCapitulo {
   repetir: () => void
   /** volver a la página de inicio (elegir proyecto) */
   alInicio?: () => void
+  /** el logo de Proliferante lleva a la portada del stand */
+  alPortada?: () => void
 }

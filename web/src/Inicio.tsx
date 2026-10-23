@@ -110,6 +110,8 @@ export default function Inicio() {
     // En el tótem, la inactividad dentro de un proyecto vuelve a la portada (pantalla de atracción)
     alInactivo: modo === 'stand' && !fijo ? aPortada : undefined,
     alTerminarVuelta: alternar ? terminarVuelta : undefined,
+    // El logo de Proliferante lleva a la portada del stand (en todos los modos salvo el automático)
+    alPortada: modo === 'auto' ? undefined : aPortada,
   }
   if (proyecto === 'educacion') return <App {...salidas} />
   if (proyecto === 'movilidad') {
@@ -122,19 +124,19 @@ export default function Inicio() {
   }
   if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aProli} />
   if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alElegir={aProyecto} alVolver={aPortada} />
-  return <Hub modo={modo} entrar={setProyecto} siguiente={alternar ? activos[turno % activos.length].id : null} />
+  return <Hub modo={modo} entrar={setProyecto} alPortada={aPortada} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }
 
 const entrar = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }
 
-function Hub({ modo, entrar: alEntrar, siguiente }: { modo: Modo; entrar: (p: IdProyecto) => void; siguiente: IdProyecto | null }) {
+function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; entrar: (p: IdProyecto) => void; alPortada: () => void; siguiente: IdProyecto | null }) {
   const reducir = useReducedMotion()
   return (
     <div className="app inicio">
       <MarcaDeAgua className="marca-agua--inicio" />
       <div className="inicio__contenido">
         <motion.header className="inicio__marca" {...entrar} transition={{ delay: 0.05 }}>
-          <LogoEmpresa />
+          <LogoEmpresa alTocar={modo === 'auto' ? undefined : alPortada} />
           <span className="etiqueta">GovTech · 3–4 nov 2026</span>
           <BotonTema />
         </motion.header>

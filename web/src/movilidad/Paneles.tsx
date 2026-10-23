@@ -43,6 +43,8 @@ export interface PropsMov {
   zona: 'barrio' | 'avenidas'
   setZona: (z: 'barrio' | 'avenidas') => void
   alInicio?: () => void
+  /** el logo de Proliferante lleva a la portada del stand */
+  alPortada?: () => void
 }
 
 // --- Datos derivados (todo sale de los archivos) ---
@@ -60,7 +62,7 @@ const ancho = (fraccion: number, rem = 3.4) => `calc((100% - ${rem}rem) * ${Math
 const entrar = { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 } }
 
 // ---------------------------------------------------------------- portada
-export function PortadaMov({ datos, modo, ir, alInicio }: PropsMov) {
+export function PortadaMov({ datos, modo, ir, alInicio, alPortada }: PropsMov) {
   const c = datos.experiencia.contexto_ciudad
   const totem = esTotem(modo)
   const [antes, despues] = TITULO_MOVILIDAD.includes('¿') ? [TITULO_MOVILIDAD.slice(0, TITULO_MOVILIDAD.indexOf('¿')), TITULO_MOVILIDAD.slice(TITULO_MOVILIDAD.indexOf('¿'))] : ['', TITULO_MOVILIDAD]
@@ -71,7 +73,7 @@ export function PortadaMov({ datos, modo, ir, alInicio }: PropsMov) {
         <motion.div className="portada__marca" {...entrar} transition={{ delay: 0.05 }}>
           <div className="portada__logos">
             {alInicio && modo !== 'auto' && <BotonInicio alInicio={alInicio} />}
-            <LogoEmpresa />
+            <LogoEmpresa alTocar={alPortada} />
             <span className="portada__sep" aria-hidden />
             <span className="marca-bloque"><ProliMarca /><NombreApp nombre={NOMBRE_MOVILIDAD} /></span>
           </div>

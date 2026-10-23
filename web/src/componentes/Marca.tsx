@@ -166,7 +166,22 @@ const PASO_NACIMIENTO = 0.07  // s entre una letra y la siguiente
  * vuelven a ser puntitos, regresan a la «o» y la hacen brillar, y el ciclo empieza otra vez.
  * Con "reducir movimiento" queda quieto y completo.
  */
-export function LogoEmpresa({ className = '', animado = true }: { className?: string; animado?: boolean }) {
+export function LogoEmpresa({ alTocar, ...arte }: {
+  className?: string; animado?: boolean
+  /** con esto el logo es un botón que lleva a la portada del stand */
+  alTocar?: () => void
+}) {
+  const logo = <LogoEmpresaArte {...arte} />
+  if (!alTocar) return logo
+  return (
+    <button type="button" className="logo-boton" title="Ir a la portada" aria-label={`${EMPRESA}: ir a la portada`}
+            onClick={(e) => { e.stopPropagation(); alTocar() }}>
+      {logo}
+    </button>
+  )
+}
+
+function LogoEmpresaArte({ className = '', animado = true }: { className?: string; animado?: boolean }) {
   if (!animado) {
     // Letras y «o» en capas, como el animado: así en oscuro las letras pasan a blanco y la «o» sigue verde
     return (

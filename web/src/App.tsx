@@ -38,8 +38,10 @@ const GUIONES: { localidad: string; cambios: { segundo: number; cambio: Cambio }
  * portada, atrás del navegador, logo mantenido), `alInactivo` (stand) y `alTerminarVuelta` (auto,
  * para alternar con los otros proyectos). Sin ellas funciona como siempre.
  */
-export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
+export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }: {
   alSalir?: () => void; alInactivo?: () => void; alTerminarVuelta?: () => void
+  /** el logo de Proliferante lleva a la portada del stand */
+  alPortada?: () => void
 } = {}) {
   const [modo, setModo] = useState<Modo>(leerModo)
   const [datos, setDatos] = useState<Datos | null>(null)
@@ -371,7 +373,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
 
   const props: PropsCapitulo = {
     datos, r, modo, supuestos, cambiarSupuestos, restaurarSupuestos: () => setSupuestos(supuestosIniciales(datos)),
-    palancas, cambiarPalancas, localidad, elegirLocalidad: setLocalidad, ir, terminado, repetir, alInicio: alSalir,
+    palancas, cambiarPalancas, localidad, elegirLocalidad: setLocalidad, ir, terminado, repetir, alInicio: alSalir, alPortada,
   }
   const panel = (() => {
     switch (vista) {

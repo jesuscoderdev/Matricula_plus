@@ -534,6 +534,9 @@ h1, h2, h3, p { margin: 0; }
 .qr figcaption { font-size: 0.66rem; color: var(--suave); text-align: center; max-width: 8rem; }
 .logo-empresa { height: 1.5rem; aspect-ratio: 400 / 121; display: block; position: relative; flex: none; }
 .logo-empresa > img { display: block; height: 100%; width: auto; }
+/* Logo como botón: lleva a la portada del stand */
+.logo-boton { display: inline-flex; flex: none; border: 0; background: none; padding: 0; border-radius: 0.4rem; }
+.logo-boton:hover .logo-empresa { opacity: 0.8; }
 .logo-empresa--quieto .logo-o { position: absolute; inset: 0; width: 100%; height: 100%; }
 /* Tema oscuro: el logo en su versión blanca con la «o» verde («blanco sobre navy» del manual) */
 :root[data-tema='oscuro'] .logo-trozo, :root[data-tema='oscuro'] .logo-letras { filter: brightness(0) invert(1); }

@@ -23,13 +23,15 @@ import {
 
 const ORDEN: VistaMov[] = ['portada', ...CAPITULOS_MOV.map((c) => c.id)]
 
-export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
+export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPortada }: {
   /** volver a la página de inicio (elegir proyecto) */
   alSalir?: () => void
   /** stand: sin interacción, a dónde volver (por defecto, a la portada) */
   alInactivo?: () => void
   /** auto: al terminar una vuelta (si no, empieza otra) */
   alTerminarVuelta?: () => void
+  /** el logo de Proliferante lleva a la portada del stand */
+  alPortada?: () => void
 }) {
   const [modo, setModo] = useState<Modo>(leerModo)
   const [datos, setDatos] = useState<DatosMovilidad | null>(null)
@@ -263,7 +265,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta }: {
   }
 
   const props: PropsMov = {
-    datos, modo, ir, tocadas, setTocadas, localidad, setLocalidad, anio, setAnio, nivel, setNivel, zona, setZona, alInicio: alSalir,
+    datos, modo, ir, tocadas, setTocadas, localidad, setLocalidad, anio, setAnio, nivel, setNivel, zona, setZona, alInicio: alSalir, alPortada,
   }
   const panel = (() => {
     switch (vista) {
