@@ -75,11 +75,9 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
                       transition={{ type: 'spring', stiffness: 140, damping: 13, delay: 0.1 }}>
             <span className="proli-intro__halo" aria-hidden />
             {/* Proli mueve la boca mientras «escribe» su saludo */}
-            <motion.span className="proli-intro__img"
-                         animate={reducir ? undefined : { rotate: [0, -6, 0, 6, 0], y: [0, -6, 0, -6, 0] }}
-                         transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}>
+            <span className="proli-intro__img">
               <ProliAnimado hablando={!escrito} saludar={!escrito} seguir />
-            </motion.span>
+            </span>
           </motion.div>
           <div className="proli-intro__presenta">
             <motion.span className="kicker" {...entrar} transition={{ delay: 0.25 }}>{p.kicker}</motion.span>

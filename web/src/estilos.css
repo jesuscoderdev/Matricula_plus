@@ -1216,7 +1216,7 @@ h1, h2, h3, p { margin: 0; }
 .proli-flotante__boton { border: 0; background: none; padding: 0; border-radius: 50%; cursor: pointer; }
 .proli-flotante__boton:focus-visible { outline: 3px solid var(--p-verde); outline-offset: 4px; }
 .proli-flotante__figura { position: relative; display: inline-flex; filter: drop-shadow(0 0.5rem 0.8rem rgba(22, 43, 42, 0.35)); transition: transform 0.15s; }
-.proli-flotante__boton:hover .proli-flotante__figura { transform: translateY(-3px) rotate(-3deg); }
+.proli-flotante__boton:hover .proli-flotante__figura { transform: translateY(-2px); }
 .proli-flotante__boton:active .proli-flotante__figura { transform: scale(0.94); }
 /* «?»: Proli tiene algo que proponer en esta pantalla */
 .proli-flotante__aviso {

@@ -184,6 +184,7 @@ export default function Asistente() {
   const [dicho, setDicho] = useState('')          // lo que Proli está diciendo en su globo
   const [saludando, setSaludando] = useState(true)
   const [guiando, setGuiando] = useState(false)
+  const [encima, setEncima] = useState(false)     // el puntero sobre Proli: abre los ojos de interés
   const visible = useEscribiendo(dicho)
   const hablando = visible.length < dicho.length
   // Al aparecer (y con cada visitante nuevo) Proli saluda con la mano
@@ -363,9 +364,10 @@ export default function Asistente() {
               ) : null}
             </AnimatePresence>
             <button type="button" className="proli-flotante__boton" onClick={() => { setMenu((m) => !m); setDicho(''); setSaludando(false) }}
+                    onPointerEnter={() => setEncima(true)} onPointerLeave={() => setEncima(false)}
                     aria-label={menu ? 'Cerrar las opciones de Proli' : 'Ver qué puede hacer Proli'} aria-expanded={menu}>
               <span className="proli-flotante__figura">
-                <ProliAnimado tamano={4.6} hablando={hablando} saludar={saludando} seguir />
+                <ProliAnimado tamano={4.6} hablando={hablando} saludar={saludando} atento={(menu || encima) && !hablando} seguir />
                 {pasoGuia && !menu && !dicho && <span className="proli-flotante__aviso" aria-hidden>?</span>}
               </span>
             </button>
