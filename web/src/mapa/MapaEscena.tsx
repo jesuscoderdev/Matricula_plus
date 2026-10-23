@@ -212,7 +212,10 @@ export default function MapaEscena(props: Props) {
     }
     const ocup = new Int32Array(nS * (R + 2))
     for (let s = 0; s < nS; s++) { let a = 0; for (let x = 0; x <= R + 1; x++) { a += dif[s * (R + 2) + x]; ocup[s * (R + 2) + x] = a } }
-    return { R, ocup, props: props_, ...tiemposRondas(R, rapido) }
+    // Lo que cambia en cada colegio con la optimización de cupos (después de las rondas)
+    const optDelta = new Int32Array(nS)
+    for (let i = 0; i < f.n; i++) { if (r.pol.fase1[i] >= 0) optDelta[r.pol.fase1[i]]++; if (t.asign[i] >= 0) optDelta[t.asign[i]]-- }
+    return { R, ocup, optDelta, props: props_, ...tiemposRondas(R, rapido) }
   }, [r.pol, f.n, rapido])
   const turnos = useMemo(() => {
     const l: number[][] = Array.from({ length: r.hoy.cap.length }, () => [])
@@ -332,7 +335,7 @@ export default function MapaEscena(props: Props) {
       return { colorFam, radioFam, lineas, ocupado, c, paso, texto }
     }
     // diferida
-    const { R, ocup, props: pr_, inicio } = rondas
+    const { R, ocup, optDelta, props: pr_, inicio } = rondas
     const tr = r.pol.traza!
     let ronda = R, fr = 1
     if (t < T1) {
@@ -364,19 +367,21 @@ export default function MapaEscena(props: Props) {
     })
     const nS = R + 2
     colegios.forEach((s) => {
-      if (t >= T1) { ocupado.set(s, ocup[s * nS + R] + (fr2 > 0 ? fams.filter((i) => sim.fase2.asign[i] === s).length : 0)); return }
+      if (t >= T1) { ocupado.set(s, ocup[s * nS + R] + optDelta[s] + (fr2 > 0 ? fams.filter((i) => sim.fase2.asign[i] === s).length : 0)); return }
       const antes = ocup[s * nS + (ronda - 1)]
       ocupado.set(s, faseA ? antes + Math.round(pr_[s * nS + ronda] * suave(fr / 0.5)) : ocup[s * nS + ronda])
     })
     void ocupFinal
-    paso = t < T1 ? `Ronda ${ronda} de ${R}` : terminado ? `Listo · ${R} rondas + reubicación` : 'Reubicación'
+    const ganados = fams.filter((i) => tr.asign[i] < 0 && r.pol.fase1[i] >= 0).length * f.estudiantes_por_familia
+    paso = t < T1 ? `Ronda ${ronda} de ${R}` : terminado ? `Listo · ${R} rondas + optimización + reubicación` : 'Optimización y reubicación'
     texto = t < T1
       ? (ronda === 1 && faseA ? 'Todas las familias piden, al mismo tiempo, su colegio favorito.'
         : ronda === 1 ? 'Donde hay más solicitudes que cupos, el colegio se queda con las de más prioridad; las demás pasan a su siguiente opción.'
           : ronda === 2 ? 'Las rechazadas piden su siguiente opción. Si llega alguien con más prioridad, el colegio puede cambiar a quien tenía.'
             : 'Las que siguen sin colegio piden su siguiente opción…')
-      : !terminado ? `Los cupos que quedaron libres se reparten con la misma regla de prioridad, hasta ${decimal(supuestos.radioReubicacionKm)} km.`
-        : '✓ Asignación estable: nadie puede mejorar su colegio sin quitarle el cupo a alguien con más prioridad.'
+      : !terminado ? `Matrícula+ optimiza: mueve a algunas familias a otra de sus opciones para que quepan más, y reparte los cupos libres hasta ${decimal(supuestos.radioReubicacionKm)} km.`
+        : ganados > 0 ? `✓ Optimizado: ${entero(ganados)} niños más entran a uno de sus colegios gracias a cambios entre opciones. Nadie perdió su cupo.`
+          : '✓ Optimizado: con estos cupos, ya no cabe nadie más en sus opciones.'
     return { colorFam, radioFam, lineas, ocupado, c, paso, texto }
   }, [escena, fase, t, T1, terminado, fams, colegios, sim, r, rondas, turnos, prefs, k, f, localidad, supuestos, textoNeutro])  // eslint-disable-line react-hooks/exhaustive-deps
 

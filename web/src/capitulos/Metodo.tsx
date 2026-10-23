@@ -10,7 +10,7 @@ export default function Metodo({ datos, modo, palancas, ir }: PropsCapitulo) {
   const etapas = [
     { t: 'Datos abiertos', d: `Oferta y demanda SED 2025, ${entero(datos.familias.n_sedes)} sedes, UPZ y población de 5 a 17 años` },
     { t: 'Modelo', d: `${entero(datos.familias.n)} familias sintéticas en manzanas residenciales, sin datos personales` },
-    { t: 'Simulación', d: 'Orden de llegada vs asignación diferida, con reubicación, en tu navegador' },
+    { t: 'Simulación', d: 'Orden de llegada vs asignación por prioridad + optimización de cupos, con reubicación, en tu navegador' },
     { t: 'Decisión', d: describir(datos, palancas) },
     { t: 'Aprendizaje', d: 'Medir, comparar y ajustar la política cada año' },
   ]

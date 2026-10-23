@@ -8,6 +8,7 @@
  * Fuentes: public/movilidad/datos/ (experiencia, fuentes, resumen, sitios) y public/simulador/
  * (todos.json: índice y escenarios precalculados; upz.geojson: oferta y demanda por UPZ).
  */
+import { simular, metricas } from '../src/motor.ts'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -92,16 +93,24 @@ function ref30() { return exp.pantalla_2_pasa_un_anio.referencia_30_peores_esqui
 // ------------------------------------------------------------------ Matrícula+
 const todos = leer('public/simulador/todos.json')
 const ind = todos.indice
-const esc = todos.escenarios
 const upz = leer('public/simulador/upz.geojson')
-const M = (clave) => {
-  const e = esc[clave]
-  if (!e) return null
-  const m = Object.fromEntries(ind.metricas.map((k, i) => [k, e.m[i]]))
-  return { ...m, sin_cupo: e.s }
+// Las cifras de Matrícula+ salen del mismo motor que corre en el navegador (src/motor.ts), con la
+// optimización de cupos incluida, para que Proli diga lo mismo que muestra la pantalla
+const fam = leer('public/simulador/familias.json')
+const sedes = leer('public/simulador/colegios.geojson').features.filter((x) => x.properties.tipo === 'sede')
+const ctx = { cuposSedes: sedes.map((x) => x.properties.cupos), posSedes: sedes.map((x) => x.geometry.coordinates) }
+const par = ind.parametros
+const SUP = { opciones: par.n_opciones, pctVulnerable: par.pct_vulnerable, pctHermano: par.pct_hermano, cuposColegioNuevo: par.cupos_colegio_nuevo,
+  reduccionJornada: par.reduccion_jornada_unica, radioReubicacionKm: 3, umbralViajeLargoKm: 2, pesoDesempate: par.desempate_peso }
+const zonaCritica = new Set(ind.zona_critica.map((z) => ind.upz.indexOf(z.codigo)))
+const M = ({ mecanismo = 'diferida', preset = 'equilibrada', colegio = null, jornada = false }) => {
+  const u = colegio && ind.colegio_nuevo.find((x) => x.clave === colegio)
+  const sim = simular(fam, ctx, SUP, { mecanismo, pesos: ind.pesos_presets[preset], colegioNuevo: u ? { clave: u.clave, lon: u.lon, lat: u.lat } : null, jornadaUnica: jornada })
+  return { ...metricas(fam, sim, SUP), zona: metricas(fam, sim, SUP, (i) => zonaCritica.has(fam.upz[i])) }
 }
 const lineaMetricas = (m) =>
-  `${fmt(m.sin_cupo)} niños sin cupo (${pct(m.pct_sin_cupo)}), ${pct(m.pct_primera_opcion)} en su primera opción, ${pct(m.pct_vulnerables_sin_cupo)} de vulnerables sin cupo, ${pct(m.pct_sin_cupo_zona_critica)} sin cupo en la zona crítica, distancia promedio ${fmt(m.distancia_prom_km, 2)} km`
+  `${fmt(m.fueraDeOpciones)} niños no entran a ninguno de los colegios que pidieron (${pct(m.pctFueraDeOpciones)}), ${pct(m.pctPrimera)} en su primera opción, ${fmt(m.sinCupo)} sin ningún cupo cercano tras la reubicación (${pct(m.pctSinCupo)}), ${pct(m.pctVulnerablesFuera)} de los vulnerables fuera de sus opciones, ${pct(m.zona.pctFueraDeOpciones)} fuera de sus opciones en la zona crítica, ${pct(m.pctViajeLargo)} viajan más de 2 km`
+const HOY = M({ mecanismo: 'llegada' })
 
 const porLocM = new Map()
 for (const { properties: p } of upz.features) {
@@ -123,24 +132,23 @@ Capítulos: Problema (el visitante elige una localidad y ve cómo se asigna hoy:
 
 ### Datos de partida
 - ${ind.supuestos.cupos} Corte: ${ind.supuestos.corte}.
-- Hoy (reglas actuales, por orden de llegada): ${lineaMetricas({ ...ind.base, sin_cupo: ind.base.sin_cupo })}.
+- Hoy (reglas actuales, por orden de llegada): ${lineaMetricas(HOY)}.
 - ${ind.supuestos.familias}
-- ${ind.supuestos.opciones} ${ind.supuestos.distancia}
+- ${ind.supuestos.opciones.replace("'sin cupo' = no quedó en ninguno", "«fuera de sus opciones» = no quedó en ninguno")} ${ind.supuestos.distancia}
 - Zona crítica de la Secretaría de Educación: ${ind.zona_critica.map((z) => z.nombre).join(' y ')} (Suba). ${ind.zona_critica_fuente}.
 
+### Cómo asigna Matrícula+
+Primero una asignación diferida (todas las familias piden a la vez y cada colegio se queda con las de más prioridad) y luego una OPTIMIZACIÓN de cupos: busca cadenas de cambios entre las opciones de cada familia para que entre el máximo posible de niños a alguno de los colegios que pidieron. Nadie que tenía cupo lo pierde, aunque algunos pasan a su segunda o tercera opción. No crea cupos: con los mismos cupos, caben más niños en sus opciones; las reglas de prioridad deciden quién tiene preferencia. Los niños sin ningún cupo cercano dependen de cuántos cupos hay: para bajarlos hace falta capacidad (colegio nuevo).
+
 ### Reglas que el visitante puede elegir (prioridad de cada colegio)
-${ind.presets.map((p) => {
-  const m = M(`${p.escenario}_ninguno_sinju`)
-  return `- ${p.etiqueta}: ${p.descripcion}.${m ? ` En Bogotá: ${lineaMetricas(m)}.` : ''}`
-}).join('\n')}
-- Reordenar no crea cupos: casi los mismos niños quedan sin cupo. Lo que cambia es QUIÉN cabe y qué tan lejos viaja.
+${ind.presets.map((p) => `- ${p.etiqueta}: ${p.descripcion}. En Bogotá: ${lineaMetricas(M({ preset: p.clave }))}.`).join('\n')}
 
 ### Colegio nuevo (+${fmt(ind.parametros.cupos_colegio_nuevo)} cupos en un proyecto real de la SED) y jornada única
 ${ind.colegio_nuevo.map((u) => {
-  const m = M(`cm-hm-vm_${u.clave}_sinju`)
-  return `- ${u.etiqueta} (${u.proyecto}, UPZ ${u.upz_nombre}).${m ? ` Con reglas Equilibradas: ${fmt(m.sin_cupo)} niños sin cupo en Bogotá.` : ''}`
+  const m = M({ colegio: u.clave })
+  return `- ${u.etiqueta} (${u.proyecto}, UPZ ${u.upz_nombre}). Con reglas Equilibradas, en Bogotá: ${fmt(m.fueraDeOpciones)} niños fuera de sus opciones y ${fmt(m.sinCupo)} sin ningún cupo cercano; en la zona crítica, ${pct(m.zona.pctFueraDeOpciones)} fuera de sus opciones.`
 }).join('\n')}
-- ${ind.supuestos.jornada_unica}${M('cm-hm-vm_ninguno_ju') ? ` Con reglas Equilibradas y jornada única: ${fmt(M('cm-hm-vm_ninguno_ju').sin_cupo)} niños sin cupo.` : ''}
+- ${ind.supuestos.jornada_unica} Con reglas Equilibradas y jornada única: ${fmt(M({ jornada: true }).fueraDeOpciones)} niños fuera de sus opciones y ${fmt(M({ jornada: true }).sinCupo)} sin ningún cupo cercano.
 
 ### Oferta y demanda por localidad (estudiantes nuevos, hoy)
 | Localidad | Solicitudes | Cupos | Cupos por solicitud | % sin cupo hoy |

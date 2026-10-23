@@ -67,6 +67,14 @@ export interface Resumen {
   unidad: string
   fuentes: Record<string, string>
   validacion_2025: Record<'local' | 'arterial', { graves_por_anio: Record<string, number>; tendencia_2025_vs_promedio: number }>
+  /** Presupuesto: la mejor combinación de esquinas (mochila con riesgo corregido) frente a una lista por conteo bruto */
+  asignacion_presupuesto?: Record<string, Record<string, Record<'optimo_mochila_eb' | 'lista_por_conteo_bruto', ListaPresupuesto>>>
+}
+
+export interface ListaPresupuesto {
+  sitios: number
+  promesa_evitados_anual: number
+  esperado_evitados_anual_eb: number
 }
 
 export type Bbox = [[number, number], [number, number]]

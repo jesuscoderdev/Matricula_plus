@@ -36,8 +36,8 @@ export default function Accion(props: PropsAccion) {
       <header className="panel__cabeza">
         <span className="kicker">{kicker('accion', localidad ?? undefined)}</span>
         <h1 className="display">Ahora, <em>tú</em> decides las reglas</h1>
-        <p className="lead">Con <b>asignación diferida</b> todas las familias piden a la vez y cada colegio se queda con las de más prioridad.
-          El orden de llegada deja de importar.</p>
+        <p className="lead">Todas las familias piden a la vez y cada colegio se queda con las de más prioridad. Después, Matrícula+ <b>optimiza</b>:
+          busca cambios entre opciones para que quepan más niños en los colegios que pidieron.</p>
       </header>
 
       <div className="grupo">

@@ -205,6 +205,74 @@ export function diferidaPorRondas(prefs: Int32Array, cl: Float64Array, cap: Int3
   return { asign, opcion, rondaPropuesta, rondaRechazo, rondas: ronda }
 }
 
+export interface Optimizacion { asign: Int32Array; opcion: Int8Array; movidos: number; ganados: number }
+
+/**
+ * Optimización de cupos (Matrícula+). Parte de una asignación (la diferida) y busca cadenas de
+ * cambios: un niño pasa a otra de SUS opciones que tiene cupo y deja su lugar a quien no tenía
+ * ninguno. Se repite hasta que no quede ninguna cadena; entonces el número de niños en alguna de sus
+ * opciones es el máximo posible con esos cupos (teorema de Berge, emparejamiento de cardinalidad
+ * máxima). Nadie que ya tenía cupo lo pierde: a lo sumo pasa a otra de las opciones que pidió.
+ * Se atiende primero a quien tiene más prioridad y, para abrir espacio, se mueve primero a quien
+ * tiene menos. `cl` es la clave de prioridad (menor = más prioridad), como en la diferida.
+ */
+export function optimizarCupos(prefs: Int32Array, cl: Float64Array, cap: Int32Array, asign0: Int32Array, opcion0: Int8Array,
+                               n: number, k: number, activas?: number[]): Optimizacion {
+  const asign = Int32Array.from(asign0), opcion = Int8Array.from(opcion0)
+  const S = cap.length
+  const libres = Int32Array.from(cap)
+  const inscritos: number[][] = Array.from({ length: S }, () => [])
+  const quienes = activas ?? Array.from({ length: n }, (_, i) => i)
+  for (const i of quienes) if (asign[i] >= 0) { libres[asign[i]]--; inscritos[asign[i]].push(i) }
+  // Para abrir espacio, primero se intenta mover a quien tiene menos prioridad en ese colegio
+  inscritos.forEach((l) => l.sort((a, b) => cl[b * k + opcion[b]] - cl[a * k + opcion[a]]))
+  const sinCupo = quienes.filter((i) => asign[i] < 0 && prefs[i * k] >= 0)
+  sinCupo.sort((a, b) => cl[a * k] - cl[b * k])            // más prioridad, primero
+  const muerta = new Uint8Array(S)                          // sin cadena posible: nunca la habrá
+  const visto = new Int32Array(S)
+  const via = new Int32Array(S)                             // niño que llega a la sede por una de sus opciones
+  const desde = new Int32Array(n)                           // sede de la que sale ese niño para abrir espacio
+  let marca = 0, movidos = 0, ganados = 0
+  const cola: number[] = []
+  for (const u of sinCupo) {
+    marca++
+    cola.length = 0
+    let fin = -1
+    for (let o = 0; o < k && fin < 0; o++) {
+      const s = prefs[u * k + o]
+      if (s < 0 || muerta[s] || visto[s] === marca) continue
+      visto[s] = marca; via[s] = u; cola.push(s)
+      if (libres[s] > 0) fin = s
+    }
+    for (let q = 0; q < cola.length && fin < 0; q++) {
+      const s = cola[q]
+      for (const x of inscritos[s]) {
+        for (let o = 0; o < k; o++) {
+          const s2 = prefs[x * k + o]
+          if (s2 < 0 || s2 === s || muerta[s2] || visto[s2] === marca) continue
+          visto[s2] = marca; via[s2] = x; desde[x] = s; cola.push(s2)
+          if (libres[s2] > 0) { fin = s2; break }
+        }
+        if (fin >= 0) break
+      }
+    }
+    if (fin < 0) { for (const s of cola) muerta[s] = 1; continue }
+    // Se recorre la cadena desde el final: cada niño pasa a la sede siguiente
+    libres[fin]--
+    let actual = fin
+    while (true) {
+      const x = via[actual]
+      const o = prefs.subarray(x * k, x * k + k).indexOf(actual)
+      if (x === u) { asign[u] = actual; opcion[u] = o; inscritos[actual].push(u); ganados++; break }
+      const anterior = desde[x]
+      const l = inscritos[anterior]; l.splice(l.indexOf(x), 1)
+      asign[x] = actual; opcion[x] = o; inscritos[actual].push(x); movidos++
+      actual = anterior
+    }
+  }
+  return { asign, opcion, movidos, ganados }
+}
+
 export interface Llegada { asign: Int32Array; opcion: Int8Array; turno: Int32Array }
 
 export function ordenLlegada(prefs: Int32Array, cap: Int32Array, llegada: number[], n: number, k: number): Llegada {
@@ -255,10 +323,11 @@ export function reubicarHoy(f: DatosFamilias, pos: [number, number][], cap: Int3
 
 /**
  * Matrícula+: los cupos libres se reparten con la misma regla de prioridad. Cada familia sin cupo
- * "pide" los colegios con cupo libre más cercanos (hasta R km) y se corre otra asignación diferida.
+ * "pide" los colegios con cupo libre más cercanos (hasta R km), se corre otra asignación diferida y
+ * se optimiza para reubicar al máximo de niños posible.
  */
 export function reubicarDiferida(f: DatosFamilias, at: Atributos, pos: [number, number][], cap: Int32Array,
-                                 fase1: Int32Array, radio: number, w: Pesos, pd: number, m = 8): Reubicacion {
+                                 fase1: Int32Array, radio: number, w: Pesos, pd: number, m = 12): Reubicacion {
   const libres = libresTras(cap, fase1)
   const conCupo: number[] = []
   libres.forEach((l, s) => { if (l > 0) conCupo.push(s) })
@@ -279,9 +348,11 @@ export function reubicarDiferida(f: DatosFamilias, at: Atributos, pos: [number, 
     })
   }
   const t = diferidaPorRondas(prefs, cl, libres, f.n, m, sin)
-  const asign = t.asign
+  // Y se optimiza: el máximo de niños reubicados con esos cupos libres
+  const opt = optimizarCupos(prefs, cl, libres, t.asign, t.opcion, f.n, m, sin)
+  const asign = opt.asign
   const dist = new Float64Array(f.n)
-  for (const i of sin) if (asign[i] >= 0) dist[i] = dd[i * m + t.opcion[i]]
+  for (const i of sin) if (asign[i] >= 0) dist[i] = dd[i * m + opt.opcion[i]]
   return { asign, dist }
 }
 
@@ -296,7 +367,8 @@ export interface Simulacion {
   pos: [number, number][]      // posición de cada colegio (con el nuevo al final)
   fase1: Int32Array            // sede en sus opciones (−1)
   opcion: Int8Array
-  traza: Traza | null          // solo diferida
+  traza: Traza | null          // solo Matrícula+: las rondas de la asignación diferida, antes de optimizar
+  optimizados: number          // solo Matrícula+: niños (familias) que entraron gracias a la optimización
   llegada: Llegada | null      // solo orden de llegada
   fase2: Reubicacion
 }
@@ -309,12 +381,14 @@ export function simular(f: DatosFamilias, ctx: Contexto, s: Supuestos, p: Politi
   const pos: [number, number][] = p.colegioNuevo ? [...ctx.posSedes, [p.colegioNuevo.lon, p.colegioNuevo.lat]] : ctx.posSedes
   if (p.mecanismo === 'llegada') {
     const l = ordenLlegada(pref.prefs, cap, f.llegada, f.n, pref.k)
-    return { politica: p, pref, at, cap, pos, fase1: l.asign, opcion: l.opcion, traza: null, llegada: l,
+    return { politica: p, pref, at, cap, pos, fase1: l.asign, opcion: l.opcion, traza: null, llegada: l, optimizados: 0,
       fase2: reubicarHoy(f, pos, cap, l.asign, s.radioReubicacionKm) }
   }
-  const t = diferidaPorRondas(pref.prefs, claves(f, at, pref, p.pesos, s.pesoDesempate), cap, f.n, pref.k)
-  return { politica: p, pref, at, cap, pos, fase1: t.asign, opcion: t.opcion, traza: t, llegada: null,
-    fase2: reubicarDiferida(f, at, pos, cap, t.asign, s.radioReubicacionKm, p.pesos, s.pesoDesempate) }
+  const cl = claves(f, at, pref, p.pesos, s.pesoDesempate)
+  const t = diferidaPorRondas(pref.prefs, cl, cap, f.n, pref.k)
+  const opt = optimizarCupos(pref.prefs, cl, cap, t.asign, t.opcion, f.n, pref.k)
+  return { politica: p, pref, at, cap, pos, fase1: opt.asign, opcion: opt.opcion, traza: t, llegada: null, optimizados: opt.ganados,
+    fase2: reubicarDiferida(f, at, pos, cap, opt.asign, s.radioReubicacionKm, p.pesos, s.pesoDesempate) }
 }
 
 export interface Metricas {
@@ -417,7 +491,8 @@ export function simularCaso(f: DatosFamilias, ctx: Contexto, s: Supuestos, p: Po
   // Matrícula+
   const cl = new Float64Array(n * k)
   for (let x = 0; x < n; x++) for (let o = 0; o < k; o++) cl[x * k + o] = clave(x, prefs[x * k + o], dist[x * k + o], fc, at2, p.pesos, s.pesoDesempate)
-  const t = diferidaPorRondas(prefs, cl, cap, n, k)
+  const d = diferidaPorRondas(prefs, cl, cap, n, k)
+  const t = optimizarCupos(prefs, cl, cap, d.asign, d.opcion, n, k)   // igual que Matrícula+ en el resto de la app
   const r2 = reubicarDiferida(fc, at2, pos, cap, t.asign, s.radioReubicacionKm, p.pesos, s.pesoDesempate)
   // Por qué no quedó en sus opciones anteriores: el colegio se llenó con familias de más prioridad
   const razones: ResultadoCaso['razones'] = []

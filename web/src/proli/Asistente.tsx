@@ -98,7 +98,7 @@ function sugerencias(pantalla: string): Sugerencia[] {
   if (pantalla.startsWith('Matrícula+')) return [
     { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: un simulador para comparar reglas de asignación de cupos escolares en Bogotá, con datos abiertos y familias sintéticas.' },
     { texto: 'Priorice a las familias vulnerables', ordenes: [{ nombre: 'matricula_reglas', entrada: { reglas: 'equidad' } }, { nombre: 'matricula_asignar', entrada: {} }],
-      sinConexion: 'Listo: reglas de Equidad. Mire en el mapa quién cabe ahora; reordenar no crea cupos, pero cambia quién queda.' },
+      sinConexion: 'Listo: reglas de Equidad. Matrícula+ optimiza para que quepan más niños en sus colegios, y primero las familias vulnerables.' },
     { texto: 'Ponga un colegio nuevo en Tibabuyes', ordenes: [{ nombre: 'matricula_colegio_nuevo', entrada: { ubicacion: 'tibabuyes' } }, { nombre: 'matricula_asignar', entrada: {} }],
       sinConexion: 'Listo: un colegio nuevo en Tibabuyes, en un proyecto real de la Secretaría de Educación. Mire cómo cambia la asignación.' },
     agenda('matricula'),

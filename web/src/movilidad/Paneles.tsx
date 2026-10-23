@@ -307,6 +307,8 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
   const e = p.escenarios[nivel]
   const niveles = Object.keys(p.escenarios) as Nivel[]
   const max = Math.max(e.se_esperaria_evitar_por_anio, e.la_practica_intuitiva_prometeria)
+  // Lo que en realidad evitaría la lista hecha a ojo (con el riesgo corregido), si el modelo lo trae
+  const ojoReal = datos.resumen.asignacion_presupuesto?.barrio?.[nivel]?.lista_por_conteo_bruto?.esperado_evitados_anual_eb
   return (
     <div className="panel">
       <Cabeza c="presupuesto" titulo={<>Con <em>{millones(e.presupuesto_millones)}</em></>}>
@@ -322,21 +324,28 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
       <Veredicto etiqueta={<>Con {millones(e.presupuesto_millones)} en reductores de velocidad</>}
                  cifra={`≈ ${entero(e.se_esperaria_evitar_por_anio)}`}
                  frase="siniestros graves menos al año en calles de barrio"
-                 nota={<>Alcanza para <b>{entero(e.esquinas)} esquinas de barrio</b>, las de mayor riesgo, a ≈ {entero(p.costo_por_esquina_millones)} millones
-                   cada una. Es una estimación: supone que cada obra reduce un {entero(p.reduccion_supuesta_pct)}% los siniestros con heridos.</>} />
-      <h2 className="subtitulo">¿Por qué no prometer más?</h2>
+                 nota={<>Es la <b>mejor combinación de esquinas</b> que alcanza con este presupuesto: {entero(e.esquinas)} esquinas de barrio, las de mayor
+                   riesgo corregido, a ≈ {entero(p.costo_por_esquina_millones)} millones cada una. Es una estimación: supone que cada obra reduce un
+                   {' '}{entero(p.reduccion_supuesta_pct)}% los siniestros con heridos.</>} />
+      <h2 className="subtitulo">¿Y si las esquinas se eligen a ojo?</h2>
       <div className="promesa promesa--sola">
         <div className="promesa__fila">
-          <span className="promesa__etiqueta">Eligiendo las esquinas a ojo, se prometería</span>
+          <span className="promesa__etiqueta">A ojo, se prometería</span>
           <span className="promesa__pista"><i className="promesa__barra promesa__barra--promete" style={{ width: ancho(e.la_practica_intuitiva_prometeria / max) }} /><b>{entero(e.la_practica_intuitiva_prometeria)}</b></span>
         </div>
+        {ojoReal != null && (
+          <div className="promesa__fila">
+            <span className="promesa__etiqueta">A ojo, en realidad se evitarían</span>
+            <span className="promesa__pista"><i className="promesa__barra promesa__barra--promete" style={{ width: ancho(ojoReal / max), opacity: 0.55 }} /><b>≈ {entero(ojoReal)}</b></span>
+          </div>
+        )}
         <div className="promesa__fila">
-          <span className="promesa__etiqueta">Con el método, se puede prometer</span>
-          <span className="promesa__pista"><i className="promesa__barra promesa__barra--ocurrio" style={{ width: ancho(e.se_esperaria_evitar_por_anio / max) }} /><b>{entero(e.se_esperaria_evitar_por_anio)}</b></span>
+          <span className="promesa__etiqueta">Con el método (optimizado)</span>
+          <span className="promesa__pista"><i className="promesa__barra promesa__barra--ocurrio" style={{ width: ancho(e.se_esperaria_evitar_por_anio / max) }} /><b>≈ {entero(e.se_esperaria_evitar_por_anio)}</b></span>
         </div>
       </div>
-      <p className="lectura mov-sec">Una lista hecha a ojo promete <b>{entero(e.la_practica_intuitiva_prometeria)}</b> porque toma un año malo como si fuera lo normal.
-        El método corrige ese efecto: promete <b>{entero(e.se_esperaria_evitar_por_anio)}</b>, una cifra con la que se puede responder.</p>
+      <p className="lectura mov-sec">Elegir a ojo evitaría casi lo mismo, pero <b>promete {entero(e.la_practica_intuitiva_prometeria - (ojoReal ?? e.se_esperaria_evitar_por_anio))} siniestros
+        de más</b>: toma un año malo como si fuera lo normal. El método optimiza el presupuesto y dice cuánto se puede prometer de verdad.</p>
       <div className="aviso-mov" role="note"><b>Ojo:</b> {datos.fuentes.advertencia}</div>
       <p className="nota mov-sec">Obra supuesta: {p.intervencion}.</p>
       <div className="panel__pie">
