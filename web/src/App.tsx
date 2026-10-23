@@ -384,7 +384,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
       case 'metodo': return <Metodo {...props} />
       case 'caso': return <Caso {...props} caso={caso} setCaso={setCaso} ubicar={ubicar} res={resCaso} cual={cual} setCual={setCual} />
       case 'explorar': return <Explorar {...props} upz={upz} setUpz={setUpz} coloreo={coloreo} setColoreo={setColoreo} />
-      case 'agendar': return <Agendar />
+      case 'agendar': return <Agendar {...props} />
       default: return null
     }
   })()

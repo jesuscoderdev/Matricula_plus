@@ -390,7 +390,7 @@ export function Cierre({ datos, modo, ir, alInicio }: PropsMov) {
         <QrCita />
       </div>
       <div className="panel__pie">
-        {!totem && <button className="boton boton--violeta boton--ancho" onClick={() => window.open(URL_CITA, '_blank', 'noopener')}>Agendar una cita</button>}
+        {!totem && URL_CITA && <button className="boton boton--violeta boton--ancho" onClick={() => window.open(URL_CITA, '_blank', 'noopener')}>Agendar una cita</button>}
         {modo !== 'auto' && (
           <div className="fila">
             <button className="boton boton--claro" onClick={() => ir('portada')}>Ver de nuevo</button>

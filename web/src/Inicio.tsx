@@ -188,9 +188,9 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             <p className="llamado__titulo">{LLAMADO_INICIO.titulo}</p>
             <p className="nota">{LLAMADO_INICIO.texto}</p>
           </div>
-          {esTotem(modo)
+          {URL_CITA && (esTotem(modo)
             ? <Qr texto={URL_CITA} etiqueta={<>Escanee para<br /><b>agendar una cita</b></>} />
-            : <a className="boton boton--violeta" href={URL_CITA} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>}
+            : <a className="boton boton--violeta" href={URL_CITA} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>)}
         </motion.aside>
       </div>
       <PieEmpresa modo={modo} />

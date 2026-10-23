@@ -12,21 +12,30 @@ export const LEMA_EMPRESA = 'Innovación aplicada a retos de crecimiento'
 
 // --- Imágenes configurables (en web/public/) ---
 // Vacío = no se pide ningún archivo (así no hay errores en consola si todavía no existe).
-// QR del cierre: p. ej. './qr-cita.png'. Sin imagen se genera uno local con URL_CITA si
-// MOSTRAR_QR_GENERADO es true; si no, se muestra un recuadro de aviso.
+// QR del cierre: p. ej. './qr-cita.png'. Sin imagen se genera uno local con URL_CITA en cuanto
+// hay agenda o WhatsApp configurados (más abajo); si no, se muestra un recuadro de aviso.
 export const QR_IMAGEN = ''
-export const MOSTRAR_QR_GENERADO = false
 // Logo de la empresa: p. ej. './logo-proliferante.svg'. Vacío = nombre en texto.
 export const LOGO_IMAGEN = ''
 
 // URL que codifica el QR de la app en el celular (vacía = URL actual sin parámetros)
 export const URL_APP = ''
 
-// Agendar una cita. WHATSAPP: número internacional sin "+" (PENDIENTE: número real).
-export const WHATSAPP_CITA = '570000000000'
-export const CALENDLY_CITA = ''
-export const URL_CITA = CALENDLY_CITA ||
-  `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(`Hola ${EMPRESA}, quiero agendar una cita sobre ${APP_NAME}.`)}`
+// --- Agendar una cita ---
+// AGENDA_CITA: página de reservas del «Programa de citas» de Google Calendar de
+// paola.a@proliferante.com (p. ej. 'https://calendar.app.google/…'). Cada reserva cae en su
+// calendario con Google Meet y el visitante recibe la invitación por correo. PENDIENTE: enlace real.
+export const AGENDA_CITA = ''
+// WHATSAPP_CITA: número internacional, solo dígitos y sin "+" (p. ej. '573001234567'). PENDIENTE.
+// Es la segunda opción: el visitante escribe y, para que su cita también quede en el calendario,
+// la app le ofrece después la página de reservas (y conviene que la respuesta automática de
+// WhatsApp Business de Proliferante incluya ese mismo enlace).
+export const WHATSAPP_CITA = ''
+/** El destino de los QR y botones de cita: primero el calendario; si no hay, WhatsApp. */
+export const URL_CITA = AGENDA_CITA ||
+  (WHATSAPP_CITA ? `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(`Hola ${EMPRESA}, quiero agendar una cita sobre ${APP_NAME}.`)}` : '')
+/** Con agenda o WhatsApp configurados, los QR de cita se generan solos (sin imagen aparte). */
+export const MOSTRAR_QR_GENERADO = !!URL_CITA
 
 /** Enlace de WhatsApp con un mensaje armado desde el formulario de cita. */
 export const whatsappCon = (mensaje: string) => `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(mensaje)}`

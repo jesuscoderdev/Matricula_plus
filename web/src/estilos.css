@@ -599,6 +599,8 @@ h1, h2, h3, p { margin: 0; }
 .lista-supuestos li::before { content: '—'; position: absolute; left: 0; color: var(--tenue); }
 
 .formulario { display: flex; flex-direction: column; gap: 0.7rem; }
+/* Agendar: la página de reservas (Google Calendar) es la opción principal */
+.agenda { display: flex; flex-direction: column; gap: 0.4rem; }
 .formulario label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.76rem; font-weight: 600; color: var(--suave); }
 .formulario input, .formulario textarea { font: inherit; font-size: 0.95rem; padding: 0.7rem 0.8rem; border: 1px solid var(--linea-2); border-radius: var(--r-chico); background: var(--blanco); color: var(--texto); }
 
