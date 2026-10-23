@@ -1216,3 +1216,10 @@ h1, h2, h3, p { margin: 0; }
 }
 /* La respuesta rápida a una propuesta de Proli: la acción principal, en índigo */
 .proli-panel__chip--si { background: var(--violeta); border-color: var(--violeta); color: #ffffff; }
+/* En vertical (tótem y celular) el panel se ubica sobre el mapa, con top/bottom medidos en Asistente.tsx,
+   para no tapar el texto y las cifras del capítulo */
+.proli-panel--sobre-mapa { max-height: none; }
+:root[data-modo='stand'] .proli-panel--sobre-mapa { max-height: none; }
+/* En celular, sobre el mapa, el botón cerrado es solo la cara de Proli para no tapar la leyenda */
+:root[data-modo='celular'] .proli-boton--sobre-mapa { padding: 0.3rem; }
+:root[data-modo='celular'] .proli-boton--sobre-mapa .proli-boton__texto { display: none; }

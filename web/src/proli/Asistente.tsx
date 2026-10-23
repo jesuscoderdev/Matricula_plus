@@ -28,6 +28,41 @@ const MAX_PASOS = 4            // vueltas de acciones por pregunta
 const MAX_PREGUNTAS = 12       // por conversación (en el stand, cada visitante tiene la suya)
 const PAUSA_ACCION_MS = 350    // entre acciones, para que la pantalla alcance a cambiar
 const SEGUNDOS_LECTURA = 20    // margen extra para leer la respuesta antes de la inactividad del tótem
+const ALTO_MINIMO_PX = 340     // si el mapa es más bajo, el panel cubre también la cabecera
+const MARGEN_PX = 8
+const BOTON_SOBRE_MAPA_PX = 36 // el botón cerrado, en el borde inferior del mapa (sobre la atribución)
+
+/**
+ * En pantallas verticales (tótem y celular) los demos ponen el mapa arriba y el texto con las cifras
+ * abajo. El panel (y el botón, cerrado) se acomodan sobre el mapa para no tapar el texto: mide el mapa en vivo (cambia de
+ * alto según el capítulo) y devuelve dónde ubicarse. En escritorio, o fuera de los demos, no aplica.
+ */
+function useZonaSobreMapa(activo: boolean, pantalla: string) {
+  const [zona, setZona] = useState<{ top: number; bottom: number } | null>(null)
+  useEffect(() => {
+    if (!activo) { setZona(null); return }
+    let mapa: Element | null = null
+    const medir = () => {
+      // Solo en capítulos: en la portada de cada demo el mapa ocupa toda la pantalla y no hay panel debajo
+      const r = document.querySelector('.escena__panel') ? mapa?.getBoundingClientRect() : null
+      if (!r || r.height === 0) { setZona(null); return }
+      const top = r.height >= ALTO_MINIMO_PX ? r.top + MARGEN_PX : MARGEN_PX
+      setZona({ top, bottom: Math.max(MARGEN_PX, window.innerHeight - r.bottom + MARGEN_PX) })
+    }
+    const obs = new ResizeObserver(medir)
+    // El demo puede tardar en montarse (o cambiar de demo): se busca el mapa hasta encontrarlo
+    const buscar = () => {
+      const nuevo = document.querySelector('.escena__mapa')
+      if (nuevo !== mapa) { if (mapa) obs.unobserve(mapa); mapa = nuevo; if (mapa) obs.observe(mapa) }
+      medir()
+    }
+    buscar()
+    const id = window.setInterval(buscar, 500)
+    window.addEventListener('resize', medir)
+    return () => { window.clearInterval(id); window.removeEventListener('resize', medir); obs.disconnect() }
+  }, [activo, pantalla])
+  return zona
+}
 const URL = './api/proli'
 
 interface Linea { quien: 'visitante' | 'proli' | 'accion' | 'aviso'; texto: string }
@@ -115,6 +150,7 @@ export default function Asistente() {
   const preguntas = useRef(0)
   const cancelar = useRef<AbortController | null>(null)
   const refLista = useRef<HTMLDivElement>(null)
+  const zona = useZonaSobreMapa(modo !== 'escritorio' && modo !== 'auto', pantalla)
 
   const reiniciar = useCallback(() => {
     cancelar.current?.abort()
@@ -220,7 +256,8 @@ export default function Asistente() {
     <>
       <AnimatePresence>
         {!abierto && (
-          <motion.button type="button" className="proli-boton" onClick={() => setAbierto(true)} aria-label="Hablar con Proli"
+          <motion.button type="button" className={`proli-boton ${zona ? 'proli-boton--sobre-mapa' : ''}`} onClick={() => setAbierto(true)} aria-label="Hablar con Proli"
+                         style={zona ? { bottom: zona.bottom + BOTON_SOBRE_MAPA_PX } : undefined}
                          initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
             <img src={imagenProli} alt="" draggable={false} />
             <span className="proli-boton__texto">Pregúntele a Proli</span>
@@ -229,7 +266,8 @@ export default function Asistente() {
       </AnimatePresence>
       <AnimatePresence>
         {abierto && (
-          <motion.section className="proli-panel" role="dialog" aria-label="Conversación con Proli"
+          <motion.section className={`proli-panel ${zona ? 'proli-panel--sobre-mapa' : ''}`} role="dialog" aria-label="Conversación con Proli"
+                          style={zona ? { top: zona.top, bottom: zona.bottom } : undefined}
                           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
                           transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
             <header className="proli-panel__cabeza">
