@@ -52,6 +52,8 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ reglas: { type: 'string', enum: ['equilibrada', 'cercania', 'familias', 'equidad'] } })),
   h('matricula_colegio_nuevo', 'Matrícula+: pone (o quita) un colegio nuevo de 1.200 cupos en uno de los proyectos reales de la Secretaría de Educación, en el capítulo Acción.',
     objeto({ ubicacion: { type: 'string', enum: ['tibabuyes', 'suba', 'bosa', 'kennedy', 'ciudad_bolivar', 'ninguno'] } })),
+  h('matricula_colegio_sugerido', 'Matrícula+: pone el colegio nuevo donde más niños entran a alguno de los colegios que pidieron: en la localidad que el visitante eligió (el mejor proyecto de la SED o el mejor lugar que encuentra la simulación) o, sin localidad, el mejor proyecto de la SED para Bogotá. Devuelve dónde quedó y cuántos niños ayuda.',
+    objeto({})),
   h('matricula_jornada_unica', 'Matrícula+: activa o desactiva la jornada única (−10 % de capacidad en todas las sedes) en el capítulo Acción.',
     objeto({ activa: { type: 'boolean' } })),
   h('matricula_resultados', 'Matrícula+: calcula, con la misma simulación que muestra la pantalla y con las reglas y supuestos que el visitante tiene ahora, los resultados de una localidad, de toda Bogotá o de la zona crítica (hoy frente a las reglas elegidas: fuera de sus opciones, primera opción, sin cupo cercano, vulnerables, viajes largos). Úsala para responder cifras por localidad o con reglas distintas. Con mostrar=true además lleva al visitante al capítulo Resultado de ese lugar.',

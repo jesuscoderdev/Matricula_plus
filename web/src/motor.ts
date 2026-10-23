@@ -51,8 +51,9 @@ export interface Supuestos {
 
 export interface Pesos { cercania: number; hermanos: number; vulnerabilidad: number }
 
-/** Colegio nuevo: uno de los proyectos de la SED (clave) o un punto cualquiera del mapa. */
-export interface ColegioNuevo { clave: string | null; lon: number; lat: number }
+/** Colegio nuevo: uno de los proyectos de la SED (clave) o un punto del mapa (el visitante lo
+ * pone, o la simulación lo sugiere: entonces trae `etiqueta`, p. ej. «Mejor lugar en Usme»). */
+export interface ColegioNuevo { clave: string | null; lon: number; lat: number; etiqueta?: string }
 
 export interface Politica {
   mecanismo: 'llegada' | 'diferida'

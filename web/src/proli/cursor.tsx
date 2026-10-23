@@ -23,6 +23,7 @@ export function selectorDe(o: Orden): string | null {
     case 'matricula_capitulo': case 'movilidad_capitulo': return `[data-proli="cap-${v('capitulo')}"]`
     case 'matricula_reglas': return `[data-proli="reglas-${v('reglas')}"]`
     case 'matricula_colegio_nuevo': return `[data-proli="colegio-${v('ubicacion')}"]`
+    case 'matricula_colegio_sugerido': return '[data-proli="colegio-sugerido"], [data-proli="colegio-tibabuyes"]'
     case 'matricula_jornada_unica': return '[data-proli="jornada"]'
     case 'matricula_asignar': return '[data-proli="asignar"]'
     case 'movilidad_presupuesto': return `[data-proli="presupuesto-${v('nivel')}"]`

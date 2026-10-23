@@ -18,6 +18,7 @@ import Laboratorio from './capitulos/Laboratorio'
 import Metodo from './capitulos/Metodo'
 import Caso, { alternarColegio, casoInicial, cercanos, resolverCaso, viajeDe, type Cual, type EstadoCaso } from './capitulos/Caso'
 import Explorar from './capitulos/Explorar'
+import { calcularOpciones, recordarOpciones } from './colegioNuevo'
 import Agendar from './capitulos/Agendar'
 import { informarPantalla, registrar } from './proli/ordenes'
 
@@ -156,6 +157,8 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
   refSupuestos.current = supuestos
   const refPalancas = useRef(palancas)
   refPalancas.current = palancas
+  const refLocalidad = useRef(localidad)
+  refLocalidad.current = localidad
   useEffect(() => {
     if (!datos) return
     const vistas: Vista[] = ['portada', ...CAPITULOS.map((c) => c.id), 'caso', 'explorar', 'agendar']
@@ -188,6 +191,17 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
           if (!u) return 'Ubicación no reconocida.'
           cambiarPalancas({ colegioNuevo: { clave: u.clave, lon: u.lon, lat: u.lat } }); refIr.current('accion')
           return `Listo: colegio nuevo de ${u.cupos} cupos en ${u.etiqueta}.`
+        }
+        case 'matricula_colegio_sugerido': {
+          // Donde más rinde para la localidad elegida (o el mejor proyecto SED para Bogotá)
+          const pa = refPalancas.current, su = refSupuestos.current, loc = refLocalidad.current
+          if (!pa || !su) return 'La pantalla todavía no está lista.'
+          const ops = calcularOpciones(datos, su, pa.pesos, pa.jornadaUnica, loc)
+          recordarOpciones(su, pa.pesos, pa.jornadaUnica, loc, ops)
+          const mejor = ops.reduce((a, b) => (b.ninos > a.ninos ? b : a), ops[0])
+          if (!mejor) return 'No encontré un lugar.'
+          cambiarPalancas({ colegioNuevo: mejor.colegio }); refIr.current('accion')
+          return `Listo: colegio nuevo en ${mejor.etiqueta}${mejor.real ? ' (proyecto real de la SED)' : ' (lugar sugerido por la simulación)'}: ${mejor.ninos.toLocaleString('es-CO')} niños${loc ? ` de ${loc}` : ''} más entran a alguno de los colegios que pidieron.`
         }
         case 'matricula_jornada_unica': {
           if (typeof e.activa !== 'boolean') return 'Valor no reconocido.'
@@ -234,7 +248,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
     const cap = CAPITULOS.find((c) => c.id === vista)?.nombre
       ?? { portada: 'portada', caso: 'Simula una familia', explorar: 'Explorar', agendar: 'Agendar' }[vista as string] ?? vista
     const reglas = datos.indice.presets.find((x) => x.clave === palancas.preset)?.etiqueta ?? 'personalizadas'
-    const nuevo = palancas.colegioNuevo ? `, colegio nuevo en ${datos.indice.colegio_nuevo.find((x) => x.clave === palancas.colegioNuevo!.clave)?.etiqueta ?? 'un punto del mapa'}` : ''
+    const nuevo = palancas.colegioNuevo ? `, colegio nuevo en ${datos.indice.colegio_nuevo.find((x) => x.clave === palancas.colegioNuevo!.clave)?.etiqueta ?? palancas.colegioNuevo.etiqueta ?? 'un punto del mapa'}` : ''
     informarPantalla(`Matrícula+, capítulo ${cap}${localidad ? `, localidad ${localidad}` : ''}, reglas ${reglas}${nuevo}${palancas.jornadaUnica ? ', jornada única' : ''}`)
   }, [datos, vista, localidad, palancas])
 

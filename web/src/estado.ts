@@ -81,7 +81,7 @@ export const nombreColegio = (d: Datos, s: number) => (s < d.familias.n_sedes ? 
 export function describir(d: Datos, p: Palancas) {
   const preset = d.indice.presets.find((x) => x.clave === p.preset)
   const nuevo = p.colegioNuevo
-    ? (d.indice.colegio_nuevo.find((c) => c.clave === p.colegioNuevo!.clave)?.etiqueta ?? 'un punto elegido en el mapa')
+    ? (d.indice.colegio_nuevo.find((c) => c.clave === p.colegioNuevo!.clave)?.etiqueta ?? p.colegioNuevo.etiqueta ?? 'un punto elegido en el mapa')
     : null
   return [
     `Prioridad ${preset ? preset.etiqueta.toLowerCase() : 'personalizada'}`,

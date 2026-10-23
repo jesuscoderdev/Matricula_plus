@@ -53,10 +53,9 @@ export function guia(pantalla: string, paso: number): Paso | null {
         ],
       }
       if (paso === 1) return {
-        pregunta: '¿Sumamos un colegio nuevo?',
+        pregunta: conLocalidad ? '¿Sumamos un colegio nuevo donde más rinde para esta localidad?' : '¿Sumamos un colegio nuevo donde más rinde?',
         opciones: [
-          { texto: 'Sí, en Tibabuyes', ordenes: [o('matricula_colegio_nuevo', { ubicacion: 'tibabuyes' })], respuesta: 'Puse un colegio nuevo en Tibabuyes, un proyecto real de la SED.' },
-          { texto: 'Sí, en Bosa', ordenes: [o('matricula_colegio_nuevo', { ubicacion: 'bosa' })], respuesta: 'Puse un colegio nuevo en Bosa, un proyecto real de la SED.' },
+          { texto: 'Sí, donde más rinde', ordenes: [o('matricula_colegio_sugerido')], respuesta: 'Lo puse donde más niños entran a sus colegios. Debajo de cada opción ve cuántos.' },
           { texto: 'No por ahora', ordenes: [o('matricula_colegio_nuevo', { ubicacion: 'ninguno' })], respuesta: 'Sin colegio nuevo: solo cambian las reglas.' },
         ],
       }

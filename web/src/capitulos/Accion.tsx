@@ -1,5 +1,6 @@
 import { decimal, entero } from '../datos'
 import { NIVELES_PESO } from '../estado'
+import { useOpcionesColegio, type OpcionColegio } from '../colegioNuevo'
 import { kicker, type PropsCapitulo } from './tipos'
 
 export interface PropsAccion extends PropsCapitulo {
@@ -30,6 +31,12 @@ export default function Accion(props: PropsAccion) {
     return n.reduce((mejor, x, i) => (Math.abs(x - v) < Math.abs(n[mejor] - v) ? i : mejor), 0)
   }
   const preset = presets.find((p) => p.clave === palancas.preset)
+  // Colegio nuevo: según la localidad elegida (proyectos SED que le ayudan + el mejor lugar)
+  const opciones = useOpcionesColegio(datos, supuestos, palancas.pesos, palancas.jornadaUnica, localidad)
+  const activa = (o: OpcionColegio) => !!nuevo && (o.real ? nuevo.clave === o.colegio.clave
+    : !nuevo.clave && nuevo.lon === o.colegio.lon && nuevo.lat === o.colegio.lat)
+  const propio = !!nuevo && !nuevo.clave && !nuevo.etiqueta
+  const haySugerido = !!opciones?.some((o) => !o.real)
 
   return (
     <div className="panel">
@@ -66,22 +73,27 @@ export default function Accion(props: PropsAccion) {
       </div>
 
       <div className="grupo">
-        <div className="grupo__titulo"><b>Un colegio nuevo</b><span>+{entero(supuestos.cuposColegioNuevo)} cupos · proyectos reales SED</span></div>
+        <div className="grupo__titulo"><b>Un colegio nuevo</b>
+          <span>+{entero(supuestos.cuposColegioNuevo)} cupos · {localidad ? <>dónde más rinde para <b>{localidad}</b></> : 'proyectos reales de la SED'}</span></div>
         <div className="chips">
           <button data-proli="colegio-ninguno" className={`chip ${!nuevo ? 'chip--activo' : ''}`} onClick={() => { cambiarPalancas({ colegioNuevo: null }); setEligiendoPunto(false) }} disabled={auto}>Ninguno</button>
-          {datos.indice.colegio_nuevo.map((c) => (
-            <button key={c.clave} data-proli={`colegio-${c.clave}`} className={`chip chip--violeta ${nuevo?.clave === c.clave ? 'chip--activo' : ''}`} disabled={auto}
-                    onClick={() => { cambiarPalancas({ colegioNuevo: { clave: c.clave, lon: c.lon, lat: c.lat } }); setEligiendoPunto(false) }}>
-              {c.etiqueta}
+          {opciones ? opciones.map((o) => (
+            <button key={o.etiqueta} data-proli={o.real ? `colegio-${o.colegio.clave}` : 'colegio-sugerido'} disabled={auto}
+                    className={`chip chip--violeta chip--colegio ${activa(o) ? 'chip--activo' : ''}`}
+                    onClick={() => { cambiarPalancas({ colegioNuevo: o.colegio }); setEligiendoPunto(false) }}>
+              {o.real ? o.etiqueta : <>★ {o.etiqueta}</>}
+              <small>{o.ninos > 0 ? `+${entero(o.ninos)} niños en sus colegios` : 'casi no cambia aquí'}</small>
             </button>
-          ))}
+          )) : <span className="chip chip--calculando">Calculando dónde rinde más…</span>}
           {!auto && (
-            <button className={`chip chip--violeta ${eligiendoPunto || (nuevo && !nuevo.clave) ? 'chip--activo' : ''}`}
+            <button className={`chip chip--violeta ${eligiendoPunto || propio ? 'chip--activo' : ''}`}
                     onClick={() => setEligiendoPunto(!eligiendoPunto)}>
-              ⌖ {nuevo && !nuevo.clave ? 'En tu punto' : 'Ponlo en el mapa'}
+              ⌖ {propio ? 'En tu punto' : 'Ponlo en el mapa'}
             </button>
           )}
         </div>
+        {haySugerido && <small className="nota">★ Lugar sugerido por la simulación, no un lote real{opciones!.some((o) => o.real) ? '; los demás son proyectos reales de la SED' : ''}.
+          Las cifras son niños de {localidad} que entran a alguno de los colegios que pidieron.</small>}
       </div>
 
       <button data-proli="jornada" className={`interruptor ${palancas.jornadaUnica ? 'interruptor--on' : ''}`} role="switch" aria-checked={palancas.jornadaUnica}
