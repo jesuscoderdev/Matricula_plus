@@ -106,7 +106,8 @@ export function PortadaMov({ datos, modo, ir, alInicio, alPortada }: PropsMov) {
         {totem && (
           <div className="fila fila--entre">
             <span className="toca">{modo === 'auto' ? 'Recorrido automático' : 'Toque para empezar'}</span>
-            <Proli tamano={6} lado="derecha" globo={<>Hola, soy <b>Proli</b>. ¿Dónde haría usted una obra de seguridad vial?</>} />
+            {/* En el tótem táctil saluda el Proli flotante; en el automático (sin flotante), este */}
+            {modo === 'auto' && <Proli tamano={6} lado="derecha" globo={<>Hola, soy <b>Proli</b>. ¿Dónde haría usted una obra de seguridad vial?</>} />}
           </div>
         )}
       </div>

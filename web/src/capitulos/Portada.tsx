@@ -50,7 +50,8 @@ export default function Portada({ datos, r, modo, ir, alInicio, alPortada }: Pro
         {totem && (
           <div className="fila fila--entre">
             <span className="toca">{modo === 'auto' ? 'Recorrido automático' : 'Toca para empezar'}</span>
-            <Proli tamano={6} lado="derecha" globo={<>Hola, soy <b>Proli</b>. Te muestro cómo se reparten los cupos.</>} />
+            {/* En el tótem táctil saluda el Proli flotante; en el automático (sin flotante), este */}
+            {modo === 'auto' && <Proli tamano={6} lado="derecha" globo={<>Hola, soy <b>Proli</b>. Te muestro cómo se reparten los cupos.</>} />}
           </div>
         )}
       </div>

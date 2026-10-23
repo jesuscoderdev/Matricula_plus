@@ -313,7 +313,8 @@ export default function Asistente() {
     }
   }, [ocupado, responderSinConexion])
 
-  if (modo === 'auto' || pantalla === 'portada del stand') return null
+  // Ni en la portada del stand ni en «Conozca a Proli»: ahí Proli ya es el protagonista de la pantalla
+  if (modo === 'auto' || pantalla === 'portada del stand' || pantalla === 'Conozca a Proli') return null
   // Si Proli terminó proponiendo algo («¿Lo llevo a Resultados?»), se acepta con un toque
   const ultima = lineas[lineas.length - 1]
   const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && ultima.texto.trim().endsWith('?')
