@@ -30,7 +30,7 @@ export const AGENDA_CITA = ''
 // Es la segunda opción: el visitante escribe y, para que su cita también quede en el calendario,
 // la app le ofrece después la página de reservas (y conviene que la respuesta automática de
 // WhatsApp Business de Proliferante incluya ese mismo enlace).
-export const WHATSAPP_CITA = ''
+export const WHATSAPP_CITA = '573125888421'
 /** El destino de los QR y botones de cita: primero el calendario; si no hay, WhatsApp. */
 export const URL_CITA = AGENDA_CITA ||
   (WHATSAPP_CITA ? `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(`Hola ${EMPRESA}, quiero agendar una cita sobre ${APP_NAME}.`)}` : '')
