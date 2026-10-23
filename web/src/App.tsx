@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { cargarDatos, decimal, type Datos } from './datos'
-import { palancasIniciales, supuestosIniciales, useResultados, type Palancas } from './estado'
-import type { ColegioNuevo, Supuestos } from './motor'
+import { cargarDatos, decimal, entero, type Datos } from './datos'
+import { describir, metricasDe, palancasIniciales, supuestosIniciales, useResultados, type Palancas } from './estado'
+import type { ColegioNuevo, Metricas, Supuestos } from './motor'
 import { DURACION_PASOS, EMPRESA, SEGUNDOS_INACTIVIDAD, URL_EMPRESA } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import MapaEscena from './mapa/MapaEscena'
@@ -147,6 +147,13 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
   // validar localidades y opciones; lo que llegó mientras cargaba se aplica en ese momento.
   const refIr = useRef(ir)
   refIr.current = ir
+  // Lo último calculado, para que Proli lea los mismos resultados que muestra la pantalla
+  const refR = useRef(r)
+  refR.current = r
+  const refSupuestos = useRef(supuestos)
+  refSupuestos.current = supuestos
+  const refPalancas = useRef(palancas)
+  refPalancas.current = palancas
   useEffect(() => {
     if (!datos) return
     const vistas: Vista[] = ['portada', ...CAPITULOS.map((c) => c.id), 'caso', 'explorar', 'agendar']
@@ -184,6 +191,31 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta }: {
           if (typeof e.activa !== 'boolean') return 'Valor no reconocido.'
           cambiarPalancas({ jornadaUnica: e.activa }); refIr.current('accion')
           return `Listo: jornada única ${e.activa ? 'activada' : 'desactivada'}.`
+        }
+        case 'matricula_resultados': {
+          // Las mismas cifras del capítulo Resultado, con las reglas y supuestos que el visitante tiene ahora
+          const res = refR.current, s = refSupuestos.current, p = refPalancas.current
+          if (!res || !s || !p) return 'Los resultados todavía se están calculando; intente de nuevo en un momento.'
+          const donde = String(e.ambito)
+          let m: { hoy: Metricas; pol: Metricas }
+          let nombre: string
+          if (donde === 'BOGOTA') { m = res.bogota; nombre = 'Bogotá' }
+          else if (donde === 'ZONA_CRITICA') { m = res.zona; nombre = 'la zona crítica (Tibabuyes y El Rincón)' }
+          else if (datos.localidades.includes(donde)) { m = metricasDe(datos, res, s, donde); nombre = donde }
+          else return 'Localidad no reconocida en Matrícula+.'
+          if (e.mostrar === true) {
+            if (donde !== 'BOGOTA' && donde !== 'ZONA_CRITICA') setLocalidad(donde)
+            setAlcance(donde === 'BOGOTA' ? 'bogota' : donde === 'ZONA_CRITICA' ? 'zona' : 'localidad')
+            refIr.current('resultado')
+          }
+          const par = (k: 'pctFueraDeOpciones' | 'pctPrimera' | 'pctSinCupo' | 'pctVulnerablesFuera' | 'pctViajeLargo') =>
+            `hoy ${decimal(m.hoy[k])} % → con estas reglas ${decimal(m.pol[k])} %`
+          return `Consulté los resultados de ${nombre}${e.mostrar === true ? ' y los muestro en Resultados' : ''} | `
+            + `Simulación en pantalla para ${nombre} (${describir(datos, p)}; ${s.opciones} opciones por familia; «hoy» = asignación actual por orden de llegada): `
+            + `${entero(m.hoy.estudiantes)} estudiantes nuevos. Fuera de todas sus opciones: ${par('pctFueraDeOpciones')} `
+            + `(${entero(m.hoy.fueraDeOpciones)} → ${entero(m.pol.fueraDeOpciones)} niños). En su primera opción: ${par('pctPrimera')}. `
+            + `Sin ningún cupo cercano tras la reubicación: ${par('pctSinCupo')}. Vulnerables fuera de sus opciones: ${par('pctVulnerablesFuera')}. `
+            + `Viajes de más de ${decimal(s.umbralViajeLargoKm)} km: ${par('pctViajeLargo')}.`
         }
         case 'matricula_asignar':
           refIr.current('accion')

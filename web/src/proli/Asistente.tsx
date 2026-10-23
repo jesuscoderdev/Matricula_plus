@@ -143,7 +143,7 @@ export default function Asistente() {
   const responderSinConexion = useCallback(async (s?: Sugerencia) => {
     setSinConexion(true)
     if (s) {
-      for (const o of s.ordenes ?? []) { ejecutar(o); await dormir(PAUSA_ACCION_MS) }
+      for (const o of s.ordenes ?? []) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
       agregar({ quien: 'proli', texto: s.sinConexion })
     } else {
       agregar({ quien: 'proli', texto: 'Ahora no tengo conexión para conversar, pero puedo llevarlo a donde quiera con estas opciones.' })
@@ -184,10 +184,11 @@ export default function Asistente() {
         if (!acciones.length) break
         const resultados: Anthropic.Beta.Messages.BetaToolResultBlockParam[] = []
         for (const a of acciones) {
-          const resultado = ejecutar({ nombre: a.name, entrada: (a.input ?? {}) as Record<string, unknown> })
+          const resultado = await ejecutar({ nombre: a.name, entrada: (a.input ?? {}) as Record<string, unknown> })
           resultados.push({ type: 'tool_result', tool_use_id: a.id, content: resultado })
-          // El visitante ve qué hizo Proli en la pantalla (y por qué cambió)
-          agregar({ quien: 'accion', texto: resultado.replace(/^Listo: /, '') })
+          // El visitante ve qué hizo Proli en la pantalla (y por qué cambió). Las consultas de cifras
+          // traen «resumen | detalle»: en el panel va solo el resumen; Proli recibe todo
+          agregar({ quien: 'accion', texto: resultado.split(' | ')[0].replace(/^Listo: /, '').replace(/ Listo: /, ' ') })
           await dormir(PAUSA_ACCION_MS)
         }
         historial.current.push({ role: 'user', content: resultados })
@@ -206,7 +207,13 @@ export default function Asistente() {
   }, [ocupado, responderSinConexion])
 
   if (modo === 'auto' || pantalla === 'portada del stand') return null
-  const opciones = sugerencias(pantalla)
+  // Si Proli terminó proponiendo algo («¿Lo llevo a Resultados?»), se acepta con un toque
+  const ultima = lineas[lineas.length - 1]
+  const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && ultima.texto.trim().endsWith('?')
+  const opciones: Sugerencia[] = [
+    ...(propuso ? [{ texto: 'Sí, muéstremelo', sinConexion: 'Ahora no tengo conexión para hacerlo, pero puede tocar la pantalla para llegar allí.' }] : []),
+    ...sugerencias(pantalla),
+  ]
 
   const enviar = (e: FormEvent) => { e.preventDefault(); preguntar(texto) }
   return (
@@ -244,8 +251,9 @@ export default function Asistente() {
               {ocupado && <span className="proli-panel__puntos" aria-hidden><i /><i /><i /></span>}
             </div>
             <div className="proli-panel__sugerencias">
-              {opciones.map((s) => (
-                <button key={s.texto} type="button" className="proli-panel__chip" disabled={ocupado} onClick={() => preguntar(s.texto, s)}>{s.texto}</button>
+              {opciones.map((s, i) => (
+                <button key={s.texto} type="button" className={`proli-panel__chip ${propuso && i === 0 ? 'proli-panel__chip--si' : ''}`}
+                        disabled={ocupado} onClick={() => preguntar(s.texto, s)}>{s.texto}</button>
               ))}
             </div>
             <form className="proli-panel__escribir" onSubmit={enviar}>

@@ -54,6 +54,8 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ ubicacion: { type: 'string', enum: ['tibabuyes', 'suba', 'bosa', 'kennedy', 'ciudad_bolivar', 'ninguno'] } })),
   h('matricula_jornada_unica', 'Matrícula+: activa o desactiva la jornada única (−10 % de capacidad en todas las sedes) en el capítulo Acción.',
     objeto({ activa: { type: 'boolean' } })),
+  h('matricula_resultados', 'Matrícula+: calcula, con la misma simulación que muestra la pantalla y con las reglas y supuestos que el visitante tiene ahora, los resultados de una localidad, de toda Bogotá o de la zona crítica (hoy frente a las reglas elegidas: fuera de sus opciones, primera opción, sin cupo cercano, vulnerables, viajes largos). Úsala para responder cifras por localidad o con reglas distintas. Con mostrar=true además lleva al visitante al capítulo Resultado de ese lugar.',
+    objeto({ ambito: { type: 'string', enum: [...LOCALIDADES_MATRICULA, 'BOGOTA', 'ZONA_CRITICA'] }, mostrar: { type: 'boolean' } })),
   h('matricula_asignar', 'Matrícula+: toca ▶ Asignar en el capítulo Acción para ver la asignación con las reglas elegidas, ronda por ronda.',
     objeto({})),
 ]

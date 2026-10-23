@@ -1214,3 +1214,5 @@ h1, h2, h3, p { margin: 0; }
 @media (prefers-reduced-motion: reduce) {
   .proli-panel__puntos i { animation: none; }
 }
+/* La respuesta rápida a una propuesta de Proli: la acción principal, en índigo */
+.proli-panel__chip--si { background: var(--violeta); border-color: var(--violeta); color: #ffffff; }
