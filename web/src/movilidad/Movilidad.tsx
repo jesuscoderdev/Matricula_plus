@@ -297,7 +297,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} nombre={NOMBRE_MOVILIDAD} />
           <nav className="capitulos" aria-label="Capítulos">
             {CAPITULOS_MOV.map((c, i) => (
-              <button key={c.id} disabled={modo === 'auto'} onClick={() => ir(c.id as CapituloMov)}
+              <button key={c.id} disabled={modo === 'auto'} onClick={() => ir(c.id as CapituloMov)} data-proli={`cap-${c.id}`}
                       className={`capitulo ${c.id === vista ? 'capitulo--actual' : iActual > i ? 'capitulo--hecho' : ''}`}>
                 <span className="capitulo__n">{numeroMov(c.id)}</span><span className="capitulo__nombre">{c.nombre}</span>
               </button>

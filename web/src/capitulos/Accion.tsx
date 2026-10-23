@@ -44,7 +44,7 @@ export default function Accion(props: PropsAccion) {
         <div className="grupo__titulo"><b>¿A quién priorizar?</b><span>{preset?.descripcion ?? 'Pesos personalizados'}</span></div>
         <div className="segmentos" style={{ gridAutoFlow: 'row', gridTemplateColumns: '1fr 1fr' }}>
           {presets.map((p) => (
-            <button key={p.clave} className={`segmento ${palancas.preset === p.clave ? 'segmento--activo' : ''}`}
+            <button key={p.clave} data-proli={`reglas-${p.clave}`} className={`segmento ${palancas.preset === p.clave ? 'segmento--activo' : ''}`}
                     onClick={() => elegirPreset(p.clave)} disabled={auto}>{p.etiqueta}</button>
           ))}
         </div>
@@ -68,9 +68,9 @@ export default function Accion(props: PropsAccion) {
       <div className="grupo">
         <div className="grupo__titulo"><b>Un colegio nuevo</b><span>+{entero(supuestos.cuposColegioNuevo)} cupos · proyectos reales SED</span></div>
         <div className="chips">
-          <button className={`chip ${!nuevo ? 'chip--activo' : ''}`} onClick={() => { cambiarPalancas({ colegioNuevo: null }); setEligiendoPunto(false) }} disabled={auto}>Ninguno</button>
+          <button data-proli="colegio-ninguno" className={`chip ${!nuevo ? 'chip--activo' : ''}`} onClick={() => { cambiarPalancas({ colegioNuevo: null }); setEligiendoPunto(false) }} disabled={auto}>Ninguno</button>
           {datos.indice.colegio_nuevo.map((c) => (
-            <button key={c.clave} className={`chip chip--violeta ${nuevo?.clave === c.clave ? 'chip--activo' : ''}`} disabled={auto}
+            <button key={c.clave} data-proli={`colegio-${c.clave}`} className={`chip chip--violeta ${nuevo?.clave === c.clave ? 'chip--activo' : ''}`} disabled={auto}
                     onClick={() => { cambiarPalancas({ colegioNuevo: { clave: c.clave, lon: c.lon, lat: c.lat } }); setEligiendoPunto(false) }}>
               {c.etiqueta}
             </button>
@@ -84,7 +84,7 @@ export default function Accion(props: PropsAccion) {
         </div>
       </div>
 
-      <button className={`interruptor ${palancas.jornadaUnica ? 'interruptor--on' : ''}`} role="switch" aria-checked={palancas.jornadaUnica}
+      <button data-proli="jornada" className={`interruptor ${palancas.jornadaUnica ? 'interruptor--on' : ''}`} role="switch" aria-checked={palancas.jornadaUnica}
               onClick={() => cambiarPalancas({ jornadaUnica: !palancas.jornadaUnica })} disabled={auto}>
         <span className="interruptor__texto"><b>Jornada única en todos los colegios</b>
           <span>Más horas de clase, pero −{decimal(100 * supuestos.reduccionJornada)}% de cupos</span></span>
@@ -105,7 +105,7 @@ export default function Accion(props: PropsAccion) {
         <div className="panel__pie">
           {terminado && asignado
             ? <button className="boton boton--violeta boton--ancho boton--latir" onClick={() => ir('resultado')}>Ver el resultado →</button>
-            : <button className="boton boton--ancho" onClick={asignar}>{asignado ? '↻ Asignar de nuevo' : '▶ Asignar con estas reglas'}</button>}
+            : <button className="boton boton--ancho" onClick={asignar} data-proli="asignar">{asignado ? '↻ Asignar de nuevo' : '▶ Asignar con estas reglas'}</button>}
           {terminado && asignado && <button className="boton-texto" onClick={asignar}>↻ Ver la asignación otra vez</button>}
         </div>
       )}

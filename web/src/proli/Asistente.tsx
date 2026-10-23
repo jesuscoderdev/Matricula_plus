@@ -1,6 +1,8 @@
 /**
- * Proli, el asistente: botón flotante y panel de conversación, presentes en todas las pantallas
- * salvo la portada (pantalla de atracción) y el modo automático (no hay visitante).
+ * Proli, el asistente: siempre en pantalla (salvo la portada, que es la pantalla de atracción, y el
+ * modo automático, donde no hay visitante). Proli parpadea, habla y, con la guía paso a paso
+ * (guia.ts), pregunta qué probar según lo que se ve; al elegir, vuela hasta el control y lo cambia
+ * (cursor.tsx). Al tocarlo se abre el panel de conversación.
  *
  * Conversación: el navegador guarda el historial y lo manda a /api/proli (api/proli.ts), que llama a
  * Claude. Cuando Proli pide acciones (tool_use), se ejecutan aquí con src/proli/ordenes.ts y se le
@@ -17,9 +19,11 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type Anthropic from '@anthropic-ai/sdk'
-import imagenProli from '../assets/proli.webp'
+import ProliAnimado from '../componentes/ProliAnimado'
 import { leerModo } from '../modo'
 import { ejecutar, leerPantalla, usePantalla, type Orden } from './ordenes'
+import { CursorProli, useVolando } from './cursor'
+import { capituloDe, guia, type Opcion } from './guia'
 
 type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
 type Bloque = Anthropic.Beta.Messages.BetaContentBlock
@@ -31,6 +35,7 @@ const SEGUNDOS_LECTURA = 20    // margen extra para leer la respuesta antes de l
 const ALTO_MINIMO_PX = 340     // si el mapa es más bajo, el panel cubre también la cabecera
 const MARGEN_PX = 8
 const BOTON_SOBRE_MAPA_PX = 36 // el botón cerrado, en el borde inferior del mapa (sobre la atribución)
+const SEGUNDOS_RESPUESTA = 2.8 // cuánto se ve lo que Proli dice al aplicar una opción de la guía
 
 /**
  * Cuando un demo pone el mapa arriba y el texto con las cifras abajo (tótem, celular o cualquier
@@ -155,6 +160,17 @@ export default function Asistente() {
   const cancelar = useRef<AbortController | null>(null)
   const refLista = useRef<HTMLDivElement>(null)
   const zona = useZonaSobreMapa(modo !== 'auto', pantalla)
+  const volando = useVolando()
+  // Guía paso a paso: el paso vuelve a 0 al cambiar de capítulo; el globo se puede ocultar hasta entonces
+  const lugar = `${pantalla.split(',')[0]}|${capituloDe(pantalla)}`
+  const [paso, setPaso] = useState(0)
+  const [globoOculto, setGloboOculto] = useState(false)
+  const [respuesta, setRespuesta] = useState('')
+  const [guiando, setGuiando] = useState(false)
+  const lugarActual = useRef(lugar)
+  lugarActual.current = lugar
+  useEffect(() => { setPaso(0); setGloboOculto(false) }, [lugar])
+  const pasoGuia = guia(pantalla, paso)
 
   const reiniciar = useCallback(() => {
     cancelar.current?.abort()
@@ -189,6 +205,19 @@ export default function Asistente() {
       agregar({ quien: 'proli', texto: 'Ahora no tengo conexión para conversar, pero puedo llevarlo a donde quiera con estas opciones.' })
     }
   }, [])
+
+  /** Una opción de la guía: Proli lo dice, vuela a cada control, lo cambia y pasa a la pregunta siguiente. */
+  const elegir = useCallback(async (op: Opcion) => {
+    if (guiando || ocupado) return
+    const desde = lugarActual.current
+    setGuiando(true); setRespuesta(op.respuesta); avisarActividad()
+    if (abierto) { agregar({ quien: 'visitante', texto: op.texto }); agregar({ quien: 'proli', texto: op.respuesta }) }
+    for (const o of op.ordenes) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
+    // Si la opción llevó a otro capítulo, la guía ya empezó de cero allí: no se avanza
+    if (lugarActual.current === desde) setPaso((x) => x + 1)
+    setGuiando(false); avisarActividad()
+    window.setTimeout(() => setRespuesta(''), SEGUNDOS_RESPUESTA * 1000)
+  }, [guiando, ocupado, abierto])
 
   const preguntar = useCallback(async (pregunta: string, s?: Sugerencia) => {
     if (ocupado || !pregunta.trim()) return
@@ -258,14 +287,35 @@ export default function Asistente() {
   const enviar = (e: FormEvent) => { e.preventDefault(); preguntar(texto) }
   return (
     <>
+      <CursorProli />
       <AnimatePresence>
         {!abierto && (
-          <motion.button type="button" className={`proli-boton ${zona ? 'proli-boton--sobre-mapa' : ''}`} onClick={() => setAbierto(true)} aria-label="Hablar con Proli"
-                         style={zona ? { bottom: zona.bottom + BOTON_SOBRE_MAPA_PX } : undefined}
-                         initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
-            <img src={imagenProli} alt="" draggable={false} />
-            <span className="proli-boton__texto">Pregúntele a Proli</span>
-          </motion.button>
+          <motion.div className={`proli-flotante ${zona ? 'proli-flotante--sobre-mapa' : ''}`}
+                      style={{ ...(zona ? { bottom: zona.bottom + BOTON_SOBRE_MAPA_PX } : {}), opacity: volando ? 0 : 1 }}
+                      initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}>
+            <AnimatePresence mode="wait">
+              {(respuesta || (pasoGuia && !globoOculto)) && (
+                <motion.div key={respuesta || pasoGuia!.pregunta} className="proli-flotante__globo" role="status"
+                            initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 6 }}>
+                  {respuesta ? <p>{respuesta}</p> : (
+                    <>
+                      <button type="button" className="proli-flotante__ocultar" onClick={() => setGloboOculto(true)} aria-label="Ocultar la pregunta">×</button>
+                      <p>{pasoGuia!.pregunta}</p>
+                      <div className="proli-flotante__opciones">
+                        {pasoGuia!.opciones.map((op) => (
+                          <button key={op.texto} type="button" className="proli-panel__chip" disabled={guiando} onClick={() => elegir(op)}>{op.texto}</button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            <button type="button" className="proli-flotante__boton" onClick={() => setAbierto(true)} aria-label="Hablar con Proli">
+              <span className="proli-flotante__figura"><ProliAnimado tamano={3.6} hablando={!!respuesta} /></span>
+              <span className="proli-flotante__texto">Pregúntele a Proli</span>
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
       <AnimatePresence>
@@ -275,7 +325,7 @@ export default function Asistente() {
                           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
                           transition={{ type: 'spring', stiffness: 260, damping: 26 }}>
             <header className="proli-panel__cabeza">
-              <img src={imagenProli} alt="" className="proli-panel__avatar" draggable={false} />
+              <ProliAnimado tamano={2.6} hablando={ocupado || !!respuesta} className="proli-panel__avatar" />
               <div>
                 <b>Proli</b>
                 <small>{ocupado ? 'Escribiendo…' : sinConexion ? 'Sin conexión: respuestas guardadas' : 'Su guía en el stand'}</small>
@@ -292,6 +342,16 @@ export default function Asistente() {
               ))}
               {ocupado && <span className="proli-panel__puntos" aria-hidden><i /><i /><i /></span>}
             </div>
+            {pasoGuia && (
+              <div className="proli-panel__guia">
+                <span>{pasoGuia.pregunta}</span>
+                <div className="proli-panel__sugerencias">
+                  {pasoGuia.opciones.map((op) => (
+                    <button key={op.texto} type="button" className="proli-panel__chip proli-panel__chip--si" disabled={guiando || ocupado} onClick={() => elegir(op)}>{op.texto}</button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="proli-panel__sugerencias">
               {opciones.map((s, i) => (
                 <button key={s.texto} type="button" className={`proli-panel__chip ${propuso && i === 0 ? 'proli-panel__chip--si' : ''}`}

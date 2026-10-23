@@ -154,6 +154,7 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             <motion.button
               key={p.id}
               type="button"
+              data-proli={`demo-${p.id === 'educacion' ? 'matricula' : p.id}`}
               className={`proyecto proyecto--${p.variante} ${p.proximamente ? 'proyecto--pronto' : ''} ${siguiente === p.id ? 'proyecto--siguiente' : ''}`}
               disabled={p.proximamente || modo === 'auto'}
               onClick={() => alEntrar(p.id)}

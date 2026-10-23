@@ -71,6 +71,7 @@ const PALETA = {
   },
 }
 const alfa = (c: RGBA | RGB, a: number): RGBA => [c[0], c[1], c[2], a]
+const colorCss = (c: RGBA | RGB) => `rgb(${c[0]},${c[1]},${c[2]})`
 
 // ---------------------------------------------------------------- utilidades
 function useTamano<T extends HTMLElement>() {
@@ -628,10 +629,10 @@ export default function MapaEscena(props: Props) {
       {enProceso && (
         <div className="mapa__contadores">
           {fase === 'llegada' && t < T1 && <span className="cont"><b>{entero(cuadro.c.llegaron * epf)}</b> llegaron</span>}
-          <span className="cont"><i style={{ background: 'rgb(69,50,184)' }} /><b>{entero(cuadro.c.conColegio * epf)}</b> en sus opciones</span>
-          {cuadro.c.buscando > 0 && <span className="cont"><i style={{ background: 'rgb(240,140,80)' }} /><b>{entero(cuadro.c.buscando * epf)}</b> {fase === 'llegada' ? 'sin cupo en sus opciones' : 'buscando'}</span>}
-          {cuadro.c.reubicados > 0 && <span className="cont"><i style={{ background: 'rgb(38,132,132)' }} /><b>{entero(cuadro.c.reubicados * epf)}</b> reubicados</span>}
-          {cuadro.c.sinCupo > 0 && <span className="cont"><i style={{ background: 'rgb(224,102,42)' }} /><b>{entero(cuadro.c.sinCupo * epf)}</b> sin cupo</span>}
+          <span className="cont"><i style={{ background: colorCss(COLOR.primera) }} /><b>{entero(cuadro.c.conColegio * epf)}</b> en sus opciones</span>
+          {cuadro.c.buscando > 0 && <span className="cont"><i style={{ background: colorCss(COLOR.rechazo) }} /><b>{entero(cuadro.c.buscando * epf)}</b> {fase === 'llegada' ? 'sin cupo en sus opciones' : 'buscando'}</span>}
+          {cuadro.c.reubicados > 0 && <span className="cont"><i style={{ background: colorCss(COLOR.reubicado) }} /><b>{entero(cuadro.c.reubicados * epf)}</b> reubicados</span>}
+          {cuadro.c.sinCupo > 0 && <span className="cont"><i style={{ background: colorCss(COLOR.sin) }} /><b>{entero(cuadro.c.sinCupo * epf)}</b> sin cupo</span>}
         </div>
       )}
 

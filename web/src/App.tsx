@@ -414,7 +414,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
           <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} />
           <nav className="capitulos" aria-label="Capítulos">
             {CAPITULOS.map((c, i) => (
-              <button key={c.id} disabled={modo === 'auto'} onClick={() => ir(c.id as Capitulo)}
+              <button key={c.id} disabled={modo === 'auto'} onClick={() => ir(c.id as Capitulo)} data-proli={`cap-${c.id}`}
                       className={`capitulo ${c.id === vista ? 'capitulo--actual' : iActual > i ? 'capitulo--hecho' : ''}`}>
                 <span className="capitulo__n">{numeroDe(c.id)}</span><span className="capitulo__nombre">{c.nombre}</span>
               </button>
@@ -423,7 +423,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
           {extras.length > 0 && (
             <div className="cabecera__extra">
               {extras.map((x) => (
-                <button key={x.id} className={`boton-extra ${vista === x.id ? 'boton-extra--activo' : ''}`} onClick={() => ir(x.id)}>{x.nombre}</button>
+                <button key={x.id} className={`boton-extra ${vista === x.id ? 'boton-extra--activo' : ''}`} onClick={() => ir(x.id)} data-proli={`cap-${x.id}`}>{x.nombre}</button>
               ))}
             </div>
           )}

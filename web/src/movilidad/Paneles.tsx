@@ -217,8 +217,8 @@ export function Anio({ datos, modo, ir, tocadas, anio, setAnio }: PropsMov) {
       <div className="panel__pie">
         {modo !== 'auto' && (
           <div className="segmentos" role="group" aria-label="Año en el mapa">
-            <button className={`segmento ${anio === 'k24' ? 'segmento--activo' : ''}`} onClick={() => setAnio('k24')}>Mapa {a0}</button>
-            <button className={`segmento ${anio === 'k25' ? 'segmento--activo' : ''}`} onClick={() => setAnio('k25')}>Mapa {a1}</button>
+            <button data-proli="anio-2024" className={`segmento ${anio === 'k24' ? 'segmento--activo' : ''}`} onClick={() => setAnio('k24')}>Mapa {a0}</button>
+            <button data-proli="anio-2025" className={`segmento ${anio === 'k25' ? 'segmento--activo' : ''}`} onClick={() => setAnio('k25')}>Mapa {a1}</button>
           </div>
         )}
         {modo !== 'auto' && <button className="boton boton--ancho" onClick={() => ir('giro')}>¿Qué significa? →</button>}
@@ -282,8 +282,8 @@ export function Metodo({ datos, modo, ir, zona, setZona }: PropsMov) {
       </Cabeza>
       {modo !== 'auto' && (
         <div className="segmentos" role="group" aria-label="Tipo de vía">
-          <button className={`segmento ${zona === 'barrio' ? 'segmento--activo' : ''}`} onClick={() => setZona('barrio')}>Calles de barrio</button>
-          <button className={`segmento ${zona === 'avenidas' ? 'segmento--activo' : ''}`} onClick={() => setZona('avenidas')}>Avenidas</button>
+          <button data-proli="zona-barrio" className={`segmento ${zona === 'barrio' ? 'segmento--activo' : ''}`} onClick={() => setZona('barrio')}>Calles de barrio</button>
+          <button data-proli="zona-avenidas" className={`segmento ${zona === 'avenidas' ? 'segmento--activo' : ''}`} onClick={() => setZona('avenidas')}>Avenidas</button>
         </div>
       )}
       <div className="promesas">
@@ -313,7 +313,7 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
       </Cabeza>
       <div className="segmentos" role="group" aria-label="Presupuesto">
         {niveles.map((n) => (
-          <button key={n} className={`segmento ${n === nivel ? 'segmento--activo' : ''}`} disabled={modo === 'auto'} onClick={() => setNivel(n)}>
+          <button key={n} data-proli={`presupuesto-${n}`} className={`segmento ${n === nivel ? 'segmento--activo' : ''}`} disabled={modo === 'auto'} onClick={() => setNivel(n)}>
             ${entero(p.escenarios[n].presupuesto_millones)}<small>millones</small>
           </button>
         ))}

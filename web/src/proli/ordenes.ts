@@ -12,6 +12,7 @@
  * También guarda «qué está viendo el visitante» (informarPantalla), que Proli recibe como contexto.
  */
 import { useSyncExternalStore } from 'react'
+import { selectorDe, senalar, visible } from './cursor'
 
 export type Ambito = 'inicio' | 'movilidad' | 'matricula'
 export interface Orden { nombre: string; entrada: Record<string, unknown> }
@@ -43,14 +44,28 @@ export function registrar(ambito: Ambito, manejador: Manejador): () => void {
 }
 
 /**
- * Ejecuta una orden de Proli y devuelve qué pasó, en una frase (o las cifras que pidió). Si el demo
- * no está abierto, lo abre y espera a que cargue para responder con el resultado real.
+ * Ejecuta una orden de Proli y devuelve qué pasó, en una frase (o las cifras que pidió). Antes,
+ * Proli vuela hasta el control que va a cambiar y lo toca (cursor.tsx); si el control todavía no
+ * está en pantalla, lo toca cuando aparece, como confirmación.
  */
-export function ejecutar(orden: Orden): Promise<string> {
+export async function ejecutar(orden: Orden): Promise<string> {
+  const selector = selectorDe(orden)
+  const estaba = !!selector && !!visible(selector)
+  if (estaba) await senalar(selector!)
+  const r = await aplicarOrden(orden)
+  if (selector && !estaba) {
+    await new Promise((ok) => setTimeout(ok, 450))   // a que la pantalla cambie
+    if (visible(selector)) await senalar(selector)
+  }
+  return r
+}
+
+/** Aplica la orden. Si el demo no está abierto, lo abre y espera a que cargue para responder con el resultado real. */
+function aplicarOrden(orden: Orden): Promise<string> {
   // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
     const demo = orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad'
-    return ejecutar(demo === 'movilidad'
+    return aplicarOrden(demo === 'movilidad'
       ? { nombre: 'movilidad_capitulo', entrada: { capitulo: 'cierre' } }
       : { nombre: 'matricula_capitulo', entrada: { capitulo: 'agendar' } })
   }
