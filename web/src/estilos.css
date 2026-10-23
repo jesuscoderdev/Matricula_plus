@@ -368,6 +368,26 @@ h1, h2, h3, p { margin: 0; }
 }
 .lectura b { font-weight: 600; }
 
+/* Veredicto: el resultado en grande (cifra en el verde del foco sobre navy, como el manual) */
+.veredicto {
+  display: flex; flex-direction: column; gap: 0.6rem; padding: 1.1rem 1.2rem 1.15rem; border-radius: var(--r);
+  background: var(--tarjeta-tinta); color: #fff; box-shadow: var(--sombra);
+}
+.veredicto__etiqueta { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--p-azul); }
+.veredicto__principal { display: flex; align-items: baseline; gap: 0.3rem 0.8rem; flex-wrap: wrap; }
+.veredicto__cifra { font-family: var(--f-display); font-weight: 700; font-size: 3.6rem; line-height: 0.95; color: var(--p-verde); font-variant-numeric: lining-nums tabular-nums; }
+.veredicto--peor .veredicto__cifra { color: var(--p-azul); }
+.veredicto--igual .veredicto__cifra { color: #fff; }
+.veredicto__frase { flex: 1 1 12rem; font-family: var(--f-display); font-weight: 600; font-size: 1.2rem; line-height: 1.2; }
+.veredicto__de-a { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; padding-top: 0.6rem; border-top: 1px solid rgba(199, 215, 236, 0.25); }
+.veredicto__de-a span { display: flex; flex-direction: column; gap: 0.1rem; }
+.veredicto__de-a small { font-size: 0.7rem; color: var(--p-azul); }
+.veredicto__de-a b { font-size: 1.05rem; font-weight: 700; }
+.veredicto__de-a i { font-style: normal; color: var(--p-verde); font-size: 1.2rem; }
+.veredicto__nota { font-size: 0.82rem; line-height: 1.45; color: #e6eef8; }
+.veredicto__nota b { color: #fff; }
+.subtitulo { font-family: var(--f-display); font-weight: 600; font-size: 1rem; color: var(--tinta); margin-top: 0.3rem; }
+
 /* Barras apiladas: dónde queda cada niño */
 .reparto { display: flex; flex-direction: column; gap: 0.45rem; }
 .reparto__fila { display: grid; grid-template-columns: 5.6rem 1fr; gap: 0.6rem; align-items: center; font-size: 0.74rem; }

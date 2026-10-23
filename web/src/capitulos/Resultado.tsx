@@ -1,8 +1,8 @@
-import type { ReactNode } from 'react'
 import { decimal, entero } from '../datos'
 import { describir, metricasDe, type Palancas } from '../estado'
 import type { Metricas, Supuestos } from '../motor'
 import Comparacion, { Reparto } from '../componentes/Comparacion'
+import Veredicto from '../componentes/Veredicto'
 import { kicker, type PropsCapitulo } from './tipos'
 
 export type Alcance = 'localidad' | 'bogota' | 'zona'
@@ -13,22 +13,34 @@ export interface PropsResultado extends PropsCapitulo {
   setColoreo: (c: 'hoy' | 'pol') => void
 }
 
-/** La lectura en una frase: qué cambió en cuántos y qué cambió en quiénes. */
-export function lectura(hoy: Metricas, pol: Metricas, p: Palancas, s: Supuestos): ReactNode[] {
-  const out: ReactNode[] = []
+/**
+ * El veredicto: la cifra que más cambió, en niños y en palabras simples. Primero «cuántos» entran
+ * a sus colegios; si eso casi no cambia (reordenar no crea cupos), «quiénes»: los vulnerables.
+ */
+function veredicto(hoy: Metricas, pol: Metricas, p: Palancas, s: Supuestos, nombre: string): Parameters<typeof Veredicto>[0] {
   const dF = pol.pctFueraDeOpciones - hoy.pctFueraDeOpciones
-  const n = Math.abs(hoy.fueraDeOpciones - pol.fueraDeOpciones)
-  if (Math.abs(dF) < 1) out.push(<>Casi los mismos niños quedan fuera de sus opciones ({decimal(hoy.pctFueraDeOpciones)}% → {decimal(pol.pctFueraDeOpciones)}%): <b>reordenar no crea cupos</b>.</>)
-  else if (dF < 0) out.push(<><b>{entero(n)} niños menos</b> quedan fuera de sus opciones ({decimal(hoy.pctFueraDeOpciones)}% → {decimal(pol.pctFueraDeOpciones)}%).</>)
-  else out.push(<><b>{entero(n)} niños más</b> quedan fuera de sus opciones{p.jornadaUnica ? ': la jornada única quita cupos' : ''}.</>)
+  const nF = Math.abs(hoy.fueraDeOpciones - pol.fueraDeOpciones)
+  const nV = hoy.vulnerablesFuera - pol.vulnerablesFuera
   const dV = pol.pctVulnerablesFuera - hoy.pctVulnerablesFuera
-  const dL = pol.pctViajeLargo - hoy.pctViajeLargo
-  const quien: ReactNode[] = []
-  if (dV < -2) quien.push(<>los vulnerables fuera pasan de {decimal(hoy.pctVulnerablesFuera)}% a <b>{decimal(pol.pctVulnerablesFuera)}%</b></>)
-  if (dL < -0.8) quien.push(<>los viajes de más de {decimal(s.umbralViajeLargoKm)} km bajan de {decimal(hoy.pctViajeLargo)}% a <b>{decimal(pol.pctViajeLargo)}%</b></>)
-  if (quien.length) out.push(<> Lo que sí cambia es <b>quién</b> cabe: {quien[0]}{quien[1] && <> y {quien[1]}</>}.</>)
-  if (!p.colegioNuevo && Math.abs(dF) < 1) out.push(<> Para que quepan más niños hace falta capacidad: prueba un colegio nuevo.</>)
-  return out
+  const etiqueta = <>Con tus reglas, en {nombre}</>
+  const fuera = { antes: { etiqueta: 'Hoy no entran a sus colegios', valor: `${decimal(hoy.pctFueraDeOpciones)}%` },
+    despues: { etiqueta: 'Con Matrícula+', valor: `${decimal(pol.pctFueraDeOpciones)}%` } }
+  if (dF <= -1) return { etiqueta, ...fuera, cifra: entero(nF), frase: 'niños más entran a uno de los colegios que pidieron',
+    nota: p.colegioNuevo ? <>El colegio nuevo suma {entero(s.cuposColegioNuevo)} cupos: <b>más capacidad sí cambia cuántos caben</b>.</> : undefined }
+  if (dF >= 1) return { etiqueta, ...fuera, tono: 'peor', cifra: entero(nF), frase: 'niños más se quedan sin ninguno de los colegios que pidieron',
+    nota: p.jornadaUnica
+      ? <>La jornada única quita el {entero(100 * s.reduccionJornada)}% de los cupos: más horas de clase, <b>menos niños por colegio</b>.</>
+      : dV <= -2 && nV > 0
+        ? <>A cambio, <b>{entero(nV)} niños vulnerables menos</b> quedan por fuera ({decimal(hoy.pctVulnerablesFuera)}% → {decimal(pol.pctVulnerablesFuera)}%).
+            Es la decisión de a quién priorizar; un colegio nuevo sí suma cupos.</>
+        : 'Estas reglas dejan a más niños por fuera. Prueba otra prioridad o un colegio nuevo.' }
+  const mismos = <>En total quedan por fuera casi los mismos niños ({decimal(hoy.pctFueraDeOpciones)}% → {decimal(pol.pctFueraDeOpciones)}%):
+    las reglas deciden <b>quién</b> entra, no cuántos caben. Para que quepan más hace falta capacidad, como un colegio nuevo.</>
+  if (dV <= -2 && nV > 0) return { etiqueta, cifra: entero(nV), frase: 'niños vulnerables menos se quedan sin ninguno de los colegios que pidieron',
+    antes: { etiqueta: 'Hoy quedan por fuera', valor: `${decimal(hoy.pctVulnerablesFuera)}% de los vulnerables` },
+    despues: { etiqueta: 'Con Matrícula+', valor: `${decimal(pol.pctVulnerablesFuera)}%` }, nota: mismos }
+  return { etiqueta, ...fuera, tono: 'igual', cifra: '≈ 0', frase: 'cambio en cuántos niños entran a sus colegios',
+    nota: <>Con estas reglas el resultado casi no cambia. Prueba la prioridad <b>Equidad</b> o un colegio nuevo.</> }
 }
 
 /** 03 — Resultado: hoy vs Matrícula+ en la localidad, en Bogotá y en la zona crítica. */
@@ -51,12 +63,14 @@ export default function Resultado(props: PropsResultado) {
         <button className={`segmento ${a === 'bogota' ? 'segmento--activo' : ''}`} onClick={() => setAlcance('bogota')} disabled={auto}>Bogotá</button>
         <button className={`segmento ${a === 'zona' ? 'segmento--activo' : ''}`} onClick={() => setAlcance('zona')} disabled={auto}>Zona crítica</button>
       </div>
-      <p className="lectura">{lectura(m.hoy, m.pol, palancas, supuestos)}</p>
+      <Veredicto {...veredicto(m.hoy, m.pol, palancas, supuestos, nombre!)} />
+      <h2 className="subtitulo">Dónde queda cada niño</h2>
       <Reparto hoy={m.hoy} pol={m.pol} />
+      <h2 className="subtitulo">Todas las cifras</h2>
       <Comparacion hoy={m.hoy} pol={m.pol} s={supuestos} zona={a === 'bogota' ? r.zona : undefined}
                    solo={modo === 'escritorio' ? undefined : ['pctFueraDeOpciones', 'pctPrimera', 'pctSinCupo', 'pctVulnerablesFuera', 'pctViajeLargo']} />
-      <p className="nota">Quien no cabe en sus opciones es <b>reubicado</b> en el colegio con cupo más cercano (hasta {decimal(supuestos.radioReubicacionKm)} km), como hace la SED;
-        si no hay, queda <b>sin cupo</b>. <span className="acento">Hoy por orden de llegada; con Matrícula+, por prioridad.</span></p>
+      <p className="nota">Cómo leerlo: quien no entra a ninguno de sus colegios es <b>reubicado</b> por la SED en el colegio con cupo más cercano
+        (hasta {decimal(supuestos.radioReubicacionKm)} km); si no hay, se queda <b>sin colegio cerca</b>. <span className="acento">Hoy se reparte por orden de llegada; con Matrícula+, por prioridad.</span></p>
       {!auto && (
         <div className="panel__pie">
           <div className="segmentos">

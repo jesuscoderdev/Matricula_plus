@@ -10,6 +10,7 @@ import type { ReactNode } from 'react'
 import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from '../componentes/Marca'
 import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
+import Veredicto from '../componentes/Veredicto'
 import { ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, TITULO_MOVILIDAD, URL_CITA } from '../config'
 import { esTotem, type Modo } from '../modo'
 import { entero, millones, nombreLocalidad, pct, pctFraccion, type DatosMovilidad, type Nivel } from './datos'
@@ -305,7 +306,6 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
   const e = p.escenarios[nivel]
   const niveles = Object.keys(p.escenarios) as Nivel[]
   const max = Math.max(e.se_esperaria_evitar_por_anio, e.la_practica_intuitiva_prometeria)
-  const frase = p.como_decirlo.replace('X', entero(e.se_esperaria_evitar_por_anio))
   return (
     <div className="panel">
       <Cabeza c="presupuesto" titulo={<>Con <em>{millones(e.presupuesto_millones)}</em></>}>
@@ -318,26 +318,24 @@ export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
           </button>
         ))}
       </div>
-      <div className="datos-linea">
-        <div><b>{entero(e.esquinas)}</b><span>esquinas de barrio</span></div>
-        <div><b>≈ {entero(p.costo_por_esquina_millones)}</b><span>millones por esquina</span></div>
-        <div><b>{pct(-p.reduccion_supuesta_pct)}</b><span>siniestros con heridos (supuesto)</span></div>
-      </div>
-      <div className="gran-cifra gran-cifra--mov">
-        <span className="gran-cifra__n">≈ {entero(e.se_esperaria_evitar_por_anio)}</span>
-        <span className="gran-cifra__t">siniestros graves al año se esperaría evitar, con estos supuestos.</span>
-      </div>
+      <Veredicto etiqueta={<>Con {millones(e.presupuesto_millones)} en reductores de velocidad</>}
+                 cifra={`≈ ${entero(e.se_esperaria_evitar_por_anio)}`}
+                 frase="siniestros graves menos al año en calles de barrio"
+                 nota={<>Alcanza para <b>{entero(e.esquinas)} esquinas de barrio</b>, las de mayor riesgo, a ≈ {entero(p.costo_por_esquina_millones)} millones
+                   cada una. Es una estimación: supone que cada obra reduce un {entero(p.reduccion_supuesta_pct)}% los siniestros con heridos.</>} />
+      <h2 className="subtitulo">¿Por qué no prometer más?</h2>
       <div className="promesa promesa--sola">
         <div className="promesa__fila">
-          <span className="promesa__etiqueta">La práctica intuitiva prometería</span>
+          <span className="promesa__etiqueta">Eligiendo las esquinas a ojo, se prometería</span>
           <span className="promesa__pista"><i className="promesa__barra promesa__barra--promete" style={{ width: ancho(e.la_practica_intuitiva_prometeria / max) }} /><b>{entero(e.la_practica_intuitiva_prometeria)}</b></span>
         </div>
         <div className="promesa__fila">
-          <span className="promesa__etiqueta">Lo que se puede prometer</span>
+          <span className="promesa__etiqueta">Con el método, se puede prometer</span>
           <span className="promesa__pista"><i className="promesa__barra promesa__barra--ocurrio" style={{ width: ancho(e.se_esperaria_evitar_por_anio / max) }} /><b>{entero(e.se_esperaria_evitar_por_anio)}</b></span>
         </div>
       </div>
-      <p className="lectura mov-sec">{frase}</p>
+      <p className="lectura mov-sec">Una lista hecha a ojo promete <b>{entero(e.la_practica_intuitiva_prometeria)}</b> porque toma un año malo como si fuera lo normal.
+        El método corrige ese efecto: promete <b>{entero(e.se_esperaria_evitar_por_anio)}</b>, una cifra con la que se puede responder.</p>
       <div className="aviso-mov" role="note"><b>Ojo:</b> {datos.fuentes.advertencia}</div>
       <p className="nota mov-sec">Obra supuesta: {p.intervencion}.</p>
       <div className="panel__pie">

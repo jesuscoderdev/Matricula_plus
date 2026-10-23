@@ -329,6 +329,7 @@ export interface Metricas {
   pctVulnerablesFuera: number    // vulnerables fuera de sus opciones
   fueraDeOpciones: number        // estudiantes
   sinCupo: number                // estudiantes
+  vulnerablesFuera: number       // estudiantes vulnerables fuera de sus opciones
 }
 
 export function metricas(f: DatosFamilias, sim: Simulacion, s: Supuestos, incluir: (i: number) => boolean = () => true): Metricas {
@@ -353,7 +354,7 @@ export function metricas(f: DatosFamilias, sim: Simulacion, s: Supuestos, inclui
     familias: n, estudiantes: n * e,
     pctPrimera: pct(primera, n), pctFueraDeOpciones: pct(fuera, n), pctReubicados: pct(reub, n), pctSinCupo: pct(sin, n),
     distanciaKm: conCol ? distSuma / conCol : 0, pctViajeLargo: pct(largos, conCol), pctVulnerablesFuera: pct(vulFuera, vul),
-    fueraDeOpciones: fuera * e, sinCupo: sin * e,
+    fueraDeOpciones: fuera * e, sinCupo: sin * e, vulnerablesFuera: vulFuera * e,
   }
 }
 

@@ -6,11 +6,11 @@ type Clave = 'pctPrimera' | 'pctFueraDeOpciones' | 'pctSinCupo' | 'distanciaKm' 
 interface Fila { clave: Clave; nombre: string; detalle?: string; mejorSiBaja: boolean; km?: boolean }
 
 export const filasMetricas = (s: Supuestos): Fila[] => [
-  { clave: 'pctFueraDeOpciones', nombre: 'Fuera de sus opciones', detalle: `no quedan en ninguno de sus ${s.opciones} colegios`, mejorSiBaja: true },
-  { clave: 'pctPrimera', nombre: 'En su 1.ª opción', mejorSiBaja: false },
-  { clave: 'pctSinCupo', nombre: 'Sin ningún cupo cercano', detalle: `ni siquiera reubicados a ≤ ${decimal(s.radioReubicacionKm)} km`, mejorSiBaja: true },
-  { clave: 'pctVulnerablesFuera', nombre: 'Vulnerables fuera de sus opciones', mejorSiBaja: true },
-  { clave: 'pctViajeLargo', nombre: `Viajan más de ${decimal(s.umbralViajeLargoKm)} km`, mejorSiBaja: true },
+  { clave: 'pctFueraDeOpciones', nombre: 'No entran a ninguno de sus colegios', detalle: `de los ${s.opciones} que pidieron`, mejorSiBaja: true },
+  { clave: 'pctPrimera', nombre: 'Entran a su primera opción', mejorSiBaja: false },
+  { clave: 'pctSinCupo', nombre: 'Se quedan sin colegio cerca', detalle: `ni con la reubicación (hasta ${decimal(s.radioReubicacionKm)} km)`, mejorSiBaja: true },
+  { clave: 'pctVulnerablesFuera', nombre: 'Vulnerables que no entran a sus colegios', mejorSiBaja: true },
+  { clave: 'pctViajeLargo', nombre: `Viajan más de ${decimal(s.umbralViajeLargoKm)} km a su colegio`, mejorSiBaja: true },
   { clave: 'distanciaKm', nombre: 'Distancia promedio a su colegio', mejorSiBaja: true, km: true },
 ]
 
@@ -19,7 +19,7 @@ function Delta({ hoy, pol, mejorSiBaja, km }: { hoy: number; pol: number; mejorS
   const umbral = km ? 0.005 : 0.05
   if (Math.abs(d) < umbral) return <span className="delta delta--igual">= igual</span>
   const mejor = (d < 0) === mejorSiBaja
-  const v = km ? `${dosDecimales(Math.abs(d))} km` : `${decimal(Math.abs(d))} pp`
+  const v = km ? `${dosDecimales(Math.abs(d))} km` : `${decimal(Math.abs(d))} puntos`
   return <span className={`delta ${mejor ? 'delta--mejor' : 'delta--peor'}`}>{d < 0 ? '▼' : '▲'} {v} {mejor ? 'mejor' : 'peor'}</span>
 }
 
@@ -44,7 +44,7 @@ export default function Comparacion({ hoy, pol, s, zona, solo }: {
       ))}
       {zona && (
         <div className="metrica">
-          <span className="metrica__nombre">Zona crítica fuera de sus opciones<small>Tibabuyes y El Rincón (SED: insuficiencia muy alta)</small></span>
+          <span className="metrica__nombre">En la zona crítica, no entran a sus colegios<small>Tibabuyes y El Rincón (SED: insuficiencia muy alta)</small></span>
           <span className="metrica__v">{decimal(zona.hoy.pctFueraDeOpciones)}%</span>
           <span className="metrica__v metrica__v--pol">{decimal(zona.pol.pctFueraDeOpciones)}%
             <Delta hoy={zona.hoy.pctFueraDeOpciones} pol={zona.pol.pctFueraDeOpciones} mejorSiBaja /></span>
