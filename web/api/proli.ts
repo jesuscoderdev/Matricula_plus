@@ -24,7 +24,9 @@ const MODELO = 'claude-opus-5-5'
 const MAX_MENSAJES = 60            // una conversación de stand es corta; más es abuso
 const MAX_BYTES = 120_000          // tamaño máximo de la conversación que manda el navegador
 const MAX_TEXTO_USUARIO = 500      // caracteres por pregunta
-const PETICIONES_POR_VENTANA = 40  // por IP, cada 10 minutos (por instancia del servidor)
+// En el stand, el tótem y los celulares en el mismo Wi-Fi comparten IP, y cada pregunta hace hasta
+// 4 llamadas: el límite es holgado. El freno fino es la regla de límite del firewall de Vercel.
+const PETICIONES_POR_VENTANA = 300 // por IP, cada 10 minutos (por instancia del servidor)
 const VENTANA_MS = 10 * 60_000
 
 // Instrucciones + conocimiento: idénticos para todos los visitantes, así que se guardan en caché
