@@ -16,6 +16,7 @@ import Accion from './capitulos/Accion'
 import Resultado, { type Alcance } from './capitulos/Resultado'
 import Laboratorio from './capitulos/Laboratorio'
 import Metodo from './capitulos/Metodo'
+import Fuentes from './capitulos/Fuentes'
 import Caso, { alternarColegio, casoInicial, cercanos, resolverCaso, viajeDe, type Cual, type EstadoCaso } from './capitulos/Caso'
 import Explorar from './capitulos/Explorar'
 import { calcularOpciones, recordarOpciones } from './colegioNuevo'
@@ -381,7 +382,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
           margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * parseFloat(getComputedStyle(document.documentElement).fontSize)) }
             : { arriba: window.innerHeight * 0.3, abajo: window.innerHeight * 0.22 } }
       default:
-        return { ...base, escena: 'ciudad', coloreo: 'pol', localidad: null, respirar: vista === 'metodo' || vista === 'agendar' }
+        return { ...base, escena: 'ciudad', coloreo: 'pol', localidad: null, respirar: vista === 'metodo' || vista === 'fuentes' || vista === 'agendar' }
     }
   }, [vista, modo, localidad, palancas, supuestos, asignado, reproduccion, alTerminar, eligiendoPunto, coloreo, alcance, upz, caso, viaje, cual, ubicar, cambiarPalancas, datos])
 
@@ -405,6 +406,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
       case 'accion': return <Accion {...props} asignado={asignado} asignar={asignar} eligiendoPunto={eligiendoPunto} setEligiendoPunto={setEligiendoPunto} />
       case 'resultado': return <Resultado {...props} alcance={alcance} setAlcance={setAlcance} coloreo={coloreo} setColoreo={setColoreo} />
       case 'laboratorio': return <Laboratorio {...props} />
+      case 'fuentes': return <Fuentes {...props} />
       case 'metodo': return <Metodo {...props} />
       case 'caso': return <Caso {...props} caso={caso} setCaso={setCaso} ubicar={ubicar} res={resCaso} cual={cual} setCual={setCual} />
       case 'explorar': return <Explorar {...props} upz={upz} setUpz={setUpz} coloreo={coloreo} setColoreo={setColoreo} />

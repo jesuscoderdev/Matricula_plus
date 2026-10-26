@@ -497,7 +497,10 @@ h1, h2, h3, p { margin: 0; }
    ========================================================= */
 .escena { position: relative; }
 .escena--portada .escena__mapa { grid-area: 1 / 1 / -1 / -1; border: 0; }
-.portada { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+/* Si el contenido no cabe (pantallas bajas, celular), la portada se desplaza en vez de cortarse */
+.portada { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: space-between;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.portada > * { flex: none; }
 .portada__velo { position: absolute; inset: 0; background: linear-gradient(180deg, rgb(var(--papel-rgb) / 0.97) 0%, rgb(var(--papel-rgb) / 0.75) 38%, rgb(var(--papel-rgb) / 0.1) 58%, rgb(var(--papel-rgb) / 0.6) 74%, rgb(var(--papel-rgb) / 0.98) 88%); pointer-events: none; }
 .portada__contenido { position: relative; padding: 2rem 1.4rem 1rem; display: flex; flex-direction: column; gap: 1rem; }
 .portada__pie { position: relative; padding: 0 1.4rem 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
@@ -1408,3 +1411,15 @@ h1, h2, h3, p { margin: 0; }
 /* ¿Funcionó la obra?: las pruebas de que la caída no es de obras */
 .pruebas-mov { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.82rem; line-height: 1.4; color: var(--texto); }
 .pruebas-mov li::marker { color: var(--verde-texto); }
+/* Matrícula+ · Fuentes: cifras oficiales frente a cifras de la simulación */
+.cifras-tipo { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+.cifras-tipo__grupo { border-radius: var(--r); padding: 0.7rem 0.8rem; display: flex; flex-direction: column; gap: 0.1rem; font-size: 0.8rem; line-height: 1.35; }
+.cifras-tipo__grupo > b { font-size: 0.82rem; color: var(--tinta); }
+.cifras-tipo__grupo > small { font-size: 0.68rem; color: var(--suave); margin-bottom: 0.35rem; }
+.cifras-tipo__grupo ul { margin: 0; padding-left: 1rem; display: flex; flex-direction: column; gap: 0.3rem; color: var(--texto); }
+.cifras-tipo__grupo li b { font-family: var(--f-mono); color: var(--tinta); }
+.cifras-tipo__grupo--oficial { background: var(--verde-suave); border: 1px solid var(--verde); }
+.cifras-tipo__grupo--simulada { background: var(--violeta-suave); border: 1px solid var(--violeta-claro); }
+:root[data-modo='celular'] .cifras-tipo { grid-template-columns: 1fr; }
+/* En la portada el mapa es fondo: su leyenda no aporta y se cruzaba con los botones en celular */
+.escena--portada .mapa__leyenda, .escena--portada .mapa__clave { display: none; }

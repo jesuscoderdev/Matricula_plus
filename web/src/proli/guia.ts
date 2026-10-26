@@ -76,6 +76,13 @@ export function guia(pantalla: string, paso: number): Paso | null {
         { texto: 'Tengo un reto en mi entidad', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' },
       ],
     }
+    if (c === 'Fuentes') return {
+      pregunta: '¿Vemos cómo lo resolvimos?',
+      opciones: [
+        { texto: 'Sí, el método', ordenes: [cap('matricula', 'metodo')], respuesta: 'Así lo resolvimos, paso a paso.' },
+        { texto: 'Tengo un reto en mi entidad', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' },
+      ],
+    }
     if (c === 'Supuestos' || c === 'Método') return {
       pregunta: '¿Hablamos del reto de tu entidad?',
       opciones: [{ texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' }],

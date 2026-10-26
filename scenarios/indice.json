@@ -1,6 +1,6 @@
 {
  "app": "Matrícula+",
- "generado": "2026-10-25",
+ "generado": "2026-10-26",
  "fuente": "real",
  "metricas": [
   "pct_primera_opcion",
@@ -239,6 +239,78 @@
   "UPZ98",
   "UPZ99"
  ],
+ "fuentes": {
+  "datos": [
+   {
+    "dato": "Oferta de cupos por sede",
+    "fuente": "Secretaría de Educación · Oferta de cupos, sector oficial",
+    "corte": "03.2025",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/oferta-de-cupos-sector-oficial-bogota-d-c"
+   },
+   {
+    "dato": "Demanda de cupos por colegio",
+    "fuente": "Secretaría de Educación · Demanda de cupos, sector oficial",
+    "corte": "03.2025",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/demanda-de-cupos-sector-oficial-bogota-d-c"
+   },
+   {
+    "dato": "Demanda de nuevos, déficit y UPZ con insuficiencia",
+    "fuente": "Secretaría de Educación · Estudio de insuficiencia y limitaciones 2025",
+    "corte": "2024",
+    "url": "https://www.educacionbogota.edu.co/portal_institucional/sites/default/files/inline-files/2022/bogota-EIL-para-2025.pdf"
+   },
+   {
+    "dato": "Código de cada sede",
+    "fuente": "Secretaría de Educación · Matrícula total en colegios oficiales",
+    "corte": "04.2025",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/matricula-total-en-colegios-oficiales-bogota-d-c"
+   },
+   {
+    "dato": "Nombre y ubicación de las sedes",
+    "fuente": "Catastro Distrital · Colegios",
+    "corte": "2026",
+    "url": "https://serviciosgis.catastrobogota.gov.co/arcgis/rest/services/educacion/infraestructuraeducativa/MapServer/0"
+   },
+   {
+    "dato": "Manzanas residenciales (estrato 1 a 6)",
+    "fuente": "Secretaría Distrital de Planeación · Estratificación por manzana",
+    "corte": "10.2025",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/estratificacion-para-bogota"
+   },
+   {
+    "dato": "Predios por manzana",
+    "fuente": "Catastro Distrital · Densidad predial por manzana",
+    "corte": "2026",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/cantidad-de-predios-por-manzana"
+   },
+   {
+    "dato": "Población de 5 a 17 años por UPZ",
+    "fuente": "Secretaría Distrital de Planeación y DANE · Proyecciones de población",
+    "corte": "proyección 2026",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/proyecciones-y-retroproyecciones-de-poblacion-2005-2035"
+   },
+   {
+    "dato": "Proyectos de colegios nuevos",
+    "fuente": "Secretaría de Educación · Colegios oficiales nuevos y en restitución",
+    "corte": "05.2026",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/colegios-oficiales-nuevos-y-restitucion-bogota-d-c"
+   },
+   {
+    "dato": "Límites de UPZ y localidades",
+    "fuente": "Secretaría de Educación (tasa de aprobación por UPZ) e IDECA · Localidad",
+    "corte": "2024 · vigente",
+    "url": "https://datosabiertos.bogota.gov.co/dataset/localidad-bogota-d-c"
+   }
+  ],
+  "verificacion": [
+   "La oferta cuadra con la cifra oficial: 784.632 cupos regulares frente a 785.191 del estudio de la Secretaría (−0,07 %).",
+   "Se excluyeron 33.910 cupos de educación de adultos, que no compiten por cupo escolar, y 48 sedes rurales que quedan fuera de las UPZ urbanas.",
+   "Las sedes se ubicaron con Catastro por su código: en el 98 % de los casos es el mismo punto (diferencia mediana de 0,5 m).",
+   "El 99,2 % de las familias simuladas vive en una manzana residencial: nadie en parques, cerros, humedales ni zonas industriales.",
+   "El cálculo del navegador da lo mismo que el de Python en los 48 escenarios de la pantalla, y 315 pruebas automáticas revisan capacidad, estabilidad y totales."
+  ],
+  "privacidad": "Las familias son sintéticas: no se usa ningún dato personal (Ley 1581 de 2012). Las direcciones y opciones reales de quienes piden cupo están en el sistema de matrícula y no son públicas."
+ },
  "base": {
   "pct_primera_opcion": 60.55,
   "pct_sin_cupo": 16.32,

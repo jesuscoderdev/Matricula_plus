@@ -55,7 +55,7 @@ export const SEGUNDOS_ANIMACION_LOGO = 5.3    // el logo alterna "Matrícula+" �
 
 // Duración de cada capítulo en modo automático (segundos): ~67 s por vuelta.
 // Problema y Acción incluyen la animación del proceso en la localidad.
-export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado: 12, laboratorio: 6, metodo: 8 }
+export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado: 12, laboratorio: 6, fuentes: 6, metodo: 8 }
 
 // --- Portada del stand (primera pantalla, antes de elegir proyecto) ---
 // Pantalla de atracción: se ve desde lejos y se toca para entrar. Voz del manual: la pregunta es
