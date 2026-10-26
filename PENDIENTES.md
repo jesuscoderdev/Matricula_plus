@@ -13,6 +13,8 @@ familia, fichas de familia y colegio, modo presentación). Evento: 3 y 4 de novi
       `demo-offline.html` con `cd web && npm run build:archivo`.
 - [ ] **Confirmar el número de WhatsApp** de Proliferante: hoy `WHATSAPP_CITA = '573125888421'`. El QR se genera
       solo desde `URL_CITA`; `QR_IMAGEN` solo hace falta si se quiere una imagen propia.
+- [ ] **Fuente primaria del costo de reductores (Movilidad+):** hoy `fuentes.json` enlaza a semana.com; ante
+      entidades públicas conviene el documento de la UMV o del IDU. Pasar el enlace para reemplazarlo.
 - [x] **Marca Proliferante:** Proli y el logo oficial (`web/src/assets/`) en la portada, el método y Agendar.
 - [ ] **Hardware del tótem:** ¿Windows o Android? ¿Táctil? ¿Resolución exacta? Probar `totem\lanzar-totem.bat`
       en el equipo real. No se ha ejecutado completo porque abre Chrome en kiosco; sí se probó la URL que arma.

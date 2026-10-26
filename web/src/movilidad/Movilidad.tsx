@@ -1,8 +1,9 @@
 /**
- * Movilidad+: «Con este presupuesto, ¿dónde se evitan más siniestros graves?», con enfoque en las
- * calles de barrio. Sección propia: sus datos (public/movilidad/datos) solo se leen aquí.
+ * Movilidad+: «El presupuesto para seguridad vial no alcanza para todo. ¿Qué esquinas arreglarías
+ * primero?», con enfoque en las calles de barrio. Sección propia: sus datos (public/movilidad/datos)
+ * solo se leen aquí.
  *
- * Recorrido: Usted decide (toca esquinas) → Pasó un año → El giro → El método → Presupuesto →
+ * Recorrido: Tú decides (elige localidad y toca esquinas) → Pasó un año → El giro → El método → Presupuesto →
  * Fuentes → Hablemos. Misma navegación que Matrícula+: capítulos, ← Atrás (también el atrás del
  * celular), logo que reinicia, teclado en escritorio, recorrido solo en ?modo=auto.
  */
@@ -88,9 +89,10 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   const atras = useCallback(() => {
     if (vista === 'portada') return alSalir?.()
     if (vista === 'decide' && tocadas.length) return setTocadas((t) => t.slice(0, -1))
+    if (vista === 'decide' && localidad != null) return setLocalidad(null)
     const i = ORDEN.indexOf(vista)
     setVista(pila.current.pop() ?? (i > 0 ? ORDEN[i - 1] : 'portada'))
-  }, [vista, tocadas.length, alSalir])
+  }, [vista, tocadas.length, localidad, alSalir])
   const refAtras = useRef(atras)
   refAtras.current = atras
   useEffect(() => {
@@ -109,6 +111,8 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   // validar la localidad; las órdenes que llegaron mientras cargaba se aplican en ese momento.
   const refIr = useRef(ir)
   refIr.current = ir
+  const refLocalidad = useRef(localidad)
+  refLocalidad.current = localidad
   useEffect(() => {
     if (!datos) return
     return registrar('movilidad', (o) => {
@@ -121,11 +125,13 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           return `Listo: Movilidad+ muestra ${v === 'portada' ? 'su portada' : `el capítulo ${CAPITULOS_MOV.find((c) => c.id === v)!.nombre}`}.`
         }
         case 'movilidad_localidad': {
-          if (e.localidad === 'TODA_BOGOTA') { setLocalidad(null); refIr.current('decide'); return 'Listo: el mapa muestra toda Bogotá.' }
+          if (e.localidad === 'TODA_BOGOTA') { setLocalidad(null); refIr.current('decide'); return 'Listo: «Tú decides» muestra toda Bogotá y la lista de localidades para elegir.' }
           const i = datos.sitios.localidades.indexOf(String(e.localidad))
           if (i < 0) return 'Localidad no reconocida en Movilidad+.'
+          // Las esquinas se eligen dentro de una sola localidad: al cambiarla, se empieza de nuevo
+          if (refLocalidad.current !== i) setTocadas([])
           setLocalidad(i); refIr.current('decide')
-          return `Listo: el mapa de «Usted decide» se acercó a ${nombreLocalidad(datos.sitios.localidades[i])}.`
+          return `Listo: el mapa de «Tú decides» se acercó a ${nombreLocalidad(datos.sitios.localidades[i])}; ahora el visitante toca ${ESQUINAS_A_TOCAR} esquinas.`
         }
         case 'movilidad_presupuesto': {
           const n = String(e.nivel) as Nivel
@@ -239,7 +245,8 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * rem), arriba: window.innerHeight * 0.05, abajo: window.innerHeight * 0.05 }
             : { arriba: window.innerHeight * 0.4, abajo: window.innerHeight * 0.2 } }
       case 'decide':
-        return { capa: 'k24', interactivo, localidad, tocadas, onTocar: modo === 'auto' ? undefined : tocar }
+        // Las esquinas se tocan después de elegir la localidad
+        return { capa: 'k24', interactivo, localidad, tocadas, onTocar: modo === 'auto' || localidad == null ? undefined : tocar }
       case 'anio':
         return { capa: anio, interactivo, tocadas, peores: true, encuadre: encuadreTocadas }
       case 'giro':
@@ -307,11 +314,11 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
         </header>
       )}
 
-      <div className={`escena ${vista === 'portada' ? 'escena--portada' : ''} ${vista === 'decide' || (vista === 'presupuesto' && !esTotem(modo)) ? 'escena--mapa-grande' : ''}`}>
+      <div className={`escena ${vista === 'portada' ? 'escena--portada' : ''} ${vista === 'decide' ? 'escena--mapa-grande' : ''}`}>
         <div className="escena__mapa">
           <MapaMovilidad datos={datos} {...propsMapa}>
             {vista === 'decide' && modo !== 'auto' && faltan > 0 && (
-              <div className="mapa__aviso">{tocadas.length ? `Toque ${faltan} más` : `Toque ${ESQUINAS_A_TOCAR} esquinas`}</div>
+              <div className="mapa__aviso">{localidad == null ? 'Primero, elige una localidad' : tocadas.length ? `Toca ${faltan} más` : `Toca ${ESQUINAS_A_TOCAR} esquinas`}</div>
             )}
           </MapaMovilidad>
         </div>

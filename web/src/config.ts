@@ -96,8 +96,9 @@ export const SEGUNDOS_PROLI_AUTO = 9
 // --- Página de inicio (elegir proyecto) ---
 // Nombre y pregunta de la sección de movilidad (se cambian aquí)
 export const NOMBRE_MOVILIDAD = 'Movilidad+'
-export const TITULO_MOVILIDAD = 'Con este presupuesto, ¿dónde se evitan más siniestros graves?'
-export const LEMA_MOVILIDAD = 'Las avenidas ya se vigilan. ¿Y las esquinas de su barrio?'
+// Movilidad+ trata de «tú» (Matrícula+ sigue de «usted»)
+export const TITULO_MOVILIDAD = 'El presupuesto para seguridad vial no alcanza para todo. ¿Qué esquinas arreglarías primero?'
+export const LEMA_MOVILIDAD = 'Las avenidas ya se vigilan. ¿Y las esquinas de tu barrio?'
 
 export type IdProyecto = 'educacion' | 'movilidad'
 /**
@@ -122,7 +123,7 @@ export const PROYECTOS: {
     gancho: '¿Quién se queda sin cupo? Véalo en un minuto.', cta: 'Simular la asignación →' },
   { id: 'movilidad', area: 'Movilidad', nombre: NOMBRE_MOVILIDAD, letra: 'M', variante: 'violeta', pregunta: TITULO_MOVILIDAD,
     bajada: LEMA_MOVILIDAD,
-    gancho: '¿Qué esquina arreglaría usted primero?', cta: 'Decidir dónde invertir →' },
+    gancho: 'Elige 3 esquinas y mira qué pasó un año después.', cta: 'Decidir dónde invertir →' },
 ]
 
 // Llamado a la acción del inicio (para quien decide en una entidad pública). Voz del manual:

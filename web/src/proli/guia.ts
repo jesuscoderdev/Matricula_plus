@@ -86,44 +86,45 @@ export function guia(pantalla: string, paso: number): Paso | null {
   if (pantalla.startsWith('Movilidad+')) {
     const c = capituloDe(pantalla)
     if (c === 'portada') return {
-      pregunta: '¿Elegimos juntos dónde haría usted una obra?',
-      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'decide')], respuesta: 'Toque las esquinas que arreglaría primero.' }],
+      // Movilidad+ trata de «tú», como sus pantallas
+      pregunta: '¿Elegimos juntos dónde harías una obra?',
+      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'decide')], respuesta: 'Primero elige una localidad.' }],
     }
-    if (c === 'Usted decide') return {
-      pregunta: '¿En qué parte de Bogotá busca esquinas?',
-      opciones: [['Kennedy', 'KENNEDY'], ['Suba', 'SUBA'], ['Bosa', 'BOSA'], ['Toda Bogotá', 'TODA_BOGOTA']].map(([t, l]) => ({
-        texto: t, ordenes: [o('movilidad_localidad', { localidad: l })], respuesta: 'Ahora toque en el mapa las esquinas que arreglaría primero.' })),
+    if (c === 'Tú decides') return {
+      pregunta: '¿En qué localidad buscas esquinas?',
+      opciones: [['Kennedy', 'KENNEDY'], ['Bosa', 'BOSA'], ['Suba', 'SUBA'], ['Engativá', 'ENGATIVÁ']].map(([t, l]) => ({
+        texto: t, ordenes: [o('movilidad_localidad', { localidad: l })], respuesta: 'Ahora toca en el mapa las esquinas que arreglarías primero.' })),
     }
     if (c === 'Pasó un año') return {
-      pregunta: '¿Qué año quiere ver en el mapa?',
+      pregunta: '¿Qué año quieres ver en el mapa?',
       opciones: [
-        { texto: 'El año en que eligió', ordenes: [o('movilidad_anio_mapa', { anio: '2024' })], respuesta: 'Así estaban las esquinas cuando las eligió.' },
+        { texto: 'El año en que elegiste', ordenes: [o('movilidad_anio_mapa', { anio: '2024' })], respuesta: 'Así estaban las esquinas cuando las elegiste.' },
         { texto: 'Un año después', ordenes: [o('movilidad_anio_mapa', { anio: '2025' })], respuesta: 'Y así les fue un año después.' },
       ],
     }
     if (c === 'El giro') return {
-      pregunta: '¿Le muestro cómo se corrige?',
-      opciones: [{ texto: 'Sí, el método', ordenes: [cap('movilidad', 'metodo')], respuesta: 'Se compara con lo que se esperaba sin obra.' }],
+      pregunta: '¿Te muestro cómo lo resolvemos?',
+      opciones: [{ texto: 'Sí, el método', ordenes: [cap('movilidad', 'metodo')], respuesta: 'Mira cuánto prometió cada forma de elegir y cuánto pasó.' }],
     }
     if (c === 'El método') return {
       pregunta: '¿Comparamos calles de barrio o avenidas?',
       opciones: [
         { texto: 'Calles de barrio', ordenes: [o('movilidad_tipo_via', { zona: 'barrio' })], respuesta: 'Las calles de barrio, donde hay menos datos.' },
         { texto: 'Avenidas', ordenes: [o('movilidad_tipo_via', { zona: 'avenidas' })], respuesta: 'Las avenidas, que la ciudad ya vigila.' },
-        { texto: 'Llevarlo al presupuesto', ordenes: [cap('movilidad', 'presupuesto')], respuesta: 'Elija cuánto invertir.' },
+        { texto: 'Llevarlo al presupuesto', ordenes: [cap('movilidad', 'presupuesto')], respuesta: 'Elige cuánto invertir.' },
       ],
     }
     if (c === 'Presupuesto') return {
       pregunta: '¿Cuánto presupuesto probamos?',
       opciones: [
-        { texto: '$1.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'bajo' })], respuesta: 'Arriba ve cuántos siniestros graves se esperaría evitar.' },
-        { texto: '$5.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'medio' })], respuesta: 'Arriba ve cuántos siniestros graves se esperaría evitar.' },
-        { texto: '$20.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'alto' })], respuesta: 'Arriba ve cuántos siniestros graves se esperaría evitar.' },
+        { texto: '$1.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'bajo' })], respuesta: 'Mira lo que prometes y lo que lograrías.' },
+        { texto: '$5.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'medio' })], respuesta: 'Mira lo que prometes y lo que lograrías.' },
+        { texto: '$20.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'alto' })], respuesta: 'Mira lo que prometes y lo que lograrías.' },
       ],
     }
     if (c === 'Fuentes' || c === 'Hablemos') return {
-      pregunta: '¿Lo vemos con los datos de su entidad?',
-      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' }],
+      pregunta: '¿Lo vemos con los datos de tu entidad?',
+      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agenda una reunión con Proliferante, con el código o el botón.' }],
     }
   }
   return null

@@ -1073,8 +1073,9 @@ h1, h2, h3, p { margin: 0; }
 .mapa__zona .k-cuadro { width: 0.75rem; height: 0.75rem; border: 0; border-radius: 0.15rem; }
 .mapa__zona .k-anillo-vacio { width: 0.75rem; height: 0.75rem; border: 1.5px solid var(--tinta); border-radius: 50%; }
 .portada-mov__fuente { display: block; margin-top: 0.3rem; font-family: var(--f-mono); font-size: 0.62rem; color: var(--tenue); }
-.portada .portada-mov__titulo { font-size: 2.7rem; }
-:root[data-modo='escritorio'] .portada .portada-mov__titulo { font-size: 3.3rem; }
+/* El título es una frase y una pregunta: algo menor que el de Matrícula+ para que quepan los botones */
+.portada .portada-mov__titulo { font-size: 2.3rem; }
+:root[data-modo='escritorio'] .portada .portada-mov__titulo { font-size: clamp(2rem, 5.2vh, 2.7rem); }
 
 .selector { display: flex; flex-direction: column; gap: 0.3rem; }
 .selector select {
@@ -1164,6 +1165,46 @@ h1, h2, h3, p { margin: 0; }
 :root:not([data-modo='escritorio']) .app--movilidad .portada__velo {
   background: linear-gradient(180deg, rgb(var(--papel-rgb) / 0.97) 0%, rgb(var(--papel-rgb) / 0.9) 45%, rgb(var(--papel-rgb) / 0.55) 60%, rgb(var(--papel-rgb) / 0.15) 70%, rgb(var(--papel-rgb) / 0.7) 80%, rgb(var(--papel-rgb) / 0.98) 90%);
 }
+
+/* Movilidad+ (diagnóstico Demos GovTech): localidad primero, promesas en palabras y presupuesto en bloques.
+   Magenta = prometió de más; verde = prometió lo que se puede cumplir (lo pide el diagnóstico). */
+.app--movilidad { --magenta: #b8297a; }
+:root[data-tema='oscuro'] .app--movilidad { --magenta: #f27cbd; }
+.mapa--movilidad .mapa__leyenda-titulo { max-width: 15rem; }
+.localidades-mov { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.2rem, 1fr)); gap: 0.4rem; }
+.localidad-mov {
+  border: 1px solid var(--linea-2); background: var(--blanco); color: var(--tinta); border-radius: var(--r-chico);
+  padding: 0.75rem 0.6rem; font: inherit; font-size: 0.86rem; font-weight: 600; text-align: left; cursor: pointer;
+}
+.localidad-mov:hover, .localidad-mov:focus-visible { border-color: var(--violeta); background: var(--violeta-suave); }
+.localidad-elegida { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; border: 1px solid var(--violeta); background: var(--violeta-suave); border-radius: var(--r-chico); padding: 0.5rem 0.75rem; }
+.localidad-elegida span { display: flex; flex-direction: column; }
+.localidad-elegida b { font-family: var(--f-display); font-size: 1.1rem; color: var(--tinta); }
+.gran-cifra__de { font-size: 0.45em; color: var(--suave); }
+.qhicimos ol { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.8rem; line-height: 1.4; color: var(--texto); }
+.promesa-leyenda { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; font-size: 0.72rem; color: var(--suave); }
+.promesa-leyenda span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.promesa-leyenda i { display: inline-block; width: 1.1rem; height: 0.7rem; border-radius: 0.15rem; }
+.promesa__sobre--mal { color: var(--magenta); font-size: 0.8rem; }
+.promesa__sobre--bien { color: var(--verde-texto); font-size: 0.8rem; }
+.frase-mov { font-family: var(--f-display); font-weight: 600; font-size: 1.05rem; line-height: 1.3; color: var(--tinta); }
+.frase-mov em { font-style: normal; color: var(--violeta-osc); }
+.segmentos--grandes .segmento { padding: 0.85rem 0.4rem; font-size: 1rem; }
+.comparar-mov { display: flex; flex-direction: column; gap: 0.5rem; }
+.comparar-mov__fila {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 0.25rem 0.9rem; align-items: end;
+  border: 1px solid var(--linea); background: var(--blanco); border-radius: var(--r); padding: 0.65rem 0.85rem;
+}
+.comparar-mov__quien { font-size: 0.86rem; font-weight: 600; color: var(--tinta); align-self: center; }
+.comparar-mov__dato { display: flex; flex-direction: column; align-items: flex-end; }
+.comparar-mov__dato small { font-size: 0.66rem; color: var(--tenue); }
+.comparar-mov__dato b { font-family: var(--f-mono); font-size: 1.2rem; font-weight: 600; color: var(--tinta); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.comparar-mov__dif { grid-column: 1 / -1; font-size: 0.8rem; font-weight: 600; }
+.comparar-mov__dif--mal { color: var(--magenta); }
+.comparar-mov__dif--bien { color: var(--verde-texto); }
+.desplegable-mov { border-top: 1px solid var(--linea); padding-top: 0.5rem; font-size: 0.78rem; line-height: 1.4; color: var(--suave); }
+.desplegable-mov summary { cursor: pointer; font-weight: 600; color: var(--violeta-osc); }
+.desplegable-mov p { margin: 0.4rem 0 0; }
 
 /* Logo de Proliferante más grande en el inicio */
 .inicio__marca .logo-empresa { height: 2.6rem; }
