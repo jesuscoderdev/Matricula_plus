@@ -14,9 +14,9 @@ import Veredicto from '../componentes/Veredicto'
 import { ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, TITULO_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
 import { useReto } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
-import { entero, millones, nombreLocalidad, pctFraccion, type DatosMovilidad, type Nivel } from './datos'
+import { entero, millones, nombreLocalidad, pct, pctFraccion, type DatosMovilidad, type Escenario, type Nivel, type PuntoCurva } from './datos'
 
-export type CapituloMov = 'decide' | 'anio' | 'giro' | 'metodo' | 'presupuesto' | 'fuentes' | 'cierre'
+export type CapituloMov = 'decide' | 'anio' | 'giro' | 'metodo' | 'presupuesto' | 'evaluar' | 'fuentes' | 'cierre'
 export type VistaMov = 'portada' | CapituloMov
 export const CAPITULOS_MOV: { id: CapituloMov; nombre: string }[] = [
   { id: 'decide', nombre: 'Tú decides' },
@@ -24,6 +24,7 @@ export const CAPITULOS_MOV: { id: CapituloMov; nombre: string }[] = [
   { id: 'giro', nombre: 'El giro' },
   { id: 'metodo', nombre: 'El método' },
   { id: 'presupuesto', nombre: 'Presupuesto' },
+  { id: 'evaluar', nombre: '¿Funcionó la obra?' },
   { id: 'fuentes', nombre: 'Fuentes' },
   { id: 'cierre', nombre: 'Hablemos' },
 ]
@@ -40,8 +41,9 @@ export interface PropsMov {
   setLocalidad: (l: number | null) => void
   anio: 'k24' | 'k25'
   setAnio: (a: 'k24' | 'k25') => void
-  nivel: Nivel
-  setNivel: (n: Nivel) => void
+  /** presupuesto en millones de pesos */
+  monto: number
+  setMonto: (m: number) => void
   zona: 'barrio' | 'avenidas'
   setZona: (z: 'barrio' | 'avenidas') => void
   alInicio?: () => void
@@ -317,57 +319,188 @@ export function Metodo({ datos, modo, ir, zona, setZona }: PropsMov) {
 }
 
 // ---------------------------------------------------------------- 5. Presupuesto
-export function Presupuesto({ datos, modo, ir, nivel, setNivel }: PropsMov) {
+/** La curva: siniestros evitados al año según el monto, con el método y lo que prometería una lista a ojo. */
+function CurvaPresupuesto({ puntos, monto }: { puntos: PuntoCurva[]; monto: number }) {
+  const W = 320, H = 150, m = { izq: 6, der: 6, arr: 10, aba: 20 }
+  const xMax = puntos[puntos.length - 1].presupuesto_millones
+  const yMax = Math.max(...puntos.map((p) => p.a_ojo_promete))
+  const x = (v: number) => m.izq + (W - m.izq - m.der) * (v / xMax)
+  const y = (v: number) => H - m.aba - (H - m.arr - m.aba) * (v / yMax)
+  const linea = (k: 'metodo_esperado' | 'a_ojo_promete') =>
+    `M${x(0)},${y(0)} ` + puntos.map((p) => `L${x(p.presupuesto_millones).toFixed(1)},${y(p[k]).toFixed(1)}`).join(' ')
+  const p = puntos.find((q) => q.presupuesto_millones === monto) ?? puntos[0]
+  return (
+    <figure className="curva">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img"
+           aria-label={`Con ${millones(p.presupuesto_millones)} se esperaría evitar ≈ ${entero(p.metodo_esperado)} siniestros graves al año; a ojo se prometerían ${entero(p.a_ojo_promete)}.`}>
+        <line x1={x(0)} x2={x(xMax)} y1={y(0)} y2={y(0)} className="curva__base" />
+        <path d={linea('a_ojo_promete')} className="curva__ojo" />
+        <path d={linea('metodo_esperado')} className="curva__metodo" />
+        <line x1={x(monto)} x2={x(monto)} y1={m.arr} y2={y(0)} className="curva__guia" />
+        <circle cx={x(monto)} cy={y(p.a_ojo_promete)} r="3.2" className="curva__punto curva__punto--ojo" />
+        <circle cx={x(monto)} cy={y(p.metodo_esperado)} r="4.2" className="curva__punto" />
+        {/* Las cifras junto a los puntos (a la izquierda si el punto está cerca del borde derecho) */}
+        <text x={x(monto) + (x(monto) > W * 0.75 ? -7 : 7)} y={y(p.a_ojo_promete) - 4} textAnchor={x(monto) > W * 0.75 ? 'end' : 'start'} className="curva__valor curva__valor--ojo">{entero(p.a_ojo_promete)}</text>
+        <text x={x(monto) + (x(monto) > W * 0.75 ? -7 : 7)} y={y(p.metodo_esperado) + 13} textAnchor={x(monto) > W * 0.75 ? 'end' : 'start'} className="curva__valor">≈ {entero(p.metodo_esperado)}</text>
+        <text x={x(0)} y={H - 5} className="curva__eje">$0</text>
+        <text x={x(xMax)} y={H - 5} textAnchor="end" className="curva__eje">{millones(xMax)}</text>
+      </svg>
+      <figcaption className="curva__leyenda">
+        <span><i className="curva__clave curva__clave--metodo" />con el método: lo que se esperaría evitar</span>
+        <span><i className="curva__clave curva__clave--ojo" />a ojo: lo que se prometería</span>
+      </figcaption>
+    </figure>
+  )
+}
+
+export function Presupuesto({ datos, modo, ir, monto, setMonto }: PropsMov) {
   const p = datos.experiencia.pantalla_presupuesto_barrio
-  const e = p.escenarios[nivel]
-  const niveles = Object.keys(p.escenarios) as Nivel[]
-  // Lo que en realidad evitaría la lista hecha a ojo (con el riesgo corregido), si el modelo lo trae
-  const ojoReal = datos.resumen.asignacion_presupuesto?.barrio?.[nivel]?.lista_por_conteo_bruto?.esperado_evitados_anual_eb
+  const puntos = datos.experiencia.presupuesto_curva.puntos
+  const i = Math.max(0, puntos.findIndex((q) => q.presupuesto_millones >= monto))
+  const e = puntos[i]
+  // Atajos: los tres montos de referencia (los mismos que usa Proli)
+  const atajos = Object.entries(p.escenarios) as [Nivel, Escenario][]
+  const paso = atajos[0][1].presupuesto_millones
+  const sigue = puntos.find((q) => q.presupuesto_millones === e.presupuesto_millones + paso)
+  const primero = puntos.find((q) => q.presupuesto_millones === paso)
+  const r = datos.experiencia.presupuesto_reparto
+  const fila = r.filas.reduce((a, b) => (Math.abs(b.presupuesto_millones - monto) < Math.abs(a.presupuesto_millones - monto) ? b : a))
+  const maxR = Math.max(fila.todo_en_barrio, fila.todo_en_avenidas, fila.mejor_combinacion.esperado)
+  const mejor = fila.mejor_combinacion
   return (
     <div className="panel">
       <Cabeza c="presupuesto" titulo={<>¿Qué logras con <em>{millones(e.presupuesto_millones)}</em>?</>}>
-        <p className="lead mov-sec">Reductores de velocidad en las calles de barrio con más riesgo real. Elige el presupuesto:</p>
+        <p className="lead mov-sec">Reductores de velocidad en las calles de barrio con más riesgo real. Mueve el monto:</p>
       </Cabeza>
-      <div className="segmentos" role="group" aria-label="Presupuesto">
-        {niveles.map((n) => (
-          <button key={n} data-proli={`presupuesto-${n}`} className={`segmento ${n === nivel ? 'segmento--activo' : ''}`} disabled={modo === 'auto'} onClick={() => setNivel(n)}>
-            ${entero(p.escenarios[n].presupuesto_millones)}<small>millones</small>
-          </button>
+      <div className="deslizador deslizador--monto">
+        <label htmlFor="monto-mov">Presupuesto</label>
+        <output>{millones(e.presupuesto_millones)}</output>
+        <input id="monto-mov" type="range" min={0} max={puntos.length - 1} step={1} value={i} disabled={modo === 'auto'}
+               onChange={(ev) => setMonto(puntos[+ev.target.value].presupuesto_millones)} />
+      </div>
+      <div className="chips">
+        {atajos.map(([n, esc]) => (
+          <button key={n} data-proli={`presupuesto-${n}`} disabled={modo === 'auto'} onClick={() => setMonto(esc.presupuesto_millones)}
+                  className={`chip ${esc.presupuesto_millones === e.presupuesto_millones ? 'chip--activo' : ''}`}>{millones(esc.presupuesto_millones)}</button>
         ))}
       </div>
       <Veredicto etiqueta={<>Con {millones(e.presupuesto_millones)} en reductores de velocidad</>}
-                 cifra={`≈ ${entero(e.se_esperaria_evitar_por_anio)}`}
+                 cifra={`≈ ${entero(e.metodo_esperado)}`}
                  frase="siniestros graves menos al año en calles de barrio"
-                 nota={<>En <b>{entero(e.esquinas)} esquinas de barrio</b>, las de más riesgo real que alcanzan con este presupuesto.</>} />
+                 nota={<>En <b>{entero(e.esquinas)} esquinas de barrio</b>, las de más riesgo real que alcanzan con este monto.
+                   {sigue && primero && <> Con {millones(paso)} más se sumarían ≈ {entero(sigue.metodo_esperado - e.metodo_esperado)}; los primeros {millones(paso)} evitan ≈ {entero(primero.metodo_esperado)}.
+                     Cada peso rinde menos, porque primero van las esquinas de más riesgo.</>}</>} />
+      <CurvaPresupuesto puntos={puntos} monto={e.presupuesto_millones} />
+
       <h2 className="subtitulo">Lo que prometes y lo que logras</h2>
       <div className="promesas-duelo">
         <div className="promesa-fila promesa-fila--mal">
           <b>Eligiendo solo con el año pasado</b>
-          <span>Prometes <b>{entero(e.la_practica_intuitiva_prometeria)}</b>; se esperaría lograr <b>≈ {entero(ojoReal ?? e.se_esperaria_evitar_por_anio)}</b>.</span>
-          <em>Prometes {entero(e.la_practica_intuitiva_prometeria - (ojoReal ?? e.se_esperaria_evitar_por_anio))} siniestros evitados que no van a ocurrir.</em>
+          <span>Prometes <b>{entero(e.a_ojo_promete)}</b>; se esperaría lograr <b>≈ {entero(e.a_ojo_esperado)}</b>.</span>
+          <em>Prometes {entero(e.a_ojo_promete - e.a_ojo_esperado)} siniestros evitados que no van a ocurrir.</em>
         </div>
         <div className="promesa-fila promesa-fila--bien">
           <b>Con el método de Proliferante</b>
-          <span>Prometes <b>≈ {entero(e.se_esperaria_evitar_por_anio)}</b>; se esperaría lograr <b>≈ {entero(e.se_esperaria_evitar_por_anio)}</b>.</span>
+          <span>Prometes <b>≈ {entero(e.metodo_esperado)}</b>; se esperaría lograr <b>≈ {entero(e.metodo_esperado)}</b>.</span>
           <em>Prometes lo que vas a cumplir.</em>
         </div>
       </div>
       <p className="lectura">Mismo presupuesto, casi las mismas obras. La diferencia es una promesa que tu entidad puede defender ante el concejo,
         los órganos de control y la ciudadanía.</p>
+
+      <h2 className="subtitulo">¿Barrio o avenidas?</h2>
+      <p className="nota">Con {millones(fila.presupuesto_millones)}, el método busca la mejor combinación entre reductores en calles de barrio
+        (≈ {entero(r.costos_millones.local)} millones cada uno) y semáforos con paso peatonal anticipado en avenidas (hasta ≈ {entero(r.costos_millones.arterial)} millones cada uno):</p>
+      <div className="reparto-red">
+        <div className="reparto-red__fila">
+          <span>Todo en calles de barrio</span>
+          <span className="promesa__pista"><i className="promesa__barra promesa__barra--metodo" style={{ width: ancho(fila.todo_en_barrio / maxR) }} /><b>≈ {entero(fila.todo_en_barrio)}</b></span>
+        </div>
+        <div className="reparto-red__fila">
+          <span>Todo en avenidas</span>
+          <span className="promesa__pista"><i className="promesa__barra promesa__barra--metodo" style={{ width: ancho(fila.todo_en_avenidas / maxR) }} /><b>≈ {entero(fila.todo_en_avenidas)}</b></span>
+        </div>
+        <div className="reparto-red__fila reparto-red__fila--mejor">
+          <span>La mejor combinación<small>{entero(mejor.esquinas_barrio)} esquinas de barrio{mejor.intersecciones_avenida > 0 ? ` y ${entero(mejor.intersecciones_avenida)} intersecciones` : ' y ninguna avenida'}</small></span>
+          <span className="promesa__pista"><i className="promesa__barra promesa__barra--ocurrio" style={{ width: ancho(mejor.esperado / maxR) }} /><b>≈ {entero(mejor.esperado)}</b></span>
+        </div>
+      </div>
+      <p className="nota">Siniestros graves menos al año. Con estos costos, el mismo dinero rinde mucho más en las calles de barrio.
+        Pero el costo de las avenidas es un tope: si el paso peatonal anticipado cuesta menos de ≈ {entero(fila.avenidas_compiten_si_cuestan_menos_de_millones)} millones por
+        intersección (por ejemplo, si solo hay que reprogramar el semáforo), conviene sumar avenidas. Con el costo real, el modelo vuelve a decidir.</p>
       <details className="como-calculamos">
         <summary className="boton-texto">Cómo calculamos esto ▾</summary>
-        <p className="nota">Obra supuesta: {p.intervencion}, a ≈ {entero(p.costo_por_esquina_millones)} millones cada una. Se supone que cada obra
-          reduce un {entero(p.reduccion_supuesta_pct)} % los siniestros con heridos.</p>
+        <p className="nota">Obra en barrio: {p.intervencion}, a ≈ {entero(p.costo_por_esquina_millones)} millones cada una; se supone que reduce un {entero(p.reduccion_supuesta_pct)} % los
+          siniestros con heridos. En avenidas: {r.intervenciones.arterial.toLowerCase()}, −{entero(r.reducciones_pct.arterial)} %. La mejor combinación se calcula con
+          un modelo de optimización (problema de la mochila) sobre el riesgo real de cada sitio.</p>
         <div className="aviso-mov" role="note"><b>Ojo:</b> {datos.fuentes.advertencia}</div>
       </details>
       <div className="panel__pie">
-        {modo !== 'auto' && <button className="boton boton--ancho" onClick={() => ir('fuentes')}>De dónde salen los datos →</button>}
+        {modo !== 'auto' && <button className="boton boton--ancho boton--violeta" onClick={() => ir('evaluar')}>¿Y cómo sabes si la obra funcionó? →</button>}
       </div>
     </div>
   )
 }
 
-// ---------------------------------------------------------------- 6. Fuentes
+// ---------------------------------------------------------------- 6. ¿Funcionó la obra?
+export function Evaluar({ datos, modo, ir }: PropsMov) {
+  const ev = datos.experiencia.evaluacion_obra
+  const pr = datos.experiencia.pruebas_regresion_a_la_media
+  const a0 = anioBase(datos), a1 = anioVal(datos)
+  const max = Math.max(ev.antes_2024, ev.esperado_sin_obra, ev.despues_2025)
+  const uno = pr.por_nivel_2024_2025[0]
+  const ceros = pr.sin_graves_en_2024
+  const barra = (etiqueta: ReactNode, v: number, clase: string, aprox = false) => (
+    <div className="promesa__fila">
+      <span className="promesa__etiqueta">{etiqueta}</span>
+      <span className="promesa__pista"><i className={`promesa__barra ${clase}`} style={{ width: ancho(v / max) }} /><b>{aprox ? '≈ ' : ''}{entero(v)}</b></span>
+    </div>
+  )
+  return (
+    <div className="panel">
+      <Cabeza c="evaluar" titulo={<>¿Funcionó <em>la obra</em>?</>}>
+        <p className="lead">Supón que en enero de {a1} tu entidad hizo una obra en las {entero(ev.esquinas)} peores esquinas de barrio de {a0}. Un año después,
+          ¿cuánto mérito tiene la obra?</p>
+      </Cabeza>
+      <div className="promesa promesa--sola">
+        {barra(<>Antes ({a0})</>, ev.antes_2024, 'promesa__barra--promete')}
+        {barra(<>Sin obra se esperaba ({a1})</>, ev.esperado_sin_obra, 'promesa__barra--metodo', true)}
+        {barra(<>Pasó ({a1})</>, ev.despues_2025, 'promesa__barra--ocurrio')}
+        <span className="promesa__sobre">siniestros graves en esas {entero(ev.esquinas)} esquinas</span>
+      </div>
+      <div className="promesas-duelo">
+        <div className="promesa-fila promesa-fila--mal">
+          <b>Mirando antes y después</b>
+          <span>De {entero(ev.antes_2024)} a {entero(ev.despues_2025)} siniestros graves.</span>
+          <em>«La obra los redujo un {pct(Math.abs(ev.efecto_antes_despues_pct), false)}».</em>
+        </div>
+        <div className="promesa-fila promesa-fila--bien">
+          <b>Con el método de Proliferante</b>
+          <span>Sin obra ya se esperaban ≈ {entero(ev.esperado_sin_obra)}; pasaron {entero(ev.despues_2025)}.</span>
+          <em>La obra solo puede reclamar ≈ {pct(Math.round(Math.abs(ev.efecto_con_metodo_pct)), false)}, del tamaño de la caída de toda la ciudad en {a1} ({pct(ev.tendencia_ciudad_pct)}).</em>
+        </div>
+      </div>
+      <p className="lectura">Antes de celebrar o de prometer, compara con lo que habría pasado sin la obra. Así se sabe si una obra de verdad funcionó.</p>
+
+      <h2 className="subtitulo">¿Y si sí hubo obras?</h2>
+      <ul className="pruebas-mov">
+        <li><b>Pasa cada año.</b> Las {entero(pr.un_anio_antes.de)} peores esquinas de {pr.un_anio_antes.anio} también bajaron al año siguiente:
+          de {entero(pr.un_anio_antes.graves_antes)} a {entero(pr.un_anio_antes.graves_despues)} ({entero(pr.un_anio_antes.bajaron)} de {entero(pr.un_anio_antes.de)}).</li>
+        <li><b>Pasa en miles de esquinas.</b> Las {entero(uno.hexagonos)} esquinas con un siniestro grave en {a0} tuvieron en promedio {String(uno.promedio_2025).replace('.', ',')} en {a1}.
+          Nadie interviene {entero(uno.hexagonos)} esquinas en un año.</li>
+        <li><b>También pasa al revés.</b> De {entero(ceros.hexagonos)} esquinas sin siniestros graves en {a0}, {entero(ceros.con_alguno_en_2025)} tuvieron alguno en {a1}.
+          Una obra no hace que una esquina empeore.</li>
+        <li><b>El método lo predijo sin saber nada de obras.</b> Aunque se hubiera hecho alguna, esta caída ya se esperaba.</li>
+      </ul>
+      <p className="nota mov-sec">{ev.nota}</p>
+      <div className="panel__pie">
+        {modo !== 'auto' && <button className="boton boton--ancho boton--violeta" onClick={() => ir('fuentes')}>De dónde salen los datos →</button>}
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------- 7. Fuentes
 export function Fuentes({ datos, modo, ir }: PropsMov) {
   const f = datos.fuentes
   const totem = esTotem(modo)
@@ -399,7 +532,7 @@ export function Fuentes({ datos, modo, ir }: PropsMov) {
   )
 }
 
-// ---------------------------------------------------------------- 7. Cierre
+// ---------------------------------------------------------------- 8. Cierre
 export function Cierre({ datos, modo, ir, alInicio }: PropsMov) {
   const [pregunta, resto] = partir(datos.experiencia.cierre.texto_sugerido, '? ')
   const i = pregunta.indexOf(' en tu ')

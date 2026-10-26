@@ -50,6 +50,39 @@ export interface Experiencia {
     como_decirlo: string
   }
   cierre: { texto_sugerido: string; accion: string }
+  /** Con cada monto (barrio): esquinas, lo que se esperaría evitar con el método y lo que prometería una lista a ojo */
+  presupuesto_curva: { costo_por_esquina_millones: number; esquinas_candidatas: number; puntos: PuntoCurva[] }
+  /** Barrio y avenidas a la vez: la mejor combinación frente a todo en una sola clase de vía */
+  presupuesto_reparto: {
+    intervenciones: Record<'local' | 'arterial', string>
+    costos_millones: Record<'local' | 'arterial', number>
+    reducciones_pct: Record<'local' | 'arterial', number>
+    filas: FilaReparto[]
+    advertencia_costos: string
+  }
+  /** Una obra hipotética en las 30 peores esquinas de 2024: antes y después frente al método */
+  evaluacion_obra: {
+    esquinas: number; antes_2024: number; despues_2025: number
+    esperado_sin_obra: number; esperado_sin_obra_con_tendencia: number; tendencia_ciudad_pct: number
+    efecto_antes_despues_pct: number; efecto_con_metodo_pct: number; efecto_con_metodo_y_tendencia_pct: number
+    nota: string
+  }
+  /** Por qué la caída de las peores esquinas no se explica por obras */
+  pruebas_regresion_a_la_media: {
+    un_anio_antes: { anio: number; graves_antes: number; graves_despues: number; bajaron: number; de: number }
+    por_nivel_2024_2025: { graves_2024: string; hexagonos: number; promedio_2024: number; promedio_2025: number }[]
+    sin_graves_en_2024: { hexagonos: number; con_alguno_en_2025: number; graves_en_2025: number }
+    total_barrio_por_anio: Record<string, number>
+  }
+}
+
+export interface PuntoCurva { presupuesto_millones: number; esquinas: number; metodo_esperado: number; a_ojo_promete: number; a_ojo_esperado: number }
+export interface FilaReparto {
+  presupuesto_millones: number
+  mejor_combinacion: { esperado: number; esquinas_barrio: number; intersecciones_avenida: number; millones_barrio: number; millones_avenidas: number }
+  todo_en_barrio: number
+  todo_en_avenidas: number
+  avenidas_compiten_si_cuestan_menos_de_millones: number
 }
 
 export interface Fuentes {
@@ -88,6 +121,12 @@ export interface DatosMovilidad {
   posId: Map<string, number>
   /** las peores esquinas de barrio de 2024 (posiciones) */
   peores: number[]
+  /**
+   * Orden de cada calle de barrio con algún siniestro en 2023–2024 según el riesgo corregido (0 = la de
+   * más riesgo; −1 = no compite). Con un monto, alcanzan las primeras floor(monto / costo): es la misma
+   * regla del modelo (todas cuestan lo mismo, así que la mejor combinación es la lista ordenada).
+   */
+  rangoBarrio: Int32Array
   /** encuadre de la ciudad (sin los extremos: Sumapaz queda fuera del cuadro inicial) */
   bboxCiudad: Bbox
   bboxLocalidad: Bbox[]
@@ -141,7 +180,11 @@ export function cargarMovilidad(): Promise<DatosMovilidad> {
       .map((h) => posId.get(h)).filter((x): x is number => x != null)
     const todos = sitios.id.map((_, i) => i)
     const bboxLocalidad = sitios.localidades.map((_, l) => bboxDe(sitios, todos.filter((i) => sitios.loc[i] === l), 0))
-    return { experiencia, fuentes, resumen, sitios, posId, peores, bboxCiudad: bboxDe(sitios, todos), bboxLocalidad }
+    const rangoBarrio = new Int32Array(sitios.n).fill(-1)
+    todos.filter((i) => sitios.local[i] === 1 && sitios.k23[i] + sitios.k24[i] > 0)
+      .sort((a, b) => sitios.kappa[b] - sitios.kappa[a] || (sitios.id[a] < sitios.id[b] ? -1 : 1))
+      .forEach((i, r) => { rangoBarrio[i] = r })
+    return { experiencia, fuentes, resumen, sitios, posId, peores, rangoBarrio, bboxCiudad: bboxDe(sitios, todos), bboxLocalidad }
   })
   promesa.catch(() => { promesa = null })
   return promesa
@@ -159,5 +202,7 @@ export const pct = (n: number, conSigno = true) => {
 export const pctFraccion = (x: number) => pct(Math.round(x * 1000) / 10)
 /** "$1.000 millones" */
 export const millones = (n: number) => `$${f0.format(n)} millones`
+/** Cuántas esquinas de barrio alcanzan con un monto */
+export const esquinasCon = (d: DatosMovilidad, monto: number) => Math.floor(monto / d.experiencia.presupuesto_curva.costo_por_esquina_millones)
 /** "BOSA" → "Bosa", "LOS MÁRTIRES" → "Los Mártires" */
 export const nombreLocalidad = (l: string) => l.toLocaleLowerCase('es').replace(/(^|\s)(\p{L})/gu, (_, a, b) => a + b.toLocaleUpperCase('es'))

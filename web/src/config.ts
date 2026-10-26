@@ -147,6 +147,6 @@ export const LLAMADO_INICIO = {
 export const SEGUNDOS_INICIO_AUTO = 6
 
 // Movilidad+: duración de cada capítulo en modo automático (segundos): ~60 s por vuelta
-export const DURACION_PASOS_MOVILIDAD = { portada: 5, decide: 10, anio: 9, giro: 6, metodo: 9, presupuesto: 11, fuentes: 5, cierre: 5 }
+export const DURACION_PASOS_MOVILIDAD = { portada: 5, decide: 10, anio: 9, giro: 6, metodo: 9, presupuesto: 11, evaluar: 10, fuentes: 5, cierre: 5 }
 // Movilidad+: esquinas que toca el visitante en "Tú decides"
 export const ESQUINAS_A_TOCAR = 3

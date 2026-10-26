@@ -121,6 +121,13 @@ export function guia(pantalla: string, paso: number): Paso | null {
         { texto: '$20.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'alto' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
       ],
     }
+    if (c === '¿Funcionó la obra?') return {
+      pregunta: '¿Hablamos de cómo evaluar las obras de tu entidad?',
+      opciones: [
+        { texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' },
+        { texto: 'Ver las fuentes', ordenes: [cap('movilidad', 'fuentes')], respuesta: 'Aquí está de dónde sale cada dato.' },
+      ],
+    }
     if (c === 'Fuentes' || c === 'Hablemos') return {
       pregunta: '¿Hablamos del reto de tu entidad?',
       opciones: [{ texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' }],
