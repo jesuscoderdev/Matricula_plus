@@ -19,7 +19,7 @@ export default function Agendar({ modo }: PropsCapitulo) {
   const enviar = (e: FormEvent) => {
     e.preventDefault()
     const texto = [
-      `Hola ${EMPRESA}, vi la demo de ${APP_NAME} y quiero agendar una cita.`,
+      `Hola ${EMPRESA}, vi la demo ${APP_NAME} en el GovTech Summit y quiero agendar una reunión.`,
       `Nombre: ${f.nombre}`,
       f.entidad && `Entidad: ${f.entidad}`,
       f.cargo && `Cargo: ${f.cargo}`,
@@ -33,12 +33,12 @@ export default function Agendar({ modo }: PropsCapitulo) {
       <header className="panel__cabeza">
         <span className="kicker">Hablemos</span>
         <h1 className="display">Llévalo a <em>tu entidad</em></h1>
-        <p className="lead"><span className="acento">Te mostramos {APP_NAME} con tus propios datos y tus reglas de asignación.</span></p>
+        <p className="lead">Cuéntanos tu reto y buscamos juntos cómo resolverlo. <span className="acento">Este demo se hizo con datos abiertos; imagina lo que podemos hacer con los de tu entidad.</span></p>
       </header>
       {esTotem(modo) ? <QrCita /> : AGENDA_CITA && (
         <div className="agenda">
-          <button className="boton boton--violeta boton--ancho" onClick={abrirAgenda}>Elegir fecha y hora →</button>
-          <p className="nota">Treinta minutos por videollamada. La cita te llega al correo con el enlace de Google Meet.</p>
+          <button className="boton boton--violeta boton--ancho" onClick={abrirAgenda}>Elige fecha y hora →</button>
+          <p className="nota">Treinta minutos por videollamada. La invitación te llega al correo con el enlace de Google Meet.</p>
         </div>
       )}
       {!esTotem(modo) && WHATSAPP_CITA && (enviado ? (
@@ -61,7 +61,7 @@ export default function Agendar({ modo }: PropsCapitulo) {
         </form>
       ))}
       {!AGENDA_CITA && !WHATSAPP_CITA && <p className="nota">Pronto podrás agendar aquí una cita con el equipo de {EMPRESA}.</p>}
-      <Proli tamano={5} globo={<>Hola, soy <b>Proli</b>, de Proliferante.</>} />
+      <Proli tamano={5} globo={<>Hola, soy <b>Proli</b>. ¡Cuéntanos tu reto!</>} />
     </div>
   )
 }

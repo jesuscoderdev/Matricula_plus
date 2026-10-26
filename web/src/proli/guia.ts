@@ -18,11 +18,11 @@ const cap = (demo: 'matricula' | 'movilidad', capitulo: string) => o(`${demo}_ca
 export const capituloDe = (pantalla: string) => /capítulo ([^,]+)/.exec(pantalla)?.[1] ?? pantalla
 
 export function guia(pantalla: string, paso: number): Paso | null {
-  if (pantalla === 'Conozca a Proli' || pantalla === 'página para elegir demo') return {
+  if (pantalla === 'Conoce a Proli' || pantalla === 'página para elegir demo') return {
     pregunta: '¿Por cuál empezamos?',
     opciones: [
-      { texto: 'Cupos escolares', ordenes: [o('abrir_demo', { demo: 'matricula' })], respuesta: 'Vamos a Matrícula+: ¿dónde cabe cada niño?' },
-      { texto: 'Seguridad vial', ordenes: [o('abrir_demo', { demo: 'movilidad' })], respuesta: 'Vamos a Movilidad+: ¿dónde se evitan más siniestros?' },
+      { texto: 'Cupos escolares', ordenes: [o('abrir_demo', { demo: 'matricula' })], respuesta: 'Vamos a Matrícula+: cómo lograr que más niños tengan colegio cerca de casa.' },
+      { texto: 'Seguridad vial', ordenes: [o('abrir_demo', { demo: 'movilidad' })], respuesta: 'Vamos a Movilidad+: qué esquinas arreglar primero.' },
     ],
   }
 
@@ -31,16 +31,16 @@ export function guia(pantalla: string, paso: number): Paso | null {
     const conLocalidad = pantalla.includes(', localidad ')
     if (c === 'portada') return {
       pregunta: '¿Empezamos por ver cómo se reparten hoy los cupos?',
-      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('matricula', 'problema')], respuesta: 'Elija su localidad y mire cómo llegan las familias.' }],
+      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('matricula', 'problema')], respuesta: 'Elige una localidad y mira cómo llegan las familias.' }],
     }
     if (c === 'Problema' && !conLocalidad) return {
-      pregunta: '¿Qué localidad quiere ver?',
+      pregunta: '¿Qué localidad quieres ver?',
       opciones: ['Suba', 'Kennedy', 'Bosa', 'Ciudad Bolívar'].map((l) => ({
         texto: l, ordenes: [o('matricula_localidad', { localidad: l })], respuesta: `Así se asignan hoy los cupos en ${l}: por orden de llegada.` })),
     }
     if (c === 'Problema') return {
       pregunta: '¿Probamos otras reglas para repartir los cupos?',
-      opciones: [{ texto: 'Sí, cambiemos las reglas', ordenes: [cap('matricula', 'accion')], respuesta: 'Aquí usted decide. Le pregunto paso a paso.' }],
+      opciones: [{ texto: 'Sí, cambiemos las reglas', ordenes: [cap('matricula', 'accion')], respuesta: 'Aquí decides tú. Te pregunto paso a paso.' }],
     }
     if (c === 'Acción') {
       if (paso === 0) return {
@@ -55,13 +55,13 @@ export function guia(pantalla: string, paso: number): Paso | null {
       if (paso === 1) return {
         pregunta: conLocalidad ? '¿Sumamos un colegio nuevo donde más rinde para esta localidad?' : '¿Sumamos un colegio nuevo donde más rinde?',
         opciones: [
-          { texto: 'Sí, donde más rinde', ordenes: [o('matricula_colegio_sugerido')], respuesta: 'Lo puse donde más niños entran a sus colegios. Debajo de cada opción ve cuántos.' },
+          { texto: 'Sí, donde más rinde', ordenes: [o('matricula_colegio_sugerido')], respuesta: 'Lo puse donde más niños entran a sus colegios. Debajo de cada opción ves cuántos.' },
           { texto: 'No por ahora', ordenes: [o('matricula_colegio_nuevo', { ubicacion: 'ninguno' })], respuesta: 'Sin colegio nuevo: solo cambian las reglas.' },
         ],
       }
       if (paso === 2) return {
         pregunta: '¿Asignamos los cupos con estas reglas?',
-        opciones: [{ texto: '▶ Asignar', ordenes: [o('matricula_asignar')], respuesta: 'Mire cómo piden todas las familias a la vez, ronda por ronda.' }],
+        opciones: [{ texto: '▶ Asignar', ordenes: [o('matricula_asignar')], respuesta: 'Mira cómo piden todas las familias a la vez, ronda por ronda.' }],
       }
       return {
         pregunta: '¿Vemos qué cambió?',
@@ -69,16 +69,16 @@ export function guia(pantalla: string, paso: number): Paso | null {
       }
     }
     if (c === 'Resultado') return {
-      pregunta: '¿Qué quiere probar ahora?',
+      pregunta: '¿Qué quieres probar ahora?',
       opciones: [
         { texto: 'Otras reglas', ordenes: [cap('matricula', 'accion')], respuesta: 'Volvamos a las reglas.' },
-        { texto: '¿Y si cambian los supuestos?', ordenes: [cap('matricula', 'laboratorio')], respuesta: 'Mueva un supuesto y todo se recalcula.' },
-        { texto: 'Quiero esto con mis datos', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' },
+        { texto: '¿Y si cambian los supuestos?', ordenes: [cap('matricula', 'laboratorio')], respuesta: 'Mueve un supuesto y todo se recalcula.' },
+        { texto: 'Tengo un reto en mi entidad', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' },
       ],
     }
     if (c === 'Supuestos' || c === 'Método') return {
-      pregunta: '¿Lo vemos con los datos de su entidad?',
-      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' }],
+      pregunta: '¿Hablamos del reto de tu entidad?',
+      opciones: [{ texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' }],
     }
     return null
   }
@@ -86,23 +86,23 @@ export function guia(pantalla: string, paso: number): Paso | null {
   if (pantalla.startsWith('Movilidad+')) {
     const c = capituloDe(pantalla)
     if (c === 'portada') return {
-      pregunta: '¿Elegimos juntos dónde haría usted una obra?',
-      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'decide')], respuesta: 'Toque las esquinas que arreglaría primero.' }],
+      pregunta: '¿Eliges dónde harías tú una obra?',
+      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'decide')], respuesta: 'Toca las esquinas que arreglarías primero.' }],
     }
-    if (c === 'Usted decide') return {
-      pregunta: '¿En qué parte de Bogotá busca esquinas?',
+    if (c === 'Tú decides') return {
+      pregunta: '¿En qué parte de Bogotá buscas esquinas?',
       opciones: [['Kennedy', 'KENNEDY'], ['Suba', 'SUBA'], ['Bosa', 'BOSA'], ['Toda Bogotá', 'TODA_BOGOTA']].map(([t, l]) => ({
-        texto: t, ordenes: [o('movilidad_localidad', { localidad: l })], respuesta: 'Ahora toque en el mapa las esquinas que arreglaría primero.' })),
+        texto: t, ordenes: [o('movilidad_localidad', { localidad: l })], respuesta: 'Ahora toca en el mapa las esquinas que arreglarías primero.' })),
     }
     if (c === 'Pasó un año') return {
-      pregunta: '¿Qué año quiere ver en el mapa?',
+      pregunta: '¿Qué año quieres ver en el mapa?',
       opciones: [
-        { texto: 'El año en que eligió', ordenes: [o('movilidad_anio_mapa', { anio: '2024' })], respuesta: 'Así estaban las esquinas cuando las eligió.' },
+        { texto: 'El año en que elegiste', ordenes: [o('movilidad_anio_mapa', { anio: '2024' })], respuesta: 'Así estaban las esquinas cuando las elegiste.' },
         { texto: 'Un año después', ordenes: [o('movilidad_anio_mapa', { anio: '2025' })], respuesta: 'Y así les fue un año después.' },
       ],
     }
     if (c === 'El giro') return {
-      pregunta: '¿Le muestro cómo se corrige?',
+      pregunta: '¿Te muestro cómo se corrige?',
       opciones: [{ texto: 'Sí, el método', ordenes: [cap('movilidad', 'metodo')], respuesta: 'Se compara con lo que se esperaba sin obra.' }],
     }
     if (c === 'El método') return {
@@ -110,20 +110,20 @@ export function guia(pantalla: string, paso: number): Paso | null {
       opciones: [
         { texto: 'Calles de barrio', ordenes: [o('movilidad_tipo_via', { zona: 'barrio' })], respuesta: 'Las calles de barrio, donde hay menos datos.' },
         { texto: 'Avenidas', ordenes: [o('movilidad_tipo_via', { zona: 'avenidas' })], respuesta: 'Las avenidas, que la ciudad ya vigila.' },
-        { texto: 'Llevarlo al presupuesto', ordenes: [cap('movilidad', 'presupuesto')], respuesta: 'Elija cuánto invertir.' },
+        { texto: 'Llevarlo al presupuesto', ordenes: [cap('movilidad', 'presupuesto')], respuesta: 'Elige cuánto invertir.' },
       ],
     }
     if (c === 'Presupuesto') return {
       pregunta: '¿Cuánto presupuesto probamos?',
       opciones: [
-        { texto: '$1.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'bajo' })], respuesta: 'Arriba ve cuántos siniestros graves se esperaría evitar.' },
-        { texto: '$5.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'medio' })], respuesta: 'Arriba ve cuántos siniestros graves se esperaría evitar.' },
-        { texto: '$20.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'alto' })], respuesta: 'Arriba ve cuántos siniestros graves se esperaría evitar.' },
+        { texto: '$1.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'bajo' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
+        { texto: '$5.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'medio' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
+        { texto: '$20.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'alto' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
       ],
     }
     if (c === 'Fuentes' || c === 'Hablemos') return {
-      pregunta: '¿Lo vemos con los datos de su entidad?',
-      opciones: [{ texto: 'Sí, agendar', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agende una conversación con el equipo, con el código o el botón.' }],
+      pregunta: '¿Hablamos del reto de tu entidad?',
+      opciones: [{ texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' }],
     }
   }
   return null

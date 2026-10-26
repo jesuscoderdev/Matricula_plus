@@ -291,7 +291,7 @@ export default function MapaMovilidad({
   }
 
   const titulo = capa === 'sel' ? 'Esquinas que alcanza el presupuesto'
-    : capa === 'kappa' ? 'Riesgo anual corregido · calles de barrio'
+    : capa === 'kappa' ? 'Riesgo real de cada esquina, sin la mala suerte de un año · calles de barrio'
       : `Siniestros graves ${capa === 'k25' ? datos.resumen.anio_validacion : datos.experiencia.pantalla_1_usted_decide.anio_mostrado} · calles de barrio`
   const nombres = etiquetas(cortes, enteros)
   const css = (c: RGB | RGBA) => `rgb(${c[0]},${c[1]},${c[2]})`

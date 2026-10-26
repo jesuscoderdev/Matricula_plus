@@ -32,9 +32,9 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---
-  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Usted decide; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; fuentes; cierre = Hablemos (QR).',
+  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Tú decides; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; fuentes; cierre = Hablemos (QR).',
     objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'metodo', 'presupuesto', 'fuentes', 'cierre'] } })),
-  h('movilidad_localidad', 'Movilidad+: acerca el mapa a una localidad (o vuelve a toda Bogotá) en el capítulo «Usted decide».',
+  h('movilidad_localidad', 'Movilidad+: acerca el mapa a una localidad (o vuelve a toda Bogotá) en el capítulo «Tú decides».',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MOVILIDAD, 'TODA_BOGOTA'] } })),
   h('movilidad_presupuesto', 'Movilidad+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
     objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),
@@ -44,8 +44,8 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ anio: { type: 'string', enum: ['2024', '2025'] } })),
 
   // --- Matrícula+ (abre el demo si no está abierto) ---
-  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; metodo; caso = Simula una familia; explorar = UPZ por UPZ; agendar.',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'metodo', 'caso', 'explorar', 'agendar'] } })),
+  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; metodo = Así lo resolvimos; explorar = UPZ por UPZ; agendar.',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'metodo', 'explorar', 'agendar'] } })),
   h('matricula_localidad', 'Matrícula+: elige la localidad y muestra en el capítulo Problema cómo se asignan hoy los cupos allí.',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MATRICULA] } })),
   h('matricula_reglas', 'Matrícula+: cambia las reglas de prioridad en el capítulo Acción. equilibrada = cercanía, hermanos y vulnerabilidad pesan igual; cercania = primero quien vive cerca; familias = primero quien tiene hermanos; equidad = primero las familias vulnerables.',

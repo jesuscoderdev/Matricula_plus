@@ -11,8 +11,8 @@
     "fuente": "Anuario de Siniestralidad Vial de Bogotá 2025 (SDM). 562 y 19.605 se reprodujeron exactamente con la base publicada; 575, −2,3 %, +4 % y 48 % se toman del texto del Anuario."
   },
   "pantalla_1_usted_decide": {
-    "titulo_sugerido": "¿Dónde invertiría usted?",
-    "instruccion": "Toque 3 esquinas donde haría una obra de seguridad vial.",
+    "titulo_sugerido": "¿Dónde invertirías tú?",
+    "instruccion": "Toca 3 esquinas donde harías una obra, como lo haría la mayoría: donde hubo más siniestros el año pasado.",
     "anio_mostrado": 2024,
     "capa": "sitios.geojson",
     "campo_a_mostrar": "k_2024",
@@ -23,7 +23,7 @@
     }
   },
   "pantalla_2_pasa_un_anio": {
-    "titulo_sugerido": "Pasó un año",
+    "titulo_sugerido": "Así les fue a tus esquinas",
     "como_calcular_lo_del_visitante": "Para cada esquina tocada mostrar k_2024 y k_2025 del mismo hexágono.",
     "referencia_30_peores_esquinas_de_barrio_2024": {
       "graves_2024": 189,
@@ -66,11 +66,11 @@
     }
   },
   "pantalla_3_el_giro": {
-    "texto_sugerido": "Si hubiera hecho una obra en esas esquinas, habría creído que funcionó. Bajaron solas: los años malos no se repiten."
+    "texto_sugerido": "Tus esquinas bajaron. Pero casi todas las peores también."
   },
   "pantalla_4_el_metodo": {
-    "titulo_sugerido": "Lo que se prometía y lo que pasó",
-    "explicacion": "Se eligen las 30 esquinas de mayor riesgo con 2023–2024 y se compara con 2025, un año que el modelo no vio.",
+    "titulo_sugerido": "Promesas que se cumplen",
+    "explicacion": "Con datos de 2023 y 2024, cada forma de elegir prometió cuántos siniestros graves habría en 2025 en sus 30 esquinas. Así les fue.",
     "calles_de_barrio_30_sitios": {
       "regla_simple": {
         "promete": 177.0,
@@ -98,7 +98,7 @@
       "esquinas_en_comun": 28
     },
     "caida_general_2025_pct": -10.8,
-    "mensaje_clave": "El método no cambia tanto dónde intervenir, sino cuánto se puede prometer."
+    "mensaje_clave": "Las dos eligen casi las mismas esquinas. La diferencia está en cuánto se puede prometer y cumplir."
   },
   "pantalla_presupuesto_barrio": {
     "intervencion": "Reductores de velocidad en la esquina (resaltos o pompeyanos con demarcación)",
@@ -127,7 +127,7 @@
     "como_decirlo": "Con estos supuestos, se esperaría evitar X siniestros graves al año."
   },
   "cierre": {
-    "texto_sugerido": "¿Y con los datos de su entidad? Este mismo análisis se actualiza cada vez que llegan datos nuevos y puede evaluar, después, si cada obra funcionó.",
+    "texto_sugerido": "¿Tienes un reto así en tu entidad? Este mismo análisis se actualiza cada vez que llegan datos nuevos y puede evaluar, después, si cada obra funcionó.",
     "accion": "QR de agenda (el mismo de la sección de educación)."
   }
 }

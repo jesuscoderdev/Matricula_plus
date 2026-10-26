@@ -2,7 +2,7 @@
  * Movilidad+: «Con este presupuesto, ¿dónde se evitan más siniestros graves?», con enfoque en las
  * calles de barrio. Sección propia: sus datos (public/movilidad/datos) solo se leen aquí.
  *
- * Recorrido: Usted decide (toca esquinas) → Pasó un año → El giro → El método → Presupuesto →
+ * Recorrido: Tú decides (toca esquinas) → Pasó un año → El giro → El método → Presupuesto →
  * Fuentes → Hablemos. Misma navegación que Matrícula+: capítulos, ← Atrás (también el atrás del
  * celular), logo que reinicia, teclado en escritorio, recorrido solo en ?modo=auto.
  */
@@ -125,7 +125,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           const i = datos.sitios.localidades.indexOf(String(e.localidad))
           if (i < 0) return 'Localidad no reconocida en Movilidad+.'
           setLocalidad(i); refIr.current('decide')
-          return `Listo: el mapa de «Usted decide» se acercó a ${nombreLocalidad(datos.sitios.localidades[i])}.`
+          return `Listo: el mapa de «Tú decides» se acercó a ${nombreLocalidad(datos.sitios.localidades[i])}.`
         }
         case 'movilidad_presupuesto': {
           const n = String(e.nivel) as Nivel
@@ -311,7 +311,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
         <div className="escena__mapa">
           <MapaMovilidad datos={datos} {...propsMapa}>
             {vista === 'decide' && modo !== 'auto' && faltan > 0 && (
-              <div className="mapa__aviso">{tocadas.length ? `Toque ${faltan} más` : `Toque ${ESQUINAS_A_TOCAR} esquinas`}</div>
+              <div className="mapa__aviso">{tocadas.length ? `Toca ${faltan} más` : `Toca ${ESQUINAS_A_TOCAR} esquinas`}</div>
             )}
           </MapaMovilidad>
         </div>

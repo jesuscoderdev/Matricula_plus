@@ -50,8 +50,8 @@ const sup = res.supuestos_intervenciones.intervenciones
 const v = res.validacion_2025
 const movilidad = `
 ## Demo Movilidad+ (seguridad vial)
-Pregunta: «Con este presupuesto, ¿dónde se evitan más siniestros graves?». Enfoque: «Las avenidas ya se vigilan. ¿Y las esquinas de su barrio?».
-Capítulos (en orden): Usted decide (el visitante toca 3 esquinas en el mapa de ${exp.pantalla_1_usted_decide.anio_mostrado}) → Pasó un año (qué pasó en ${res.anio_validacion}) → El giro → El método → Presupuesto → Fuentes → Hablemos (QR para agendar).
+Pregunta: «El presupuesto no alcanza para todo. ¿Qué esquinas arreglarías primero?». Enfoque: «Las avenidas ya se vigilan. ¿Y las esquinas de tu barrio?».
+Capítulos (en orden): Tú decides (el visitante toca 3 esquinas en el mapa de ${exp.pantalla_1_usted_decide.anio_mostrado}) → Pasó un año (qué pasó en ${res.anio_validacion}) → El giro → El método → Presupuesto → Fuentes → Hablemos (QR para agendar).
 
 ### Contexto de la ciudad (Anuario de Siniestralidad Vial 2025, Secretaría Distrital de Movilidad)
 - ${fmt(exp.contexto_ciudad.fallecidos_2025)} personas fallecieron en siniestros viales en Bogotá en 2025 y ${fmt(exp.contexto_ciudad.lesionados_2025)} resultaron lesionadas (criterio de 30 días).
@@ -132,8 +132,8 @@ const filasMat = LOCALIDADES_MATRICULA.map((n) => {
 
 const matricula = `
 ## Demo Matrícula+ (cupos escolares)
-Pregunta: «¿Dónde cabe cada niño?». Simulador de asignación de cupos para estudiantes NUEVOS en colegios oficiales de Bogotá. Es una herramienta para comparar reglas, no una predicción.
-Capítulos: Problema (el visitante elige una localidad y ve cómo se asigna hoy: las familias llegan una por una y quien llega tarde no cabe) → Acción (elige las reglas, un colegio nuevo y la jornada única, y toca ▶ Asignar) → Resultado (localidad, Bogotá y zona crítica) → Supuestos (editables) → Método (Proli y QR). Extras: Simula una familia, Explorar (UPZ por UPZ) y Agendar.
+Pregunta: «¿Cómo logramos que más niños tengan colegio cerca de casa?». El problema: en Bogotá hay cupos para los niños nuevos, pero no siempre donde viven; hoy, en la fase general, el cupo se toma por orden de llegada. Simulador de asignación de cupos para estudiantes NUEVOS en colegios oficiales de Bogotá. Es una herramienta para comparar reglas, no una predicción.
+Capítulos: Problema (el visitante elige una localidad y ve cómo se asigna hoy: las familias llegan una por una y quien llega tarde no cabe) → Acción (elige las reglas, un colegio nuevo y la jornada única, y toca ▶ Asignar) → Resultado (localidad, Bogotá y zona crítica) → Supuestos (editables) → Así lo resolvimos (método, Proli y QR). Extras: Explorar (UPZ por UPZ) y Agendar.
 
 ### Datos de partida
 - ${ind.supuestos.cupos} Corte: ${ind.supuestos.corte}.

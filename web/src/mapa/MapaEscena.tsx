@@ -468,7 +468,7 @@ export default function MapaEscena(props: Props) {
       marcas.push({ p: a, texto: rech ? '✕' : '✓', color })
       // Donde queda, el colegio late
       if (!rech) { const l = quieto ? 0.5 : ((tv - t0 - CRECE_VIAJE) % 1.4) / 1.4; anillos.push({ p: a, color, u: 1 - l, radio: radioCol(paso.sede) + 14 * e * l }) }
-      texto = rech ? `✕ ${nombre}: no hubo cupo para ella` : reub ? `Reubicada en ${nombre}, fuera de sus opciones` : `✓ Queda en ${nombre}, su ${j + 1}.ª opción`
+      texto = rech ? `✕ ${nombre}: no hubo cupo para ella` : reub ? `Reubicada en ${nombre}, un colegio que no pidió` : `✓ Queda en ${nombre}, su ${j + 1}.ª opción`
     })
     if (viaje.final === 'sin' && tv >= n * PASO_VIAJE) {
       const l = quieto ? 0.5 : ((tv - n * PASO_VIAJE) % 1.4) / 1.4
@@ -654,7 +654,7 @@ export default function MapaEscena(props: Props) {
 
       {escena === 'ciudad' && (
         <div className="mapa__leyenda">
-          <span className="mapa__leyenda-titulo">Niños fuera de sus opciones · {coloreo === 'hoy' ? 'hoy' : 'con la política'}</span>
+          <span className="mapa__leyenda-titulo">Niños que no entran a sus colegios · {coloreo === 'hoy' ? 'hoy' : 'con Matrícula+'}</span>
           <div className="mapa__escala">{escala.map((x) => <span key={x.etiqueta}><i style={{ background: `rgb(${x.color.join(',')})` }} />{x.etiqueta}</span>)}</div>
           <span className="mapa__zona"><i />Zona crítica (SED)</span>
         </div>

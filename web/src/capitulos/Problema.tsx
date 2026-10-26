@@ -50,30 +50,30 @@ export default function Problema({ datos, r, modo, supuestos, localidad, elegirL
       <header className="panel__cabeza">
         <span className="kicker">{kicker('problema', localidad)}</span>
         <h1 className="display">Así se asigna <em>hoy</em> en {localidad}</h1>
-        <p className="lead">Las familias llegan una por una y toman el primer colegio de su lista con cupo.
-          Quien llega tarde encuentra todo lleno, aunque viva al lado.</p>
+        <p className="lead">Cada familia pide hasta {supuestos.opciones} colegios cercanos. Hoy llegan una por una y toman el primero
+          de su lista con cupo: quien llega tarde encuentra todo lleno, aunque viva al lado.</p>
       </header>
       <div className="datos-linea">
         <div><b>{entero(loc.piden)}</b><span>niños nuevos viven aquí</span></div>
         <div><b>{entero(loc.cupos)}</b><span>cupos en la localidad</span></div>
-        <div><b>{loc.por100}</b><span>cupos por cada 100</span></div>
+        <div><b>{loc.por100}</b><span>cupos por cada 100 niños</span></div>
       </div>
       {terminado ? (
         <div className="tarjeta tarjeta--tinta">
           <span className="etiqueta">Resultado de hoy en {localidad}</span>
           <div className="gran-cifra">
             <span className="gran-cifra__n" style={{ color: 'var(--naranja)' }}>{entero(hoy.fueraDeOpciones)}</span>
-            <span className="gran-cifra__t" style={{ color: '#c7d7ec' }}>niños fuera de sus opciones ({decimal(hoy.pctFueraDeOpciones)}%):
-              {' '}{entero(hoy.fueraDeOpciones - hoy.sinCupo)} reubicados en otro colegio y {entero(hoy.sinCupo)} sin ningún cupo cercano.</span>
+            <span className="gran-cifra__t" style={{ color: '#c7d7ec' }}>niños no entran a ninguno de los colegios que pidieron ({decimal(hoy.pctFueraDeOpciones)}%):
+              {' '}{entero(hoy.fueraDeOpciones - hoy.sinCupo)} terminan en otro colegio y {entero(hoy.sinCupo)} se quedan sin ningún cupo cerca.</span>
           </div>
         </div>
       ) : (
-        <p className="nota">Cada punto del mapa es una familia sintética ({epf} niños). Toca uno para ver su historia.</p>
+        <p className="nota">Cada punto del mapa es una familia simulada ({epf} niños), sin datos personales. Toca uno para ver su historia.</p>
       )}
       {!auto && (
         <div className="panel__pie">
           <button className={`boton boton--violeta boton--ancho ${terminado ? 'boton--latir' : ''}`} onClick={() => ir('accion')}>
-            ¿Y si asignamos distinto? →
+            ¿Cómo logramos que más niños tengan colegio? →
           </button>
           <div className="fila fila--entre">
             <button className="boton-texto" onClick={repetir}>↻ Ver de nuevo</button>

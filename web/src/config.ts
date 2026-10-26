@@ -4,7 +4,7 @@
 
 // Nombre de la app y del demostrador
 export const APP_NAME = 'Matrícula+'
-export const TITULO_SIMULADOR = '¿Dónde cabe cada niño?'
+export const TITULO_SIMULADOR = '¿Cómo logramos que más niños tengan colegio cerca de casa?'
 export const EMPRESA = 'Proliferante'
 // Web de la empresa (footer: enlace en celular y PC; QR en el tótem, donde un enlace sacaría de la app)
 export const URL_EMPRESA = 'https://proliferante.com'
@@ -33,7 +33,7 @@ export const AGENDA_CITA = ''
 export const WHATSAPP_CITA = '573125888421'
 /** El destino de los QR y botones de cita: primero el calendario; si no hay, WhatsApp. */
 export const URL_CITA = AGENDA_CITA ||
-  (WHATSAPP_CITA ? `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(`Hola ${EMPRESA}, quiero agendar una cita sobre ${APP_NAME}.`)}` : '')
+  (WHATSAPP_CITA ? `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(`Hola ${EMPRESA}, vi los demos en el GovTech Summit y quiero agendar una reunión.`)}` : '')
 /** Con agenda o WhatsApp configurados, los QR de cita se generan solos (sin imagen aparte). */
 export const MOSTRAR_QR_GENERADO = !!URL_CITA
 
@@ -54,41 +54,39 @@ export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado:
 // retadora (señala el problema), Proli es cercano y el eslogan es el cierre del manual de marca.
 export const PORTADA_STAND = {
   evento: 'GovTech Summit 2026 · Bogotá · 3 y 4 de noviembre',
-  kicker: 'Decisiones públicas con datos abiertos',
-  // La parte entre corchetes va resaltada (segunda voz del titular)
-  pregunta: '¿Y si los datos de su entidad [ya tuvieran la respuesta]?',
-  bajada: 'Dos decisiones reales de Bogotá, resueltas con datos abiertos en un minuto: dónde cabe cada niño y qué esquina conviene arreglar primero.',
+  kicker: 'Retos públicos, resueltos con datos',
+  // La parte entre corchetes va resaltada (segunda voz del titular). Titular aprobado en la reunión del 23-oct.
+  pregunta: 'Mira en un minuto cómo Proliferante convierte un reto público en [una decisión que genera resultados]',
+  bajada: 'Datos abiertos, modelos matemáticos y simulación, aplicados a dos retos reales de Bogotá.',
   eslogan: 'Hacemos simple lo complejo',
   acento: 'Inyectamos capacidades que multiplican posibilidades',
-  proli: '¡Hola! Soy Proli. Toque la pantalla y se lo muestro.',
-  tocar: 'Toque la pantalla para empezar',
+  proli: '¡Hola! Soy Proli. Toca la pantalla y te muestro cómo lo resolvemos.',
+  tocar: 'Toca la pantalla para empezar',
   boton: 'Empezar →',
 }
 // Modo automático: segundos en la portada antes de pasar a conocer a Proli
 export const SEGUNDOS_PORTADA_AUTO = 7
 
-// --- Conozca a Proli (segunda pantalla) ---
+// --- Conoce a Proli (segunda pantalla) ---
 // Presenta a Proli como el guía del stand. Personalidad del manual de marca (pág. 17): curioso,
 // inteligente, inquieto, optimista y un poco retador; voz cercana, ingeniosa y clara.
 // Los «pedidos» son acciones reales (entran a un demo); cuando Proli converse con IA, esta misma
 // zona será la entrada a la conversación. No prometer aquí nada que la app todavía no haga.
 export const PROLI_INTRO = {
-  kicker: 'Su guía en este stand',
+  kicker: 'Tu guía en este recorrido',
   nombre: 'Proli',
-  saludo: '¡Hola! Soy Proli, el curioso de Proliferante. Hoy le muestro dos retos reales de Bogotá y lo acompaño en cada paso.',
+  saludo: '¡Hola! Soy Proli, tu guía en esta visita. Te muestro cómo Proliferante resolvió dos retos reales de Bogotá, paso a paso y con las fuentes a la vista.',
   esencia: 'Siempre hay otra posibilidad por descubrir',
   ayudas: [
-    { icono: 'guia', titulo: 'Lo guío paso a paso', texto: 'Del problema a la decisión, en un minuto.' },
-    { icono: 'cifra', titulo: 'Le explico cada cifra', texto: 'Qué significa y de dónde sale.' },
-    { icono: 'equipo', titulo: 'Lo conecto con el equipo', texto: 'Para verlo con los datos de su entidad.' },
+    { icono: 'guia', titulo: 'Te guío paso a paso', texto: 'Del problema a la decisión, en un minuto.' },
+    { icono: 'cifra', titulo: 'Te explico cada cifra', texto: 'Qué significa y de dónde sale.' },
+    { icono: 'equipo', titulo: 'Te conecto con el equipo', texto: 'Para hablar del reto de tu entidad.' },
   ],
-  pedidosTitulo: 'Pídamelo así',
-  // Uno por demo; «ver los dos» es el botón principal de la pantalla
-  pedidos: [
-    { texto: '«Muéstreme dónde faltan cupos»', proyecto: 'educacion' },
-    { texto: '«¿Qué esquina arreglo primero?»', proyecto: 'movilidad' },
-  ] as { texto: string; proyecto: IdProyecto | null }[],
-  boton: 'Ver los demos →',
+  // Atajos a cada demo (vacío = no se muestran). Se quitaron en la reunión del 23-oct: sugerían que
+  // Proli entiende voz o texto libre en esta pantalla y competían con el botón principal.
+  pedidosTitulo: '',
+  pedidos: [] as { texto: string; proyecto: IdProyecto | null }[],
+  boton: 'Ver los retos →',
 }
 // Modo automático: segundos con Proli antes de pasar a elegir proyecto
 export const SEGUNDOS_PROLI_AUTO = 9
@@ -96,8 +94,8 @@ export const SEGUNDOS_PROLI_AUTO = 9
 // --- Página de inicio (elegir proyecto) ---
 // Nombre y pregunta de la sección de movilidad (se cambian aquí)
 export const NOMBRE_MOVILIDAD = 'Movilidad+'
-export const TITULO_MOVILIDAD = 'Con este presupuesto, ¿dónde se evitan más siniestros graves?'
-export const LEMA_MOVILIDAD = 'Las avenidas ya se vigilan. ¿Y las esquinas de su barrio?'
+export const TITULO_MOVILIDAD = 'El presupuesto no alcanza para todo. ¿Qué esquinas arreglarías primero?'
+export const LEMA_MOVILIDAD = 'Las avenidas ya se vigilan. ¿Y las esquinas de tu barrio?'
 
 export type IdProyecto = 'educacion' | 'movilidad'
 /**
@@ -111,27 +109,29 @@ export const PROYECTOS: {
   nombre: string          // marca (termina en "+" → cruz violeta)
   letra: string           // letra del icono
   variante: 'tinta' | 'violeta'
-  pregunta: string
-  bajada: string
+  pregunta: string        // el reto, en una pregunta
+  bajada: string          // qué vas a hacer en el demo
   gancho: string          // lo que dice Proli en la tarjeta (voz retadora: una pregunta)
   cta: string             // llamado a la acción de la tarjeta: verbo + beneficio
   proximamente?: boolean
 }[] = [
-  { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta', pregunta: TITULO_SIMULADOR,
-    bajada: 'Cupos en colegios oficiales de Bogotá: cómo repartirlos mejor.',
-    gancho: '¿Quién se queda sin cupo? Véalo en un minuto.', cta: 'Simular la asignación →' },
-  { id: 'movilidad', area: 'Movilidad', nombre: NOMBRE_MOVILIDAD, letra: 'M', variante: 'violeta', pregunta: TITULO_MOVILIDAD,
-    bajada: LEMA_MOVILIDAD,
-    gancho: '¿Qué esquina arreglaría usted primero?', cta: 'Decidir dónde invertir →' },
+  { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta',
+    pregunta: '¿Cómo lograr una mejor asignación de cupos escolares?',
+    bajada: 'Cambia los criterios y mira quién consigue colegio cerca de casa.',
+    gancho: '¿Quién se queda por fuera? Míralo en un minuto.', cta: 'Explorar el reto →' },
+  { id: 'movilidad', area: 'Seguridad vial', nombre: NOMBRE_MOVILIDAD, letra: 'M', variante: 'violeta',
+    pregunta: '¿Dónde conviene invertir primero para evitar siniestros graves?',
+    bajada: 'Mira cómo los datos ayudan a priorizar con un presupuesto limitado.',
+    gancho: '¿Qué esquina arreglarías tú primero?', cta: 'Explorar el reto →' },
 ]
 
 // Llamado a la acción del inicio (para quien decide en una entidad pública). Voz del manual:
 // retadora al señalar el problema, cercana al acompañar, rigurosa al entregar.
 export const LLAMADO_INICIO = {
   kicker: 'Para entidades públicas',
-  titulo: '¿Su entidad decide con datos o por costumbre?',
-  texto: 'Estas demostraciones usan solo datos abiertos. Le mostramos cómo se verían con los datos y las reglas de su entidad.',
-  boton: 'Agendar una conversación →',
+  titulo: '¿Tienes un reto en tu entidad?',
+  texto: 'Estos demos usan solo datos abiertos. Cuéntanos tu reto y buscamos juntos por dónde empezar.',
+  boton: 'Agenda una reunión →',
 }
 
 // Modo automático sin ?proyecto: segundos en la página de inicio antes de entrar al siguiente proyecto
@@ -139,5 +139,5 @@ export const SEGUNDOS_INICIO_AUTO = 6
 
 // Movilidad+: duración de cada capítulo en modo automático (segundos): ~60 s por vuelta
 export const DURACION_PASOS_MOVILIDAD = { portada: 5, decide: 10, anio: 9, giro: 6, metodo: 9, presupuesto: 11, fuentes: 5, cierre: 5 }
-// Movilidad+: esquinas que toca el visitante en "Usted decide"
+// Movilidad+: esquinas que toca el visitante en "Tú decides"
 export const ESQUINAS_A_TOCAR = 3
