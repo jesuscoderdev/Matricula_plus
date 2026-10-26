@@ -56,9 +56,19 @@ def test_orden_llegada_caso_a_mano():
 
 def test_capacidades_jornada_y_colegio_nuevo():
     cap = M.capacidades(np.array([100, 55]), cupos_nuevo=None, jornada_unica=False, reduccion=0.1, estudiantes_por_familia=10)
-    assert list(cap) == [10, 5]
+    assert list(cap) == [10, 6]                         # 155 cupos → 16 familias (mayor residuo, no floor)
     cap = M.capacidades(np.array([100, 55]), cupos_nuevo=1200, jornada_unica=True, reduccion=0.1, estudiantes_por_familia=10)
-    assert list(cap) == [9, 4, 108]                     # −10% y el colegio nuevo al final
+    assert list(cap) == [9, 5, 108]                     # −10% (1.219,5 → 122 familias) y el colegio nuevo al final
+
+
+def test_capacidades_no_pierden_cupos():
+    rng = np.random.default_rng(7)
+    cupos = rng.integers(1, 3000, size=700)
+    for ju in (False, True):
+        f = 0.9 if ju else 1.0
+        cap = M.capacidades(cupos, cupos_nuevo=None, jornada_unica=ju, reduccion=0.1, estudiantes_por_familia=10)
+        assert cap.sum() == int(np.floor(cupos.sum() * f / 10 + 0.5))
+        assert (np.abs(cap - cupos * f / 10) < 1).all()   # cada sede, a menos de una familia de su cupo
 
 
 # ---------------------------------------------------------------- sobre datos sintéticos
