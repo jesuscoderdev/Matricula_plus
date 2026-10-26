@@ -3,7 +3,7 @@ import type { Supuestos } from '../motor'
 import type { Palancas, Resultados } from '../estado'
 import type { Modo } from '../modo'
 
-export type Capitulo = 'problema' | 'accion' | 'resultado' | 'laboratorio' | 'metodo'
+export type Capitulo = 'problema' | 'accion' | 'resultado' | 'laboratorio' | 'fuentes' | 'metodo'
 export type Extra = 'caso' | 'explorar' | 'agendar'
 export type Vista = 'portada' | Capitulo | Extra
 
@@ -12,6 +12,7 @@ export const CAPITULOS: { id: Capitulo; nombre: string }[] = [
   { id: 'accion', nombre: 'Acción' },
   { id: 'resultado', nombre: 'Resultado' },
   { id: 'laboratorio', nombre: 'Supuestos' },
+  { id: 'fuentes', nombre: 'Fuentes' },
   { id: 'metodo', nombre: 'Método' },
 ]
 export const numeroDe = (c: Capitulo) => String(CAPITULOS.findIndex((x) => x.id === c) + 1).padStart(2, '0')

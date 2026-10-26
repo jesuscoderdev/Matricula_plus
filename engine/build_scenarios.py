@@ -30,7 +30,7 @@ import shapely
 
 from engine.asignacion.aceptacion_diferida import pares_bloqueantes
 from engine.config import APP_NAME, DATA_PROCESSED, RAIZ
-from engine.simulador.config import NIVELES, PRESETS, ParametrosSimulador
+from engine.simulador.config import FUENTES, NIVELES, PRESETS, VERIFICACION, ParametrosSimulador
 from engine.simulador.datos import cargar_base, insuficiencia_upz
 from engine.simulador.escenario import Palancas, definir_zona_critica, simular
 from engine.simulador.familias import DECIMALES, generar_familias
@@ -216,6 +216,13 @@ def main():
         "zona_critica_fuente": ("Insuficiencia muy alta según el Estudio de insuficiencia SED 2025"
                                 if p.zona_critica_nombres else "UPZ con más niños sin cupo en la línea base"),
         "upz": list(base.upz["codigo"]),
+        # Capítulo «De dónde salen los datos»
+        "fuentes": {
+            "datos": [{"dato": d, "fuente": f, "corte": c, "url": u} for d, f, c, u in FUENTES],
+            "verificacion": VERIFICACION,
+            "privacidad": "Las familias son sintéticas: no se usa ningún dato personal (Ley 1581 de 2012). Las direcciones y "
+                          "opciones reales de quienes piden cupo están en el sistema de matrícula y no son públicas.",
+        },
         "base": {k: m_base[k] for k in METRICAS + ["estudiantes", "sin_cupo"]},
         "base_por_upz": [m_base["por_upz"].get(c, 0.0) for c in base.upz["codigo"]],
         "supuestos": {
