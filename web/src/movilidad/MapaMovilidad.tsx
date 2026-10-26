@@ -6,7 +6,7 @@
  * al revés: más = más brillante). Nunca rojo/verde. Los cortes de la escala salen de los datos.
  *
  *  · capa "k24" / "k25" — siniestros graves de ese año (calles de barrio; avenidas en gris)
- *  · capa "kappa"       — riesgo anual corregido (lo que se puede prometer)
+ *  · capa "kappa"       — riesgo real: el riesgo anual ya descontada la mala suerte de un año
  *  · capa "sel"         — las esquinas que alcanza el presupuesto elegido
  * Encima: las esquinas que tocó el visitante (numeradas) y, si se pide, las peores de 2024 (anillos).
  */
@@ -34,7 +34,8 @@ const PALETA = {
     superficie: [29, 54, 52, 245] as RGBA, fuera: 60 },
 }
 const VIOLETA: RGBA = [90, 68, 221, 255]
-const BIT: Record<Nivel, number> = { bajo: 1, medio: 2, alto: 4 }
+/** Bit de cada nivel de presupuesto en `sitios.sel` */
+export const BIT: Record<Nivel, number> = { bajo: 1, medio: 2, alto: 4 }
 
 /** Cortes de la escala a partir de los datos (cuantiles de los valores positivos, sin repetir). */
 function cortesDe(valores: number[], enteros: boolean): number[] {
@@ -73,6 +74,34 @@ function useReloj(activo: boolean) {
     return () => cancelAnimationFrame(id)
   }, [activo])
   return activo ? t : 0
+}
+const DURACION_APARICION = 900  // ms que tardan en aparecer las esquinas nuevas al cambiar el presupuesto
+const RETRASO_APARICION = 0.55  // fracción de la duración en que se reparten los arranques
+
+/**
+ * Avance de 0 a 1 cada vez que cambia `lista`, y qué elementos ya estaban en la anterior (esos no se animan).
+ * Con "reducir movimiento" vale 1 desde el principio.
+ */
+function useAparicion(lista: number[]) {
+  const [estado, setEstado] = useState({ lista, previas: new Set<number>(), u: 0 })
+  let actual = estado
+  if (estado.lista !== lista) {
+    actual = { lista, previas: new Set(estado.lista), u: 0 }
+    setEstado(actual)
+  }
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setEstado((e) => ({ ...e, u: 1 })); return }
+    let id = 0
+    const inicio = performance.now()
+    const p = (ms: number) => {
+      const u = Math.min(1, (ms - inicio) / DURACION_APARICION)
+      setEstado((e) => ({ ...e, u }))
+      if (u < 1) id = requestAnimationFrame(p)
+    }
+    id = requestAnimationFrame(p)
+    return () => cancelAnimationFrame(id)
+  }, [lista])
+  return actual
 }
 interface Celda { v: number; poligono: [number, number][] }
 
@@ -186,6 +215,18 @@ export default function MapaMovilidad({
   // Calles de barrio con valor, de menor a mayor (las más oscuras quedan encima)
   const conValor = useMemo(() => indices.filter((i) => s.local[i] === 1 && valor[i] > 0).sort((a, b) => valor[a] - valor[b]), [indices, s, valor])
   const elegidas = useMemo(() => (capa === 'sel' ? indices.filter((i) => s.sel[i] & BIT[nivel]) : []), [capa, nivel, indices, s])
+  // Al cambiar el presupuesto, las esquinas que se suman crecen desde cero, escalonadas; las que ya estaban se quedan.
+  // El mínimo de 3 px se calcula aquí (metros por píxel) porque radiusMinPixels no deja empezar en cero.
+  const aparicion = useAparicion(elegidas)
+  // deck.gl: el mundo mide 512 px en zoom 0
+  const mPorPx = (78271.52 * Math.cos((viewState.latitude * Math.PI) / 180)) / 2 ** viewState.zoom
+  const radioElegida = Math.max(70, 3 * e * mPorPx)
+  const crecer = (i: number) => {
+    if (aparicion.u >= 1 || aparicion.previas.has(i)) return 1
+    const retraso = ((i * 0.6180339887) % 1) * RETRASO_APARICION
+    const x = Math.min(1, Math.max(0, (aparicion.u - retraso) / (1 - RETRASO_APARICION)))
+    return suave(x) * (1 + 0.35 * Math.sin(Math.PI * x))  // un pequeño rebote al llegar
+  }
 
   // Vista de ciudad: suma del valor de las calles de barrio en celdas hexagonales grandes. Las celdas
   // donde solo hay avenidas o calles sin siniestros ese año quedan como fondo y dibujan la ciudad.
@@ -249,8 +290,10 @@ export default function MapaMovilidad({
     }),
     elegidas.length > 0 && new ScatterplotLayer<number>({
       id: 'elegidas', data: elegidas, getPosition: (i) => [s.lon[i], s.lat[i]],
-      getRadius: 50, radiusUnits: 'meters', radiusMinPixels: 1.6 * e,
-      getFillColor: [...rampa[tema === 'oscuro' ? 4 : 3], 255] as RGBA, updateTriggers: { getFillColor: [tema] },
+      // Más grandes que los hexágonos: con toda la ciudad a la vista, que se vea dónde quedan
+      getRadius: (i) => radioElegida * crecer(i), radiusUnits: 'meters',
+      getFillColor: [...rampa[tema === 'oscuro' ? 4 : 3], 230] as RGBA,
+      updateTriggers: { getFillColor: [tema], getRadius: [radioElegida, aparicion] },
     }),
     peores && new ScatterplotLayer<number>({
       id: 'peores', data: datos.peores, getPosition: (i) => [s.lon[i], s.lat[i]],
@@ -290,8 +333,8 @@ export default function MapaMovilidad({
     if (mejor >= 0) onTocar(mejor)
   }
 
-  const titulo = capa === 'sel' ? 'Esquinas que alcanza el presupuesto'
-    : capa === 'kappa' ? 'Riesgo anual corregido · calles de barrio'
+  const titulo = capa === 'sel' ? 'Dónde quedarían las esquinas'
+    : capa === 'kappa' ? `Más ${tema === 'oscuro' ? 'claro' : 'oscuro'} = esquina con más riesgo real, después de descontar la mala suerte de un año`
       : `Siniestros graves ${capa === 'k25' ? datos.resumen.anio_validacion : datos.experiencia.pantalla_1_usted_decide.anio_mostrado} · calles de barrio`
   const nombres = etiquetas(cortes, enteros)
   const css = (c: RGB | RGBA) => `rgb(${c[0]},${c[1]},${c[2]})`

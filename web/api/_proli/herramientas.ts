@@ -32,9 +32,9 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---
-  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Usted decide; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; fuentes; cierre = Hablemos (QR).',
+  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Tú decides; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; fuentes; cierre = Hablemos (QR).',
     objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'metodo', 'presupuesto', 'fuentes', 'cierre'] } })),
-  h('movilidad_localidad', 'Movilidad+: acerca el mapa a una localidad (o vuelve a toda Bogotá) en el capítulo «Usted decide».',
+  h('movilidad_localidad', 'Movilidad+: en «Tú decides», elige la localidad donde el visitante toca sus esquinas (o TODA_BOGOTA para volver a la lista de localidades).',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MOVILIDAD, 'TODA_BOGOTA'] } })),
   h('movilidad_presupuesto', 'Movilidad+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
     objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),

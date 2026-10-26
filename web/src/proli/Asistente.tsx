@@ -85,16 +85,19 @@ interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string }
 
 /** Preguntas sugeridas según dónde está el visitante. */
 function sugerencias(pantalla: string): Sugerencia[] {
+  // Movilidad+ trata de «tú»; Matrícula+ y el inicio, de «usted»
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
     texto: 'Quiero verlo con mis datos', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }],
-    sinConexion: 'Con gusto. Proliferante lo arma con los datos y las reglas de su entidad. Agende una conversación con el equipo: con el código QR o con el botón de la pantalla.',
+    sinConexion: demo === 'movilidad'
+      ? 'Con gusto. Proliferante lo arma con los datos y las reglas de tu entidad. Agenda una reunión con el equipo: con el código QR o con el botón de la pantalla.'
+      : 'Con gusto. Proliferante lo arma con los datos y las reglas de su entidad. Agende una conversación con el equipo: con el código QR o con el botón de la pantalla.',
   })
   if (pantalla.startsWith('Movilidad+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, se busca dónde se evitan más siniestros graves con un presupuesto, y cuánto se puede prometer sin exagerar.' },
+    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, eliges qué esquinas arreglar con un presupuesto que no alcanza para todo, y ves cuánto se puede prometer sin exagerar.' },
     { texto: '¿Por qué bajaron las peores esquinas?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'giro' } }],
-      sinConexion: 'Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Por eso, para saber si una obra funcionó, hay que compararla con lo que se esperaba que pasara sin ella.' },
-    { texto: 'Muéstreme el presupuesto', ordenes: [{ nombre: 'movilidad_presupuesto', entrada: { nivel: 'bajo' } }],
-      sinConexion: 'Aquí está. Con estos supuestos, se esperaría evitar los siniestros que ve en pantalla; la práctica intuitiva prometería más.' },
+      sinConexion: 'Un año muy malo suele ser en parte mala suerte, y al año siguiente vuelve a lo normal, con obra o sin ella. Por eso, para saber si una obra funcionó, hay que compararla con lo que habría pasado sin ella.' },
+    { texto: 'Muéstrame el presupuesto', ordenes: [{ nombre: 'movilidad_presupuesto', entrada: { nivel: 'bajo' } }],
+      sinConexion: 'Aquí está. Con estos supuestos, se esperaría evitar los siniestros que ves en pantalla; mirando solo el pasado se prometerían más.' },
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [
@@ -108,7 +111,7 @@ function sugerencias(pantalla: string): Sugerencia[] {
   return [
     { texto: '¿Qué es Proliferante?', sinConexion: 'Un estudio de innovación aplicada: conectamos datos, matemáticas, IA y tecnología para que las organizaciones decidan mejor, y dejamos esas capacidades funcionando. Hacemos simple lo complejo.' },
     { texto: 'Muéstreme Movilidad+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
-      sinConexion: 'Vamos a Movilidad+: con este presupuesto, ¿dónde se evitan más siniestros graves?' },
+      sinConexion: 'Vamos a Movilidad+: el presupuesto para seguridad vial no alcanza para todo, ¿qué esquinas arreglaría primero?' },
     { texto: 'Muéstreme Matrícula+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'matricula' } }],
       sinConexion: 'Vamos a Matrícula+: ¿dónde cabe cada niño?' },
   ]
