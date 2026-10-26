@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { decimal, entero } from '../datos'
 import { NIVELES_PESO } from '../estado'
 import { useOpcionesColegio, type OpcionColegio } from '../colegioNuevo'
@@ -37,14 +38,21 @@ export default function Accion(props: PropsAccion) {
     : !nuevo.clave && nuevo.lon === o.colegio.lon && nuevo.lat === o.colegio.lat)
   const propio = !!nuevo && !nuevo.clave && !nuevo.etiqueta
   const haySugerido = !!opciones?.some((o) => !o.real)
+  // En tótem y celular, lo esencial a la vista (a quién priorizar y Asignar); el resto, en «Más
+  // opciones». Se abre solo si alguna de esas palancas ya está cambiada (por el visitante o por Proli).
+  const [masAbierto, setMasAbierto] = useState(false)
+  const cambiadas = !!nuevo || palancas.jornadaUnica || supuestos.opciones !== 3
+  const verMas = escritorio || masAbierto || cambiadas
 
   return (
     <div className="panel">
       <header className="panel__cabeza">
         <span className="kicker">{kicker('accion', localidad ?? undefined)}</span>
         <h1 className="display">Ahora, <em>tú</em> decides las reglas</h1>
-        <p className="lead">Todas las familias piden a la vez y cada colegio elige primero a las de más prioridad. Después, Matrícula+ <b>optimiza</b>:
-          busca cambios entre opciones para que quepan más niños en los colegios que pidieron, sin separar hermanos.</p>
+        <p className="lead">En vez de atender por orden de llegada, <b>todas las familias piden al mismo tiempo</b> y cada colegio
+          recibe primero a quienes más lo necesitan. Después, Matrícula+ reacomoda para que quepan más niños en los colegios
+          que pidieron, sin separar hermanos.</p>
+        <p className="nota">Es un método matemático (asignación diferida) que usan sistemas de admisión escolar en varias ciudades del mundo.</p>
       </header>
 
       <div className="grupo">
@@ -72,6 +80,13 @@ export default function Accion(props: PropsAccion) {
         )}
       </div>
 
+      {!escritorio && !cambiadas && (
+        <button type="button" className="boton-texto" aria-expanded={masAbierto} onClick={() => setMasAbierto(!masAbierto)}>
+          {masAbierto ? 'Menos opciones ▴' : 'Más opciones: colegio nuevo, jornada única… ▾'}
+        </button>
+      )}
+
+      {verMas && <>
       <div className="grupo">
         <div className="grupo__titulo"><b>Un colegio nuevo</b>
           <span>+{entero(supuestos.cuposColegioNuevo)} cupos · {localidad ? <>dónde más rinde para <b>{localidad}</b></> : 'proyectos reales de la SED'}</span></div>
@@ -112,6 +127,7 @@ export default function Accion(props: PropsAccion) {
           ))}
         </div>
       </div>
+      </>}
 
       {!auto && (
         <div className="panel__pie">

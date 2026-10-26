@@ -1,5 +1,6 @@
+import { useMemo } from 'react'
 import { decimal, entero } from '../datos'
-import { supuestosIniciales } from '../estado'
+import { supuestosIniciales, useResultados } from '../estado'
 import type { Supuestos } from '../motor'
 import Comparacion from '../componentes/Comparacion'
 import { useOpcionesColegio } from '../colegioNuevo'
@@ -10,21 +11,25 @@ interface Control {
   /** palanca de Acción sin la cual el supuesto no cambia nada */
   requiere?: 'colegio' | 'jornada'
 }
+// Cada supuesto se nombra con la pregunta que responde
 const CONTROLES: Control[] = [
-  { k: 'pctVulnerable', nombre: 'Familias vulnerables', min: 0.1, max: 0.5, paso: 0.05, fmt: (v) => `${Math.round(v * 100)}%`, ayuda: 'Tienen prioridad extra según el peso de vulnerabilidad.' },
-  { k: 'pctHermano', nombre: 'Con un hermano ya matriculado', min: 0, max: 0.3, paso: 0.05, fmt: (v) => `${Math.round(v * 100)}%`, ayuda: 'El hermano estudia en uno de los colegios cercanos.' },
-  { k: 'cuposColegioNuevo', nombre: 'Cupos del colegio nuevo', min: 600, max: 2400, paso: 300, fmt: entero, ayuda: 'Cambia los cupos del colegio nuevo que elegiste en Acción.', requiere: 'colegio' },
-  { k: 'radioReubicacionKm', nombre: 'Distancia máxima de reubicación', min: 1, max: 5, paso: 0.5, fmt: (v) => `${decimal(v)} km`, ayuda: 'Hasta dónde se busca un cupo libre para quien no cupo.' },
-  { k: 'reduccionJornada', nombre: 'Cupos que cuesta la jornada única', min: 0.05, max: 0.2, paso: 0.01, fmt: (v) => `−${Math.round(v * 100)}%`, ayuda: 'Cuántos cupos se pierden con la jornada única.', requiere: 'jornada' },
-  { k: 'umbralViajeLargoKm', nombre: 'Qué es un viaje largo', min: 1, max: 3, paso: 0.5, fmt: (v) => `> ${decimal(v)} km`, ayuda: 'Para la métrica de viajes largos.' },
+  { k: 'pctVulnerable', nombre: '¿Y si hubiera más familias vulnerables?', min: 0.1, max: 0.5, paso: 0.05, fmt: (v) => `${Math.round(v * 100)}%`, ayuda: 'Tienen prioridad extra según el peso de vulnerabilidad.' },
+  { k: 'pctHermano', nombre: '¿Y si más niños tuvieran un hermano en el colegio?', min: 0, max: 0.3, paso: 0.05, fmt: (v) => `${Math.round(v * 100)}%`, ayuda: 'El hermano estudia en uno de los colegios cercanos.' },
+  { k: 'cuposColegioNuevo', nombre: '¿Y si el colegio nuevo fuera más grande?', min: 600, max: 2400, paso: 300, fmt: entero, ayuda: 'Cambia los cupos del colegio nuevo que elegiste en Acción.', requiere: 'colegio' },
+  { k: 'radioReubicacionKm', nombre: '¿Y si se buscara cupo más lejos de casa?', min: 1, max: 5, paso: 0.5, fmt: (v) => `${decimal(v)} km`, ayuda: 'Hasta dónde se busca otro colegio para quien no entró a los suyos.' },
+  { k: 'reduccionJornada', nombre: '¿Y si la jornada única costara más cupos?', min: 0.05, max: 0.2, paso: 0.01, fmt: (v) => `−${Math.round(v * 100)}%`, ayuda: 'Cuántos cupos se pierden con la jornada única.', requiere: 'jornada' },
+  { k: 'umbralViajeLargoKm', nombre: '¿Desde cuántos km un viaje es largo?', min: 1, max: 3, paso: 0.5, fmt: (v) => `> ${decimal(v)} km`, ayuda: 'Para la cifra de viajes largos.' },
 ]
 
 /** 04 — Supuestos: todo lo que asumimos, a la vista y editable. Cada cambio vuelve a simular. */
 export default function Laboratorio({ datos, r, modo, supuestos, cambiarSupuestos, restaurarSupuestos, palancas, cambiarPalancas, localidad, ir }: PropsCapitulo) {
   const auto = modo === 'auto'
-  const ini = supuestosIniciales(datos)
+  const ini = useMemo(() => supuestosIniciales(datos), [datos])
   const editados = (Object.keys(ini) as (keyof Supuestos)[]).some((k) => supuestos[k] !== ini[k])
   const s = datos.indice.supuestos
+  // Para decir qué cambió: el mismo resultado con los supuestos originales (y las mismas reglas)
+  const r0 = useResultados(datos, ini, palancas)
+  const antes = r0?.bogota.pol.pctFueraDeOpciones, ahora = r.bogota.pol.pctFueraDeOpciones
   const controles = modo === 'escritorio' ? CONTROLES : CONTROLES.slice(0, 4)
   // Sin su palanca, el supuesto no mueve ningún resultado: se avisa y se ofrece activarla
   // El colegio que más rinde para la localidad elegida (o el mejor proyecto SED para Bogotá)
@@ -41,17 +46,25 @@ export default function Laboratorio({ datos, r, modo, supuestos, cambiarSupuesto
       <header className="panel__cabeza">
         <span className="kicker">{kicker('laboratorio')}</span>
         <h1 className="display">Lo que <em>supusimos</em>, y puedes cambiar</h1>
-        <p className="lead">Es una simulación para comparar reglas, no una predicción. Mueve un supuesto y todo se vuelve a calcular.</p>
+        <p className="lead">Estos son los supuestos del modelo. Muévelos y mira cómo cambia el resultado: es una simulación para comparar reglas, no una predicción.</p>
       </header>
+      {editados && antes !== undefined && (
+        <p className="lectura" aria-live="polite">
+          {Math.abs(ahora - antes) < 0.3
+            ? <>Este cambio <b>casi no mueve el resultado</b>: la conclusión se mantiene ({decimal(ahora)}% de los niños no entra a sus colegios con Matrícula+).</>
+            : <>Con tus supuestos, con Matrícula+ no entran a sus colegios <b>{decimal(ahora)}%</b> de los niños en Bogotá
+                {' '}({ahora > antes ? 'más' : 'menos'} que el {decimal(antes)}% de los supuestos originales).</>}
+        </p>
+      )}
       <div className="grupo">
         {controles.map((c) => (
           <div key={c.k} className={`deslizador ${supuestos[c.k] !== ini[c.k] ? 'deslizador--cambiado' : ''}`}>
             <label htmlFor={`sup-${c.k}`}>{c.nombre}</label>
             <output>{c.fmt(supuestos[c.k])}</output>
-            <input id={`sup-${c.k}`} type="range" min={c.min} max={c.max} step={c.paso} value={supuestos[c.k]} disabled={auto}
+            <input id={`sup-${c.k}`} type="range" min={c.min} max={c.max} step={c.paso} value={supuestos[c.k]} disabled={auto || inactivo(c)}
                    onChange={(e) => cambiarSupuestos({ [c.k]: +e.target.value })} />
             {inactivo(c)
-              ? <small>{c.requiere === 'colegio' ? 'No hay colegio nuevo: este supuesto no cambia nada. ' : 'Sin jornada única: este supuesto no cambia nada. '}
+              ? <small>{c.requiere === 'colegio' ? 'Primero agrega un colegio nuevo. ' : 'Primero activa la jornada única. '}
                   {!auto && <button className="boton-texto" onClick={() => activar(c)}>
                     {c.requiere === 'colegio' ? `Agregar el colegio en ${mejorColegio?.etiqueta ?? proyecto.etiqueta}` : 'Activar la jornada única'}</button>}</small>
               : modo === 'escritorio' && <small>{c.ayuda}</small>}

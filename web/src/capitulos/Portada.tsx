@@ -26,7 +26,7 @@ export default function Portada({ datos, r, modo, ir, alInicio, alPortada }: Pro
         </motion.div>
         <motion.span className="kicker" {...entrar} transition={{ delay: 0.15 }}>Simulador de matrícula · Bogotá</motion.span>
         <motion.h1 className="display display--xl" {...entrar} transition={{ delay: 0.25 }}>
-          ¿Dónde cabe <em>cada niño</em>?
+          ¿Cómo logramos que más niños tengan <em>colegio cerca de casa</em>?
         </motion.h1>
         <motion.p className="lead" {...entrar} transition={{ delay: 0.35 }}>
           En Bogotá hay cupos para los niños nuevos, pero no siempre donde viven: la Secretaría de Educación calcula
@@ -43,8 +43,7 @@ export default function Portada({ datos, r, modo, ir, alInicio, alPortada }: Pro
         </motion.div>
         {modo !== 'auto' && (
           <motion.div className="fila" {...entrar} transition={{ delay: 0.6 }}>
-            <button className="boton boton--violeta boton--latir" onClick={() => ir('problema')}>Empezar el recorrido →</button>
-            {!totem && <button className="boton boton--claro" onClick={() => ir('caso')}>Simula una familia</button>}
+            <button className="boton boton--violeta boton--latir" onClick={() => ir('problema')}>Descubre cómo →</button>
             {!totem && <button className="boton-texto" onClick={() => ir('explorar')}>Explorar el mapa</button>}
           </motion.div>
         )}

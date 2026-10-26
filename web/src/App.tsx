@@ -406,7 +406,6 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
 
   const totem = esTotem(modo)
   const extras: { id: Vista; nombre: string }[] = modo === 'auto' ? [] : [
-    { id: 'caso', nombre: modo === 'celular' ? 'Familia' : 'Simula una familia' },
     { id: 'explorar', nombre: 'Explorar' },
     ...(totem ? [] : [{ id: 'agendar' as Vista, nombre: modo === 'celular' ? 'Cita' : 'Agendar' }]),
   ]

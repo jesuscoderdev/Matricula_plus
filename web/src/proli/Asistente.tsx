@@ -24,7 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type Anthropic from '@anthropic-ai/sdk'
 import ProliAnimado from '../componentes/ProliAnimado'
 import { leerModo } from '../modo'
-import { ejecutar, leerPantalla, usePantalla, type Orden } from './ordenes'
+import { alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, type Orden } from './ordenes'
 import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
 
@@ -81,36 +81,48 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
 const URL = './api/proli'
 
 interface Linea { quien: 'visitante' | 'proli' | 'accion' | 'aviso'; texto: string }
-interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string }
+/** `conversar`: en vez de responder con algo guardado, abre la conversación con la IA (sin conexión, usa `sinConexion`). */
+interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string; conversar?: boolean }
+
+/**
+ * ¿Proli terminó proponiendo una acción de sí o no («¿Te llevo a Resultados?»)? Entonces va el botón
+ * «Sí, muéstramelo». Una pregunta abierta («¿En qué secretaría trabajas?») no lo lleva.
+ */
+function esPropuesta(texto: string) {
+  const t = texto.trim()
+  if (!t.endsWith('?')) return false
+  const pregunta = t.slice(t.lastIndexOf('¿') + 1).toLowerCase()
+  return !/^(qu[eé]|cu[aá]l(es)?|cu[aá]nt[oa]s?|d[oó]nde|c[oó]mo|cu[aá]ndo|qui[eé]n(es)?|por qu[eé]|para qu[eé]|en qu[eé]|de qu[eé]|a qu[eé]|con qu[eé])(?=[\s,?])/.test(pregunta)
+}
 
 /** Preguntas sugeridas según dónde está el visitante. */
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
-    texto: 'Quiero verlo con mis datos', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }],
-    sinConexion: 'Con gusto. Proliferante lo arma con los datos y las reglas de su entidad. Agende una conversación con el equipo: con el código QR o con el botón de la pantalla.',
+    texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
+    sinConexion: '¡Cuéntanos! Proliferante lo resuelve con los datos y las reglas de tu entidad. Agenda una reunión con el equipo: con el código QR o con el botón de la pantalla.',
   })
   if (pantalla.startsWith('Movilidad+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, se busca dónde se evitan más siniestros graves con un presupuesto, y cuánto se puede prometer sin exagerar.' },
+    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, buscamos qué esquinas arreglar primero con un presupuesto limitado, y cuánto se puede prometer sin exagerar.' },
     { texto: '¿Por qué bajaron las peores esquinas?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'giro' } }],
       sinConexion: 'Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Por eso, para saber si una obra funcionó, hay que compararla con lo que se esperaba que pasara sin ella.' },
-    { texto: 'Muéstreme el presupuesto', ordenes: [{ nombre: 'movilidad_presupuesto', entrada: { nivel: 'bajo' } }],
-      sinConexion: 'Aquí está. Con estos supuestos, se esperaría evitar los siniestros que ve en pantalla; la práctica intuitiva prometería más.' },
+    { texto: 'Muéstrame el presupuesto', ordenes: [{ nombre: 'movilidad_presupuesto', entrada: { nivel: 'bajo' } }],
+      sinConexion: 'Aquí está. Con estos supuestos, se esperaría evitar los siniestros que ves en pantalla; elegir solo mirando el pasado prometería más.' },
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: un simulador para comparar reglas de asignación de cupos escolares en Bogotá, con datos abiertos y familias sintéticas.' },
-    { texto: 'Priorice a las familias vulnerables', ordenes: [{ nombre: 'matricula_reglas', entrada: { reglas: 'equidad' } }, { nombre: 'matricula_asignar', entrada: {} }],
+    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: en Bogotá hay cupos escolares, pero no siempre donde viven los niños. Aquí comparas reglas para repartirlos, con datos abiertos y familias simuladas.' },
+    { texto: 'Prioriza a las familias vulnerables', ordenes: [{ nombre: 'matricula_reglas', entrada: { reglas: 'equidad' } }, { nombre: 'matricula_asignar', entrada: {} }],
       sinConexion: 'Listo: reglas de Equidad. Matrícula+ optimiza para que quepan más niños en sus colegios, y primero las familias vulnerables.' },
-    { texto: 'Ponga un colegio nuevo en Tibabuyes', ordenes: [{ nombre: 'matricula_colegio_nuevo', entrada: { ubicacion: 'tibabuyes' } }, { nombre: 'matricula_asignar', entrada: {} }],
-      sinConexion: 'Listo: un colegio nuevo en Tibabuyes, en un proyecto real de la Secretaría de Educación. Mire cómo cambia la asignación.' },
+    { texto: 'Pon un colegio nuevo en Tibabuyes', ordenes: [{ nombre: 'matricula_colegio_nuevo', entrada: { ubicacion: 'tibabuyes' } }, { nombre: 'matricula_asignar', entrada: {} }],
+      sinConexion: 'Listo: un colegio nuevo en Tibabuyes, en un proyecto real de la Secretaría de Educación. Mira cómo cambia la asignación.' },
     agenda('matricula'),
   ]
   return [
     { texto: '¿Qué es Proliferante?', sinConexion: 'Un estudio de innovación aplicada: conectamos datos, matemáticas, IA y tecnología para que las organizaciones decidan mejor, y dejamos esas capacidades funcionando. Hacemos simple lo complejo.' },
-    { texto: 'Muéstreme Movilidad+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
-      sinConexion: 'Vamos a Movilidad+: con este presupuesto, ¿dónde se evitan más siniestros graves?' },
-    { texto: 'Muéstreme Matrícula+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'matricula' } }],
-      sinConexion: 'Vamos a Matrícula+: ¿dónde cabe cada niño?' },
+    { texto: 'Muéstrame Movilidad+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
+      sinConexion: 'Vamos a Movilidad+: qué esquinas arreglar primero con un presupuesto limitado.' },
+    { texto: 'Muéstrame Matrícula+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'matricula' } }],
+      sinConexion: 'Vamos a Matrícula+: cómo lograr que más niños tengan colegio cerca de casa.' },
   ]
 }
 
@@ -212,7 +224,7 @@ export default function Asistente() {
     setLineas([]); setOcupado(false); setTexto('')
   }, [])
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
-  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
+  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); fijarReto(''); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
   useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas])
   // Tiempo de lectura: cuando Proli termina de responder con el panel abierto, se da un margen
   // antes de que el tótem vuelva a la portada por inactividad. Si el visitante se fue, el tótem
@@ -265,7 +277,7 @@ export default function Asistente() {
     agregar({ quien: 'visitante', texto: pregunta })
     setTexto('')
     if (preguntas.current >= MAX_PREGUNTAS) {
-      agregar({ quien: 'aviso', texto: 'Esta conversación ya va larga. Toque «Reiniciar» para seguir.' })
+      agregar({ quien: 'aviso', texto: 'Esta conversación ya va larga. Toca «Reiniciar» para seguir.' })
       return
     }
     preguntas.current++
@@ -290,7 +302,7 @@ export default function Asistente() {
         setSinConexion(false)
         if (stop === 'refusal' || stop === 'max_tokens') {
           // No se ejecutan acciones a medias; la próxima pregunta empieza una conversación nueva
-          if (stop === 'refusal') agregar({ quien: 'proli', texto: 'De eso prefiero no hablar. ¿Le muestro algo de los demos?' })
+          if (stop === 'refusal') agregar({ quien: 'proli', texto: 'De eso prefiero no hablar. ¿Te muestro algo de los demos?' })
           historial.current = []; contextoEnviado.current = ''
           break
         }
@@ -321,13 +333,20 @@ export default function Asistente() {
     }
   }, [ocupado, responderSinConexion])
 
-  // Ni en la portada del stand ni en «Conozca a Proli»: ahí Proli ya es el protagonista de la pantalla
-  if (modo === 'auto' || pantalla === 'portada del stand' || pantalla === 'Conozca a Proli') return null
+  /** Abre la conversación y le pregunta a Proli (desde el menú o desde otra pantalla). */
+  const conversar = (pregunta: string, s?: Sugerencia) => { setMenu(false); setDicho(''); setSaludando(false); setAbierto(true); preguntar(pregunta, s) }
+  const refConversar = useRef(conversar)
+  refConversar.current = conversar
+  // «Cuéntale tu reto a Proli» (página para elegir un reto) y otros pedidos desde fuera del panel
+  useEffect(() => alPedirAProli((t) => refConversar.current(t)), [])
+
+  // Ni en la portada del stand ni en «Conoce a Proli»: ahí Proli ya es el protagonista de la pantalla
+  if (modo === 'auto' || pantalla === 'portada del stand' || pantalla === 'Conoce a Proli') return null
   // Si Proli terminó proponiendo algo («¿Lo llevo a Resultados?»), se acepta con un toque
   const ultima = lineas[lineas.length - 1]
-  const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && ultima.texto.trim().endsWith('?')
+  const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && esPropuesta(ultima.texto)
   const opciones: Sugerencia[] = [
-    ...(propuso ? [{ texto: 'Sí, muéstremelo', sinConexion: 'Ahora no tengo conexión para hacerlo, pero puede tocar la pantalla para llegar allí.' }] : []),
+    ...(propuso ? [{ texto: 'Sí, muéstramelo', sinConexion: 'Ahora no tengo conexión para hacerlo, pero puedes tocar la pantalla para llegar allí.' }] : []),
     ...sugerencias(pantalla),
   ]
 
@@ -354,10 +373,10 @@ export default function Asistente() {
                       </div>
                     </>
                   )}
-                  <span className="proli-flotante__seccion">Pregúnteme</span>
+                  <span className="proli-flotante__seccion">Pregúntame</span>
                   <ul className="proli-flotante__preguntas">
                     {sugerencias(pantalla).map((s) => (
-                      <li key={s.texto}><button type="button" role="menuitem" disabled={guiando} onClick={() => responder(s)}>{s.texto}</button></li>
+                      <li key={s.texto}><button type="button" role="menuitem" disabled={guiando || ocupado} onClick={() => (s.conversar ? conversar(s.texto, s) : responder(s))}>{s.texto}</button></li>
                     ))}
                     <li><button type="button" role="menuitem" className="proli-flotante__escribir" onClick={() => { setMenu(false); setAbierto(true) }}>✎ Escribir otra pregunta</button></li>
                   </ul>
@@ -366,7 +385,7 @@ export default function Asistente() {
                 <motion.button key={dicho || 'saludo'} type="button" className="proli-flotante__globo proli-flotante__dicho" aria-live="polite"
                                onClick={() => { setDicho(''); setSaludando(false) }}
                                initial={{ opacity: 0, y: 10, scale: 0.92 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }}>
-                  {dicho ? <>{visible}{hablando && <i className="proli-flotante__cursor" />}</> : <>¡Hola! Soy <b>Proli</b>. Tóqueme y le muestro qué podemos hacer aquí.</>}
+                  {dicho ? <>{visible}{hablando && <i className="proli-flotante__cursor" />}</> : <>¡Hola! Soy <b>Proli</b>. Tócame y te muestro qué podemos hacer aquí.</>}
                 </motion.button>
               ) : null}
             </AnimatePresence>
@@ -391,14 +410,14 @@ export default function Asistente() {
               <ProliAnimado tamano={2.6} hablando={ocupado || hablando} className="proli-panel__avatar" />
               <div>
                 <b>Proli</b>
-                <small>{ocupado ? 'Escribiendo…' : sinConexion ? 'Sin conexión: respuestas guardadas' : 'Su guía en el stand'}</small>
+                <small>{ocupado ? 'Escribiendo…' : sinConexion ? 'Sin conexión: respuestas guardadas' : 'Tu guía en el stand'}</small>
               </div>
               {lineas.length > 0 && <button type="button" className="proli-panel__nuevo" onClick={reiniciar}>Reiniciar</button>}
               <button type="button" className="proli-panel__cerrar" onClick={() => setAbierto(false)} aria-label="Cerrar">×</button>
             </header>
             <div className="proli-panel__lista" ref={refLista} aria-live="polite">
               {lineas.length === 0 && (
-                <p className="proli-panel__linea proli-panel__linea--proli">¿En qué le ayudo? Puedo explicarle lo que ve, mostrarle algo en la pantalla o llevarlo a un demo.</p>
+                <p className="proli-panel__linea proli-panel__linea--proli">¿En qué te ayudo? Puedo explicarte lo que ves, mostrarte algo en la pantalla o llevarte a un demo.</p>
               )}
               {lineas.filter((l) => l.texto).map((l, i) => (
                 <p key={i} className={`proli-panel__linea proli-panel__linea--${l.quien}`}>{l.quien === 'accion' ? `↳ ${l.texto}` : l.texto}</p>
@@ -422,7 +441,7 @@ export default function Asistente() {
               ))}
             </div>
             <form className="proli-panel__escribir" onSubmit={enviar}>
-              <input value={texto} onChange={(e) => { setTexto(e.target.value); avisarActividad() }} maxLength={500} placeholder="Escriba su pregunta…"
+              <input value={texto} onChange={(e) => { setTexto(e.target.value); avisarActividad() }} maxLength={500} placeholder="Escribe tu pregunta…"
                      disabled={ocupado} aria-label="Su pregunta para Proli" enterKeyHint="send" />
               <button type="submit" className="boton boton--violeta" disabled={ocupado || !texto.trim()}>Enviar</button>
             </form>
