@@ -28,7 +28,6 @@ export function selectorDe(o: Orden): string | null {
     case 'matricula_colegio_sugerido': return '.chip--colegio.chip--activo'
     case 'matricula_jornada_unica': return '[data-proli="jornada"]'
     case 'matricula_asignar': return '[data-proli="asignar"]'
-    case 'movilidad_localidad': return `[data-proli="localidad-${v('localidad')}"]`
     case 'movilidad_presupuesto': return `[data-proli="presupuesto-${v('nivel')}"]`
     case 'movilidad_tipo_via': return `[data-proli="zona-${v('zona')}"]`
     case 'movilidad_anio_mapa': return `[data-proli="anio-${v('anio')}"]`

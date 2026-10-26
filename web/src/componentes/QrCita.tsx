@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Qr from './Qr'
-import { MOSTRAR_QR_GENERADO, QR_IMAGEN, URL_CITA } from '../config'
+import { MOSTRAR_QR_GENERADO, QR_IMAGEN, urlCitaCon } from '../config'
+import { useReto } from '../proli/ordenes'
 
 /**
  * QR para agendar cita. Usa la imagen configurable (QR_IMAGEN en public/); si no existe,
@@ -8,7 +9,9 @@ import { MOSTRAR_QR_GENERADO, QR_IMAGEN, URL_CITA } from '../config'
  */
 export default function QrCita() {
   const [sinImagen, setSinImagen] = useState(!QR_IMAGEN)
-  if (!sinImagen) {
+  const reto = useReto()
+  // Si Proli ya conoce el reto, el QR generado lo lleva escrito (la imagen fija no puede)
+  if (!sinImagen && !reto) {
     return (
       <figure className="qr">
         <img className="qr__img" src={QR_IMAGEN} alt="Código QR para agendar una cita" onError={() => setSinImagen(true)} />
@@ -16,7 +19,7 @@ export default function QrCita() {
       </figure>
     )
   }
-  if (MOSTRAR_QR_GENERADO) return <Qr texto={URL_CITA} etiqueta="Escanea para agendar una cita" />
+  if (MOSTRAR_QR_GENERADO) return <Qr texto={urlCitaCon(reto)} etiqueta={reto ? 'Escanea: el mensaje ya lleva tu reto' : 'Escanea para agendar una cita'} />
   return (
     <figure className="qr">
       <div className="qr__img qr__img--pendiente">QR<br /><small>configura QR_IMAGEN</small></div>

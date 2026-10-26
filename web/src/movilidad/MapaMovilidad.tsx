@@ -6,7 +6,7 @@
  * al revés: más = más brillante). Nunca rojo/verde. Los cortes de la escala salen de los datos.
  *
  *  · capa "k24" / "k25" — siniestros graves de ese año (calles de barrio; avenidas en gris)
- *  · capa "kappa"       — riesgo real: el riesgo anual ya descontada la mala suerte de un año
+ *  · capa "kappa"       — riesgo anual corregido (lo que se puede prometer)
  *  · capa "sel"         — las esquinas que alcanza el presupuesto elegido
  * Encima: las esquinas que tocó el visitante (numeradas) y, si se pide, las peores de 2024 (anillos).
  */
@@ -16,7 +16,7 @@ import { FlyToInterpolator, type PickingInfo } from '@deck.gl/core'
 import { encuadrar } from '../mapa/encuadre'
 import { PolygonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import { useTema, type Tema } from '../tema'
-import type { Bbox, DatosMovilidad, Nivel } from './datos'
+import type { Bbox, DatosMovilidad } from './datos'
 
 type RGB = [number, number, number]
 type RGBA = [number, number, number, number]
@@ -34,8 +34,6 @@ const PALETA = {
     superficie: [29, 54, 52, 245] as RGBA, fuera: 60 },
 }
 const VIOLETA: RGBA = [90, 68, 221, 255]
-/** Bit de cada nivel de presupuesto en `sitios.sel` */
-export const BIT: Record<Nivel, number> = { bajo: 1, medio: 2, alto: 4 }
 
 /** Cortes de la escala a partir de los datos (cuantiles de los valores positivos, sin repetir). */
 function cortesDe(valores: number[], enteros: boolean): number[] {
@@ -151,7 +149,8 @@ interface Props {
   capa: Capa
   /** índice de localidad para acercar y atenuar el resto */
   localidad?: number | null
-  nivel?: Nivel
+  /** capa "sel": cuántas esquinas de barrio alcanza el presupuesto (las de más riesgo corregido) */
+  esquinas?: number
   tocadas?: number[]
   /** el visitante toca una esquina: se elige la de más siniestros cerca del toque */
   onTocar?: (i: number) => void
@@ -168,7 +167,7 @@ interface Props {
 }
 
 export default function MapaMovilidad({
-  datos, capa, localidad = null, nivel = 'bajo', tocadas = [], onTocar, peores = false, interactivo = true,
+  datos, capa, localidad = null, esquinas = 0, tocadas = [], onTocar, peores = false, interactivo = true,
   respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, children,
 }: Props) {
   const tema = useTema()
@@ -203,10 +202,11 @@ export default function MapaMovilidad({
     return () => cancelAnimationFrame(id)
   }, [respirar])
 
+  const elegida = (i: number) => datos.rangoBarrio[i] >= 0 && datos.rangoBarrio[i] < esquinas
   const colorDe = (i: number): RGBA => {
     const dentro = localidad == null || s.loc[i] === localidad
     let c: RGBA
-    if (capa === 'sel') c = s.sel[i] & BIT[nivel] ? [...rampa[tema === 'oscuro' ? 4 : 3], 255] : s.local[i] ? P.vacio : P.avenida
+    if (capa === 'sel') c = elegida(i) ? [...rampa[tema === 'oscuro' ? 4 : 3], 255] : s.local[i] ? P.vacio : P.avenida
     else if (!s.local[i]) c = P.avenida
     else c = valor[i] > 0 ? [...rampa[claseDe(cortes, valor[i])], 255] : P.vacio
     return dentro ? c : [c[0], c[1], c[2], P.fuera]
@@ -214,7 +214,7 @@ export default function MapaMovilidad({
   // Las esquinas elegidas se ven aunque el hexágono mida menos de un píxel
   // Calles de barrio con valor, de menor a mayor (las más oscuras quedan encima)
   const conValor = useMemo(() => indices.filter((i) => s.local[i] === 1 && valor[i] > 0).sort((a, b) => valor[a] - valor[b]), [indices, s, valor])
-  const elegidas = useMemo(() => (capa === 'sel' ? indices.filter((i) => s.sel[i] & BIT[nivel]) : []), [capa, nivel, indices, s])
+  const elegidas = useMemo(() => (capa === 'sel' ? indices.filter(elegida) : []), [capa, esquinas, indices, s])  // eslint-disable-line react-hooks/exhaustive-deps
   // Al cambiar el presupuesto, las esquinas que se suman crecen desde cero, escalonadas; las que ya estaban se quedan.
   // El mínimo de 3 px se calcula aquí (metros por píxel) porque radiusMinPixels no deja empezar en cero.
   const aparicion = useAparicion(elegidas)
@@ -278,7 +278,7 @@ export default function MapaMovilidad({
       getPolygon: (i) => s.forma.map(([dx, dy]) => [s.lon[i] + dx, s.lat[i] + dy]),
       getFillColor: colorDe,
       opacity: respirar ? 0.7 + 0.3 * respiro : 1,
-      updateTriggers: { getFillColor: [capa, nivel, localidad, tema, cortes] },
+      updateTriggers: { getFillColor: [capa, esquinas, localidad, tema, cortes] },
       transitions: { getFillColor: 500 },
     }),
     // Con la ciudad entera un hexágono mide 1–3 px: un punto mínimo mantiene visibles los que tienen siniestros
@@ -286,13 +286,13 @@ export default function MapaMovilidad({
       id: 'con-siniestros', data: conValor, getPosition: (i) => [s.lon[i], s.lat[i]],
       getRadius: 45, radiusUnits: 'meters', radiusMinPixels: 1.2 * e,
       getFillColor: colorDe, opacity: respirar ? 0.7 + 0.3 * respiro : 1,
-      updateTriggers: { getFillColor: [capa, nivel, localidad, tema, cortes], getRadius: [e] },
+      updateTriggers: { getFillColor: [capa, esquinas, localidad, tema, cortes], getRadius: [e] },
     }),
     elegidas.length > 0 && new ScatterplotLayer<number>({
       id: 'elegidas', data: elegidas, getPosition: (i) => [s.lon[i], s.lat[i]],
       // Más grandes que los hexágonos: con toda la ciudad a la vista, que se vea dónde quedan
       getRadius: (i) => radioElegida * crecer(i), radiusUnits: 'meters',
-      getFillColor: [...rampa[tema === 'oscuro' ? 4 : 3], 230] as RGBA,
+      getFillColor: [...rampa[tema === 'oscuro' ? 4 : 3], 255] as RGBA,
       updateTriggers: { getFillColor: [tema], getRadius: [radioElegida, aparicion] },
     }),
     peores && new ScatterplotLayer<number>({
@@ -333,8 +333,8 @@ export default function MapaMovilidad({
     if (mejor >= 0) onTocar(mejor)
   }
 
-  const titulo = capa === 'sel' ? 'Dónde quedarían las esquinas'
-    : capa === 'kappa' ? `Más ${tema === 'oscuro' ? 'claro' : 'oscuro'} = esquina con más riesgo real, después de descontar la mala suerte de un año`
+  const titulo = capa === 'sel' ? 'Esquinas que alcanza el presupuesto'
+    : capa === 'kappa' ? 'Riesgo real de cada esquina, sin la mala suerte de un año · calles de barrio'
       : `Siniestros graves ${capa === 'k25' ? datos.resumen.anio_validacion : datos.experiencia.pantalla_1_usted_decide.anio_mostrado} · calles de barrio`
   const nombres = etiquetas(cortes, enteros)
   const css = (c: RGB | RGBA) => `rgb(${c[0]},${c[1]},${c[2]})`

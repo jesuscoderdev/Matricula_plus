@@ -30,11 +30,13 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
   h('abrir_agenda', 'Lleva al capítulo con el código QR para agendar una conversación con el equipo de Proliferante, en el demo indicado.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
+  h('agendar_con_reto', 'Cuando ya conoces el reto del visitante: guarda un resumen de su reto para que el mensaje de WhatsApp y el código QR de la cita ya lo lleven escrito, y lo lleva al capítulo de agenda del demo indicado. El resumen: una o dos frases (máximo unos 250 caracteres) con el tipo de entidad, la decisión que le cuesta tomar y la información que tienen. NUNCA incluyas nombres de personas, teléfonos, correos, documentos ni otros datos personales.',
+    objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] }, resumen: { type: 'string' } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---
-  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Tú decides; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; fuentes; cierre = Hablemos (QR).',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'metodo', 'presupuesto', 'fuentes', 'cierre'] } })),
-  h('movilidad_localidad', 'Movilidad+: en «Tú decides», elige la localidad donde el visitante toca sus esquinas (o TODA_BOGOTA para volver a la lista de localidades).',
+  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Tú decides; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; evaluar = ¿Funcionó la obra? (antes y después frente al método); fuentes; cierre = Hablemos (QR).',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'metodo', 'presupuesto', 'evaluar', 'fuentes', 'cierre'] } })),
+  h('movilidad_localidad', 'Movilidad+: acerca el mapa a una localidad (o vuelve a toda Bogotá) en el capítulo «Tú decides».',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MOVILIDAD, 'TODA_BOGOTA'] } })),
   h('movilidad_presupuesto', 'Movilidad+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
     objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),
@@ -44,8 +46,8 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ anio: { type: 'string', enum: ['2024', '2025'] } })),
 
   // --- Matrícula+ (abre el demo si no está abierto) ---
-  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; metodo; caso = Simula una familia; explorar = UPZ por UPZ; agendar.',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'metodo', 'caso', 'explorar', 'agendar'] } })),
+  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; metodo = Así lo resolvimos; explorar = UPZ por UPZ; agendar.',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'metodo', 'explorar', 'agendar'] } })),
   h('matricula_localidad', 'Matrícula+: elige la localidad y muestra en el capítulo Problema cómo se asignan hoy los cupos allí.',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MATRICULA] } })),
   h('matricula_reglas', 'Matrícula+: cambia las reglas de prioridad en el capítulo Acción. equilibrada = cercanía, hermanos y vulnerabilidad pesan igual; cercania = primero quien vive cerca; familias = primero quien tiene hermanos; equidad = primero las familias vulnerables.',

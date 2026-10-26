@@ -10,7 +10,7 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, type IdProyecto } from './config'
+import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, urlCitaCon, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
 import Proli from './componentes/Proli'
@@ -19,7 +19,7 @@ import Qr from './componentes/Qr'
 import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
-import { informarPantalla, registrar } from './proli/ordenes'
+import { informarPantalla, pedirAProli, registrar, useReto } from './proli/ordenes'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -89,7 +89,7 @@ export default function Inicio() {
       const destino = { portada: 'portada', conozca_a_proli: 'proli', elegir_demo: 'elegir' }[String(o.entrada.pantalla)] as typeof etapa | undefined
       if (!destino) return 'Pantalla no reconocida.'
       setProyecto(null); setEtapa(destino)
-      return `Listo: el visitante está en ${destino === 'proli' ? 'Conozca a Proli' : destino === 'elegir' ? 'la página para elegir demo' : 'la portada'}.`
+      return `Listo: el visitante está en ${destino === 'proli' ? 'Conoce a Proli' : destino === 'elegir' ? 'la página para elegir demo' : 'la portada'}.`
     }
     if (o.nombre === 'abrir_demo') {
       const demo = o.entrada.demo === 'matricula' ? 'educacion' : o.entrada.demo === 'movilidad' ? 'movilidad' : null
@@ -102,7 +102,7 @@ export default function Inicio() {
   // Qué está viendo el visitante fuera de los demos (dentro, lo informa cada demo)
   useEffect(() => {
     if (proyecto) return
-    informarPantalla(etapa === 'portada' ? 'portada del stand' : etapa === 'proli' ? 'Conozca a Proli' : 'página para elegir demo')
+    informarPantalla(etapa === 'portada' ? 'portada del stand' : etapa === 'proli' ? 'Conoce a Proli' : 'página para elegir demo')
   }, [proyecto, etapa])
 
   const salidas = {
@@ -131,6 +131,7 @@ const entrar = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }
 
 function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; entrar: (p: IdProyecto) => void; alPortada: () => void; siguiente: IdProyecto | null }) {
   const reducir = useReducedMotion()
+  const reto = useReto()
   return (
     <div className="app inicio">
       <MarcaDeAgua className="marca-agua--inicio" />
@@ -143,10 +144,11 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
         <div className="inicio__cabeza">
           <motion.span className="kicker" {...entrar} transition={{ delay: 0.12 }}>Datos abiertos de Bogotá</motion.span>
           <motion.h1 className="display display--xl" {...entrar} transition={{ delay: 0.2 }}>
-            ¿Qué quiere <em>explorar</em>?
+            Elige un <em>reto</em>
           </motion.h1>
           <motion.p className="lead" {...entrar} transition={{ delay: 0.28 }}>
-            Demostraciones de {EMPRESA} para decidir con datos públicos. <span className="acento">{modo === 'auto' ? 'Recorrido automático.' : 'Elija una para empezar.'}</span>
+            Cada demo muestra un problema real, cómo lo analizamos y qué cambia en la decisión.{' '}
+            <span className="acento">{modo === 'auto' ? 'Recorrido automático.' : 'Toca uno para empezar.'}</span>
           </motion.p>
         </div>
         <div className="inicio__tarjetas">
@@ -188,9 +190,15 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             <p className="llamado__titulo">{LLAMADO_INICIO.titulo}</p>
             <p className="nota">{LLAMADO_INICIO.texto}</p>
           </div>
-          {URL_CITA && (esTotem(modo)
-            ? <Qr texto={URL_CITA} etiqueta={<>Escanee para<br /><b>agendar una cita</b></>} />
-            : <a className="boton boton--violeta" href={URL_CITA} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>)}
+          {modo !== 'auto' && (
+            <div className="llamado__acciones">
+              {/* Paola: el llamado abre a Proli, que pregunta por el reto y lleva a agendar */}
+              <button type="button" className="boton boton--violeta" onClick={() => pedirAProli('Tengo un reto en mi entidad')}>{LLAMADO_INICIO.botonProli}</button>
+              {URL_CITA && (esTotem(modo)
+                ? <Qr texto={urlCitaCon(reto)} etiqueta={<>O escanea para<br /><b>agendar una reunión</b></>} />
+                : <a className="boton-texto" href={urlCitaCon(reto)} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>)}
+            </div>
+          )}
         </motion.aside>
       </div>
       <PieEmpresa modo={modo} />
@@ -210,7 +218,7 @@ function PieEmpresa({ modo }: { modo: Modo }) {
         <LogoEmpresa animado={false} />
         <span>{LEMA_EMPRESA}</span>
       </div>
-      <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos · los demos funcionan sin internet</span>
+      <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos</span>
       {esTotem(modo)
         ? <Qr texto={URL_EMPRESA} etiqueta={<>Conoce {EMPRESA}<br /><b>{dominio}</b></>} />
         : <a className="pie-empresa__enlace" href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">Conoce {EMPRESA} · <b>{dominio}</b> ↗</a>}

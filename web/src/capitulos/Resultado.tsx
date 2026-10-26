@@ -24,7 +24,7 @@ function veredicto(hoy: Metricas, pol: Metricas, p: Palancas, s: Supuestos, nomb
   const nV = hoy.vulnerablesFuera - pol.vulnerablesFuera
   const dV = pol.pctVulnerablesFuera - hoy.pctVulnerablesFuera
   const etiqueta = <>Con tus reglas, en {nombre}</>
-  const fuera = { antes: { etiqueta: 'Hoy no entran a sus colegios', valor: `${decimal(hoy.pctFueraDeOpciones)}%` },
+  const fuera = { antes: { etiqueta: 'Hoy no entran a los colegios que pidieron', valor: `${decimal(hoy.pctFueraDeOpciones)}%` },
     despues: { etiqueta: 'Con Matrícula+', valor: `${decimal(pol.pctFueraDeOpciones)}%` } }
   if (dF <= -1) return { etiqueta, ...fuera, cifra: entero(nF), frase: 'niños más entran a uno de los colegios que pidieron',
     nota: <>{p.colegioNuevo || p.jornadaUnica ? <>Matrícula+ <b>optimiza</b> el reparto</> : <>Con los mismos cupos: Matrícula+ <b>optimiza</b> el reparto</>}, sin separar hermanos.
@@ -60,7 +60,8 @@ export default function Resultado(props: PropsResultado) {
       <header className="panel__cabeza">
         <span className="kicker">{kicker('resultado')}</span>
         <h1 className="display">Lo que cambia en <em>{nombre}</em></h1>
-        <p className="nota">{describir(datos, palancas)} · {supuestos.opciones} opciones por familia</p>
+        <p className="nota">Con tus reglas: {describir(datos, palancas)} · {supuestos.opciones} opciones por familia
+          {!auto && <>{' · '}<button className="boton-texto boton-texto--enlinea" onClick={() => ir('accion')}>Cambiar</button></>}</p>
       </header>
       <div className="segmentos">
         {loc && <button className={`segmento ${a === 'localidad' ? 'segmento--activo' : ''}`} onClick={() => setAlcance('localidad')} disabled={auto}>{localidad}</button>}
@@ -71,10 +72,11 @@ export default function Resultado(props: PropsResultado) {
       <h2 className="subtitulo">Dónde queda cada niño</h2>
       <Reparto hoy={m.hoy} pol={m.pol} />
       <h2 className="subtitulo">Todas las cifras</h2>
+      <p className="nota">Cómo leerlo: si un niño no entra a ninguno de sus colegios, se le busca otro con cupo a menos
+        de {decimal(supuestos.radioReubicacionKm)} km de casa; si no hay, se queda <b>sin cupo cerca</b>.
+        {' '}<span className="acento">Hoy gana quien llega primero; con Matrícula+, quien más lo necesita.</span></p>
       <Comparacion hoy={m.hoy} pol={m.pol} s={supuestos} zona={a === 'bogota' ? r.zona : undefined}
                    solo={modo === 'escritorio' ? undefined : ['pctFueraDeOpciones', 'pctPrimera', 'pctSinCupo', 'pctVulnerablesFuera', 'pctViajeLargo']} />
-      <p className="nota">Cómo leerlo: quien no entra a ninguno de sus colegios es <b>reubicado</b> en otro colegio con cupo a menos de
-        {' '}{decimal(supuestos.radioReubicacionKm)} km (hoy, el más cercano; con Matrícula+, por prioridad); si no hay, queda <b>sin cupo cercano</b>. <span className="acento">Hoy se reparte por orden de llegada; con Matrícula+, por prioridad y optimizando los cupos.</span></p>
       {!auto && (
         <div className="panel__pie">
           <div className="segmentos">

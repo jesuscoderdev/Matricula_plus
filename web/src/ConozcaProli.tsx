@@ -1,5 +1,5 @@
 /**
- * Conozca a Proli: la segunda pantalla. Presenta a Proli como el guía del stand y deja claro que
+ * Conoce a Proli: la segunda pantalla. Presenta a Proli como el guía del stand y deja claro que
  * el visitante puede apoyarse en él. Los «pedidos» son accesos reales: entran directo a un demo
  * (o a elegir proyecto). Cuando Proli converse con IA, esa zona será la entrada a la conversación.
  *
@@ -82,7 +82,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
           <div className="proli-intro__presenta">
             <motion.span className="kicker" {...entrar} transition={{ delay: 0.25 }}>{p.kicker}</motion.span>
             <motion.h1 className="display display--xl proli-intro__nombre" {...entrar} transition={{ delay: 0.32 }}>
-              Conozca a <em>{p.nombre}</em>
+              Conoce a <em>{p.nombre}</em>
             </motion.h1>
             <motion.p className="acento" {...entrar} transition={{ delay: 0.4 }}>{p.esencia}</motion.p>
           </div>
@@ -101,7 +101,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
           ))}
         </ul>
 
-        <motion.div className="proli-intro__pedidos" {...entrar} transition={{ delay: 1.1 }}>
+        {p.pedidos.length > 0 && <motion.div className="proli-intro__pedidos" {...entrar} transition={{ delay: 1.1 }}>
           <span className="etiqueta">{p.pedidosTitulo}</span>
           <div className="proli-intro__chips">
             {p.pedidos.map((x) => (
@@ -111,7 +111,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
               </button>
             ))}
           </div>
-        </motion.div>
+        </motion.div>}
 
         <motion.div className="proli-intro__accion" {...entrar} transition={{ delay: 1.25 }}>
           {!auto && <button type="button" className="boton boton--violeta boton--ancho" onClick={alContinuar}>{p.boton}</button>}

@@ -11,8 +11,8 @@
     "fuente": "Anuario de Siniestralidad Vial de Bogotá 2025 (SDM). 562 y 19.605 se reprodujeron exactamente con la base publicada; 575, −2,3 %, +4 % y 48 % se toman del texto del Anuario."
   },
   "pantalla_1_usted_decide": {
-    "titulo_sugerido": "¿Dónde invertiría usted?",
-    "instruccion": "Toque 3 esquinas donde haría una obra de seguridad vial.",
+    "titulo_sugerido": "¿Dónde invertirías tú?",
+    "instruccion": "Toca 3 esquinas donde harías una obra, como lo haría la mayoría: donde hubo más siniestros el año pasado.",
     "anio_mostrado": 2024,
     "capa": "sitios.geojson",
     "campo_a_mostrar": "k_2024",
@@ -23,7 +23,7 @@
     }
   },
   "pantalla_2_pasa_un_anio": {
-    "titulo_sugerido": "Pasó un año",
+    "titulo_sugerido": "Así les fue a tus esquinas",
     "como_calcular_lo_del_visitante": "Para cada esquina tocada mostrar k_2024 y k_2025 del mismo hexágono.",
     "referencia_30_peores_esquinas_de_barrio_2024": {
       "graves_2024": 189,
@@ -66,11 +66,12 @@
     }
   },
   "pantalla_3_el_giro": {
-    "texto_sugerido": "Si hubiera hecho una obra en esas esquinas, habría creído que funcionó. Bajaron solas: los años malos no se repiten."
+    "texto_sugerido": "Tus esquinas bajaron. Pero casi todas las peores también.",
+    "lectura_sugerida": "Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella."
   },
   "pantalla_4_el_metodo": {
-    "titulo_sugerido": "Lo que se prometía y lo que pasó",
-    "explicacion": "Se eligen las 30 esquinas de mayor riesgo con 2023–2024 y se compara con 2025, un año que el modelo no vio.",
+    "titulo_sugerido": "Promesas que se cumplen",
+    "explicacion": "Con datos de 2023 y 2024, cada forma de elegir prometió cuántos siniestros graves habría en 2025 en sus 30 esquinas. Así les fue.",
     "calles_de_barrio_30_sitios": {
       "regla_simple": {
         "promete": 177.0,
@@ -98,7 +99,7 @@
       "esquinas_en_comun": 28
     },
     "caida_general_2025_pct": -10.8,
-    "mensaje_clave": "El método no cambia tanto dónde intervenir, sino cuánto se puede prometer."
+    "mensaje_clave": "Las dos eligen casi las mismas esquinas. La diferencia está en cuánto se puede prometer y cumplir."
   },
   "pantalla_presupuesto_barrio": {
     "intervencion": "Reductores de velocidad en la esquina (resaltos o pompeyanos con demarcación)",
@@ -127,7 +128,721 @@
     "como_decirlo": "Con estos supuestos, se esperaría evitar X siniestros graves al año."
   },
   "cierre": {
-    "texto_sugerido": "¿Y con los datos de su entidad? Este mismo análisis se actualiza cada vez que llegan datos nuevos y puede evaluar, después, si cada obra funcionó.",
+    "texto_sugerido": "¿Tienes un reto así en tu entidad? Este mismo análisis se actualiza cada vez que llegan datos nuevos y puede evaluar, después, si cada obra funcionó.",
     "accion": "QR de agenda (el mismo de la sección de educación)."
+  },
+  "presupuesto_curva": {
+    "zona": "calles de barrio",
+    "costo_por_esquina_millones": 6,
+    "esquinas_candidatas": 5483,
+    "puntos": [
+      {
+        "presupuesto_millones": 250,
+        "esquinas": 41,
+        "metodo_esperado": 53.5,
+        "a_ojo_promete": 88.0,
+        "a_ojo_esperado": 53.1
+      },
+      {
+        "presupuesto_millones": 500,
+        "esquinas": 83,
+        "metodo_esperado": 87.1,
+        "a_ojo_promete": 144.6,
+        "a_ojo_esperado": 86.5
+      },
+      {
+        "presupuesto_millones": 750,
+        "esquinas": 125,
+        "metodo_esperado": 115.7,
+        "a_ojo_promete": 192.6,
+        "a_ojo_esperado": 115.1
+      },
+      {
+        "presupuesto_millones": 1000,
+        "esquinas": 166,
+        "metodo_esperado": 140.0,
+        "a_ojo_promete": 233.6,
+        "a_ojo_esperado": 139.5
+      },
+      {
+        "presupuesto_millones": 1250,
+        "esquinas": 208,
+        "metodo_esperado": 163.3,
+        "a_ojo_promete": 272.0,
+        "a_ojo_esperado": 162.8
+      },
+      {
+        "presupuesto_millones": 1500,
+        "esquinas": 250,
+        "metodo_esperado": 183.5,
+        "a_ojo_promete": 305.6,
+        "a_ojo_esperado": 183.1
+      },
+      {
+        "presupuesto_millones": 1750,
+        "esquinas": 291,
+        "metodo_esperado": 203.3,
+        "a_ojo_promete": 338.4,
+        "a_ojo_esperado": 202.9
+      },
+      {
+        "presupuesto_millones": 2000,
+        "esquinas": 333,
+        "metodo_esperado": 223.5,
+        "a_ojo_promete": 372.0,
+        "a_ojo_esperado": 223.5
+      },
+      {
+        "presupuesto_millones": 2250,
+        "esquinas": 375,
+        "metodo_esperado": 243.3,
+        "a_ojo_promete": 404.2,
+        "a_ojo_esperado": 242.9
+      },
+      {
+        "presupuesto_millones": 2500,
+        "esquinas": 416,
+        "metodo_esperado": 259.2,
+        "a_ojo_promete": 428.8,
+        "a_ojo_esperado": 258.2
+      },
+      {
+        "presupuesto_millones": 2750,
+        "esquinas": 458,
+        "metodo_esperado": 274.9,
+        "a_ojo_promete": 454.0,
+        "a_ojo_esperado": 274.0
+      },
+      {
+        "presupuesto_millones": 3000,
+        "esquinas": 500,
+        "metodo_esperado": 290.6,
+        "a_ojo_promete": 479.2,
+        "a_ojo_esperado": 289.7
+      },
+      {
+        "presupuesto_millones": 3250,
+        "esquinas": 541,
+        "metodo_esperado": 305.9,
+        "a_ojo_promete": 503.8,
+        "a_ojo_esperado": 305.0
+      },
+      {
+        "presupuesto_millones": 3500,
+        "esquinas": 583,
+        "metodo_esperado": 321.5,
+        "a_ojo_promete": 529.0,
+        "a_ojo_esperado": 320.7
+      },
+      {
+        "presupuesto_millones": 3750,
+        "esquinas": 625,
+        "metodo_esperado": 337.2,
+        "a_ojo_promete": 554.2,
+        "a_ojo_esperado": 336.3
+      },
+      {
+        "presupuesto_millones": 4000,
+        "esquinas": 666,
+        "metodo_esperado": 352.5,
+        "a_ojo_promete": 578.8,
+        "a_ojo_esperado": 351.6
+      },
+      {
+        "presupuesto_millones": 4250,
+        "esquinas": 708,
+        "metodo_esperado": 367.9,
+        "a_ojo_promete": 604.0,
+        "a_ojo_esperado": 367.3
+      },
+      {
+        "presupuesto_millones": 4500,
+        "esquinas": 750,
+        "metodo_esperado": 383.3,
+        "a_ojo_promete": 629.2,
+        "a_ojo_esperado": 383.1
+      },
+      {
+        "presupuesto_millones": 4750,
+        "esquinas": 791,
+        "metodo_esperado": 397.0,
+        "a_ojo_promete": 650.4,
+        "a_ojo_esperado": 396.6
+      },
+      {
+        "presupuesto_millones": 5000,
+        "esquinas": 833,
+        "metodo_esperado": 409.1,
+        "a_ojo_promete": 667.2,
+        "a_ojo_esperado": 407.6
+      },
+      {
+        "presupuesto_millones": 5250,
+        "esquinas": 875,
+        "metodo_esperado": 420.5,
+        "a_ojo_promete": 684.0,
+        "a_ojo_esperado": 418.6
+      },
+      {
+        "presupuesto_millones": 5500,
+        "esquinas": 916,
+        "metodo_esperado": 431.4,
+        "a_ojo_promete": 700.4,
+        "a_ojo_esperado": 429.4
+      },
+      {
+        "presupuesto_millones": 5750,
+        "esquinas": 958,
+        "metodo_esperado": 442.5,
+        "a_ojo_promete": 717.2,
+        "a_ojo_esperado": 440.4
+      },
+      {
+        "presupuesto_millones": 6000,
+        "esquinas": 1000,
+        "metodo_esperado": 453.6,
+        "a_ojo_promete": 734.0,
+        "a_ojo_esperado": 451.4
+      },
+      {
+        "presupuesto_millones": 6250,
+        "esquinas": 1041,
+        "metodo_esperado": 464.5,
+        "a_ojo_promete": 750.4,
+        "a_ojo_esperado": 462.0
+      },
+      {
+        "presupuesto_millones": 6500,
+        "esquinas": 1083,
+        "metodo_esperado": 475.6,
+        "a_ojo_promete": 767.2,
+        "a_ojo_esperado": 472.9
+      },
+      {
+        "presupuesto_millones": 6750,
+        "esquinas": 1125,
+        "metodo_esperado": 486.8,
+        "a_ojo_promete": 784.0,
+        "a_ojo_esperado": 484.0
+      },
+      {
+        "presupuesto_millones": 7000,
+        "esquinas": 1166,
+        "metodo_esperado": 497.6,
+        "a_ojo_promete": 800.4,
+        "a_ojo_esperado": 494.9
+      },
+      {
+        "presupuesto_millones": 7250,
+        "esquinas": 1208,
+        "metodo_esperado": 508.7,
+        "a_ojo_promete": 817.2,
+        "a_ojo_esperado": 505.9
+      },
+      {
+        "presupuesto_millones": 7500,
+        "esquinas": 1250,
+        "metodo_esperado": 519.9,
+        "a_ojo_promete": 834.0,
+        "a_ojo_esperado": 516.9
+      },
+      {
+        "presupuesto_millones": 7750,
+        "esquinas": 1291,
+        "metodo_esperado": 530.7,
+        "a_ojo_promete": 850.4,
+        "a_ojo_esperado": 527.7
+      },
+      {
+        "presupuesto_millones": 8000,
+        "esquinas": 1333,
+        "metodo_esperado": 541.8,
+        "a_ojo_promete": 867.2,
+        "a_ojo_esperado": 538.7
+      },
+      {
+        "presupuesto_millones": 8250,
+        "esquinas": 1375,
+        "metodo_esperado": 553.0,
+        "a_ojo_promete": 884.0,
+        "a_ojo_esperado": 549.6
+      },
+      {
+        "presupuesto_millones": 8500,
+        "esquinas": 1416,
+        "metodo_esperado": 563.8,
+        "a_ojo_promete": 900.4,
+        "a_ojo_esperado": 560.5
+      },
+      {
+        "presupuesto_millones": 8750,
+        "esquinas": 1458,
+        "metodo_esperado": 574.9,
+        "a_ojo_promete": 917.2,
+        "a_ojo_esperado": 571.4
+      },
+      {
+        "presupuesto_millones": 9000,
+        "esquinas": 1500,
+        "metodo_esperado": 586.1,
+        "a_ojo_promete": 934.0,
+        "a_ojo_esperado": 582.4
+      },
+      {
+        "presupuesto_millones": 9250,
+        "esquinas": 1541,
+        "metodo_esperado": 596.9,
+        "a_ojo_promete": 950.4,
+        "a_ojo_esperado": 593.1
+      },
+      {
+        "presupuesto_millones": 9500,
+        "esquinas": 1583,
+        "metodo_esperado": 607.6,
+        "a_ojo_promete": 967.2,
+        "a_ojo_esperado": 604.1
+      },
+      {
+        "presupuesto_millones": 9750,
+        "esquinas": 1625,
+        "metodo_esperado": 618.1,
+        "a_ojo_promete": 984.0,
+        "a_ojo_esperado": 615.3
+      },
+      {
+        "presupuesto_millones": 10000,
+        "esquinas": 1666,
+        "metodo_esperado": 628.4,
+        "a_ojo_promete": 1000.4,
+        "a_ojo_esperado": 626.1
+      },
+      {
+        "presupuesto_millones": 10250,
+        "esquinas": 1708,
+        "metodo_esperado": 638.9,
+        "a_ojo_promete": 1017.2,
+        "a_ojo_esperado": 637.2
+      },
+      {
+        "presupuesto_millones": 10500,
+        "esquinas": 1750,
+        "metodo_esperado": 649.5,
+        "a_ojo_promete": 1034.0,
+        "a_ojo_esperado": 648.3
+      },
+      {
+        "presupuesto_millones": 10750,
+        "esquinas": 1791,
+        "metodo_esperado": 659.8,
+        "a_ojo_promete": 1050.4,
+        "a_ojo_esperado": 658.9
+      },
+      {
+        "presupuesto_millones": 11000,
+        "esquinas": 1833,
+        "metodo_esperado": 670.3,
+        "a_ojo_promete": 1067.2,
+        "a_ojo_esperado": 669.9
+      },
+      {
+        "presupuesto_millones": 11250,
+        "esquinas": 1875,
+        "metodo_esperado": 679.4,
+        "a_ojo_promete": 1081.0,
+        "a_ojo_esperado": 679.3
+      },
+      {
+        "presupuesto_millones": 11500,
+        "esquinas": 1916,
+        "metodo_esperado": 685.8,
+        "a_ojo_promete": 1089.2,
+        "a_ojo_esperado": 685.4
+      },
+      {
+        "presupuesto_millones": 11750,
+        "esquinas": 1958,
+        "metodo_esperado": 692.4,
+        "a_ojo_promete": 1097.6,
+        "a_ojo_esperado": 691.8
+      },
+      {
+        "presupuesto_millones": 12000,
+        "esquinas": 2000,
+        "metodo_esperado": 699.0,
+        "a_ojo_promete": 1106.0,
+        "a_ojo_esperado": 698.1
+      },
+      {
+        "presupuesto_millones": 12250,
+        "esquinas": 2041,
+        "metodo_esperado": 705.4,
+        "a_ojo_promete": 1114.2,
+        "a_ojo_esperado": 704.3
+      },
+      {
+        "presupuesto_millones": 12500,
+        "esquinas": 2083,
+        "metodo_esperado": 712.0,
+        "a_ojo_promete": 1122.6,
+        "a_ojo_esperado": 710.6
+      },
+      {
+        "presupuesto_millones": 12750,
+        "esquinas": 2125,
+        "metodo_esperado": 718.6,
+        "a_ojo_promete": 1131.0,
+        "a_ojo_esperado": 716.9
+      },
+      {
+        "presupuesto_millones": 13000,
+        "esquinas": 2166,
+        "metodo_esperado": 725.0,
+        "a_ojo_promete": 1139.2,
+        "a_ojo_esperado": 723.0
+      },
+      {
+        "presupuesto_millones": 13250,
+        "esquinas": 2208,
+        "metodo_esperado": 731.6,
+        "a_ojo_promete": 1147.6,
+        "a_ojo_esperado": 729.3
+      },
+      {
+        "presupuesto_millones": 13500,
+        "esquinas": 2250,
+        "metodo_esperado": 738.1,
+        "a_ojo_promete": 1156.0,
+        "a_ojo_esperado": 735.6
+      },
+      {
+        "presupuesto_millones": 13750,
+        "esquinas": 2291,
+        "metodo_esperado": 744.6,
+        "a_ojo_promete": 1164.2,
+        "a_ojo_esperado": 741.7
+      },
+      {
+        "presupuesto_millones": 14000,
+        "esquinas": 2333,
+        "metodo_esperado": 751.1,
+        "a_ojo_promete": 1172.6,
+        "a_ojo_esperado": 747.8
+      },
+      {
+        "presupuesto_millones": 14250,
+        "esquinas": 2375,
+        "metodo_esperado": 757.7,
+        "a_ojo_promete": 1181.0,
+        "a_ojo_esperado": 754.1
+      },
+      {
+        "presupuesto_millones": 14500,
+        "esquinas": 2416,
+        "metodo_esperado": 764.1,
+        "a_ojo_promete": 1189.2,
+        "a_ojo_esperado": 760.0
+      },
+      {
+        "presupuesto_millones": 14750,
+        "esquinas": 2458,
+        "metodo_esperado": 770.7,
+        "a_ojo_promete": 1197.6,
+        "a_ojo_esperado": 766.2
+      },
+      {
+        "presupuesto_millones": 15000,
+        "esquinas": 2500,
+        "metodo_esperado": 777.3,
+        "a_ojo_promete": 1206.0,
+        "a_ojo_esperado": 772.5
+      },
+      {
+        "presupuesto_millones": 15250,
+        "esquinas": 2541,
+        "metodo_esperado": 783.7,
+        "a_ojo_promete": 1214.2,
+        "a_ojo_esperado": 778.6
+      },
+      {
+        "presupuesto_millones": 15500,
+        "esquinas": 2583,
+        "metodo_esperado": 790.3,
+        "a_ojo_promete": 1222.6,
+        "a_ojo_esperado": 784.8
+      },
+      {
+        "presupuesto_millones": 15750,
+        "esquinas": 2625,
+        "metodo_esperado": 796.9,
+        "a_ojo_promete": 1231.0,
+        "a_ojo_esperado": 790.9
+      },
+      {
+        "presupuesto_millones": 16000,
+        "esquinas": 2666,
+        "metodo_esperado": 803.3,
+        "a_ojo_promete": 1239.2,
+        "a_ojo_esperado": 797.0
+      },
+      {
+        "presupuesto_millones": 16250,
+        "esquinas": 2708,
+        "metodo_esperado": 809.9,
+        "a_ojo_promete": 1247.6,
+        "a_ojo_esperado": 803.2
+      },
+      {
+        "presupuesto_millones": 16500,
+        "esquinas": 2750,
+        "metodo_esperado": 816.4,
+        "a_ojo_promete": 1256.0,
+        "a_ojo_esperado": 809.5
+      },
+      {
+        "presupuesto_millones": 16750,
+        "esquinas": 2791,
+        "metodo_esperado": 822.9,
+        "a_ojo_promete": 1264.2,
+        "a_ojo_esperado": 815.7
+      },
+      {
+        "presupuesto_millones": 17000,
+        "esquinas": 2833,
+        "metodo_esperado": 829.4,
+        "a_ojo_promete": 1272.6,
+        "a_ojo_esperado": 822.0
+      },
+      {
+        "presupuesto_millones": 17250,
+        "esquinas": 2875,
+        "metodo_esperado": 836.0,
+        "a_ojo_promete": 1281.0,
+        "a_ojo_esperado": 828.3
+      },
+      {
+        "presupuesto_millones": 17500,
+        "esquinas": 2916,
+        "metodo_esperado": 842.4,
+        "a_ojo_promete": 1289.2,
+        "a_ojo_esperado": 834.5
+      },
+      {
+        "presupuesto_millones": 17750,
+        "esquinas": 2958,
+        "metodo_esperado": 849.0,
+        "a_ojo_promete": 1297.6,
+        "a_ojo_esperado": 840.8
+      },
+      {
+        "presupuesto_millones": 18000,
+        "esquinas": 3000,
+        "metodo_esperado": 855.6,
+        "a_ojo_promete": 1306.0,
+        "a_ojo_esperado": 847.0
+      },
+      {
+        "presupuesto_millones": 18250,
+        "esquinas": 3041,
+        "metodo_esperado": 862.0,
+        "a_ojo_promete": 1314.2,
+        "a_ojo_esperado": 853.2
+      },
+      {
+        "presupuesto_millones": 18500,
+        "esquinas": 3083,
+        "metodo_esperado": 868.6,
+        "a_ojo_promete": 1322.6,
+        "a_ojo_esperado": 859.4
+      },
+      {
+        "presupuesto_millones": 18750,
+        "esquinas": 3125,
+        "metodo_esperado": 875.2,
+        "a_ojo_promete": 1331.0,
+        "a_ojo_esperado": 865.6
+      },
+      {
+        "presupuesto_millones": 19000,
+        "esquinas": 3166,
+        "metodo_esperado": 881.6,
+        "a_ojo_promete": 1339.2,
+        "a_ojo_esperado": 871.5
+      },
+      {
+        "presupuesto_millones": 19250,
+        "esquinas": 3208,
+        "metodo_esperado": 888.2,
+        "a_ojo_promete": 1347.6,
+        "a_ojo_esperado": 877.8
+      },
+      {
+        "presupuesto_millones": 19500,
+        "esquinas": 3250,
+        "metodo_esperado": 894.7,
+        "a_ojo_promete": 1356.0,
+        "a_ojo_esperado": 884.0
+      },
+      {
+        "presupuesto_millones": 19750,
+        "esquinas": 3291,
+        "metodo_esperado": 901.2,
+        "a_ojo_promete": 1364.2,
+        "a_ojo_esperado": 890.1
+      },
+      {
+        "presupuesto_millones": 20000,
+        "esquinas": 3333,
+        "metodo_esperado": 907.7,
+        "a_ojo_promete": 1372.6,
+        "a_ojo_esperado": 896.4
+      }
+    ],
+    "como_leerlo": "Siniestros graves evitados al año según el monto. Cada peso adicional rinde menos: primero se intervienen las esquinas de más riesgo."
+  },
+  "presupuesto_reparto": {
+    "intervenciones": {
+      "local": "Reductores de velocidad en la esquina (resaltos o pompeyanos con demarcación)",
+      "arterial": "Intersección semaforizada con intervalo peatonal anticipado (el peatón recibe verde unos segundos antes que los vehículos)"
+    },
+    "costos_millones": {
+      "local": 6,
+      "arterial": 389
+    },
+    "reducciones_pct": {
+      "local": 40,
+      "arterial": 14
+    },
+    "filas": [
+      {
+        "presupuesto_millones": 1000,
+        "mejor_combinacion": {
+          "esperado": 140.0,
+          "esquinas_barrio": 166,
+          "intersecciones_avenida": 0,
+          "millones_barrio": 996,
+          "millones_avenidas": 0
+        },
+        "todo_en_barrio": 140.0,
+        "todo_en_avenidas": 4.8,
+        "avenidas_compiten_si_cuestan_menos_de_millones": 19
+      },
+      {
+        "presupuesto_millones": 2500,
+        "mejor_combinacion": {
+          "esperado": 259.2,
+          "esquinas_barrio": 416,
+          "intersecciones_avenida": 0,
+          "millones_barrio": 2496,
+          "millones_avenidas": 0
+        },
+        "todo_en_barrio": 259.2,
+        "todo_en_avenidas": 12.3,
+        "avenidas_compiten_si_cuestan_menos_de_millones": 30
+      },
+      {
+        "presupuesto_millones": 5000,
+        "mejor_combinacion": {
+          "esperado": 409.1,
+          "esquinas_barrio": 833,
+          "intersecciones_avenida": 0,
+          "millones_barrio": 4998,
+          "millones_avenidas": 0
+        },
+        "todo_en_barrio": 409.1,
+        "todo_en_avenidas": 22.0,
+        "avenidas_compiten_si_cuestan_menos_de_millones": 39
+      },
+      {
+        "presupuesto_millones": 10000,
+        "mejor_combinacion": {
+          "esperado": 628.4,
+          "esquinas_barrio": 1666,
+          "intersecciones_avenida": 0,
+          "millones_barrio": 9996,
+          "millones_avenidas": 0
+        },
+        "todo_en_barrio": 628.4,
+        "todo_en_avenidas": 39.8,
+        "avenidas_compiten_si_cuestan_menos_de_millones": 45
+      },
+      {
+        "presupuesto_millones": 20000,
+        "mejor_combinacion": {
+          "esperado": 907.7,
+          "esquinas_barrio": 3333,
+          "intersecciones_avenida": 0,
+          "millones_barrio": 19998,
+          "millones_avenidas": 0
+        },
+        "todo_en_barrio": 907.7,
+        "todo_en_avenidas": 69.2,
+        "avenidas_compiten_si_cuestan_menos_de_millones": 72
+      }
+    ],
+    "advertencia_costos": "El costo de la intersección semaforizada es una cota superior: si la intersección ya tiene semáforo y cabezas peatonales, el intervalo peatonal anticipado solo requiere reprogramar los tiempos y cuesta mucho menos."
+  },
+  "evaluacion_obra": {
+    "esquinas": 30,
+    "antes_2024": 189,
+    "despues_2025": 87,
+    "esperado_sin_obra": 95.8,
+    "esperado_sin_obra_con_tendencia": 85.5,
+    "tendencia_ciudad_pct": -10.8,
+    "efecto_antes_despues_pct": -54.0,
+    "efecto_con_metodo_pct": -9.2,
+    "efecto_con_metodo_y_tendencia_pct": 1.8,
+    "nota": "Ejemplo hipotético: el análisis no considera obras hechas en esos sitios. Sirve para mostrar cuánto le atribuiría a una obra cada forma de evaluar."
+  },
+  "pruebas_regresion_a_la_media": {
+    "un_anio_antes": {
+      "anio": 2023,
+      "graves_antes": 204,
+      "graves_despues": 133,
+      "bajaron": 25,
+      "de": 30
+    },
+    "por_nivel_2024_2025": [
+      {
+        "graves_2024": "1",
+        "hexagonos": 2498,
+        "promedio_2024": 1.0,
+        "promedio_2025": 0.36
+      },
+      {
+        "graves_2024": "2",
+        "hexagonos": 533,
+        "promedio_2024": 2.0,
+        "promedio_2025": 0.71
+      },
+      {
+        "graves_2024": "3",
+        "hexagonos": 155,
+        "promedio_2024": 3.0,
+        "promedio_2025": 1.12
+      },
+      {
+        "graves_2024": "4",
+        "hexagonos": 61,
+        "promedio_2024": 4.0,
+        "promedio_2025": 1.77
+      },
+      {
+        "graves_2024": "5 o más",
+        "hexagonos": 38,
+        "promedio_2024": 6.03,
+        "promedio_2025": 2.66
+      }
+    ],
+    "sin_graves_en_2024": {
+      "hexagonos": 3652,
+      "con_alguno_en_2025": 1978,
+      "graves_en_2025": 2355
+    },
+    "total_barrio_por_anio": {
+      "2023": 4511,
+      "2024": 4502,
+      "2025": 4020
+    },
+    "lectura": "La caída de las peores esquinas se repite cada año, ocurre en miles de hexágonos a la vez y viene con subidas donde no hubo siniestros: es estadística, no obras. Además, el método predijo la caída sin saber nada de obras."
   }
 }

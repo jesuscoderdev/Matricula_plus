@@ -38,11 +38,13 @@ export default function Explorar({ datos, r, upz, setUpz, coloreo, setColoreo, e
         <header className="panel__cabeza">
           <span className="kicker">Explorar</span>
           <h1 className="display">Bogotá, <em>UPZ por UPZ</em></h1>
-          <p className="lead">El color es la parte de los niños nuevos que no queda en ninguno de sus colegios. Toca una UPZ.</p>
+          <p className="lead">El color muestra qué parte de los niños nuevos no entra a ninguno de sus colegios. Toca una UPZ.</p>
         </header>
         {toggle}
         <div className="grupo">
-          <div className="grupo__titulo"><b>Donde más falta cupo hoy</b><span>% fuera de sus opciones</span></div>
+          <div className="grupo__titulo"><b>Donde más falta cupo hoy</b><span>% que no entra a sus colegios</span></div>
+          <small className="nota">Donde casi no hay cupos cerca, ninguna regla alcanza: si una UPZ empeora con Matrícula+, es porque
+            otros niños con más prioridad ocupan esos pocos cupos. Ahí hace falta un colegio nuevo.</small>
           <div className="caso-lista">
             {peores.map((p) => (
               <button key={p.codigo} className="caso-colegio" onClick={() => setUpz(p.codigo)}>
@@ -70,7 +72,7 @@ export default function Explorar({ datos, r, upz, setUpz, coloreo, setColoreo, e
         <div><b>{Math.round(100 * sel.cupos_por_solicitud)}</b><span>cupos por cada 100 solicitudes</span></div>
       </div>
       <div className="comparacion">
-        <div className="comparacion__cabeza"><span>Fuera de sus opciones</span><span>Hoy</span><span>Matrícula+</span></div>
+        <div className="comparacion__cabeza"><span>No entran a sus colegios</span><span>Hoy</span><span>Matrícula+</span></div>
         <div className="metrica metrica--destacada">
           <span className="metrica__nombre">Niños que viven aquí</span>
           <span className="metrica__v">{decimal(r.upzHoy[i])}%</span>
