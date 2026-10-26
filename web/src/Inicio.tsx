@@ -20,6 +20,7 @@ import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
 import { informarPantalla, pedirAProli, registrar, useReto } from './proli/ordenes'
+import { recordado, recordar } from './recordar'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -33,12 +34,17 @@ const pedido = (): IdProyecto | null => {
   return activos.some((x) => x.id === p) ? (p as IdProyecto) : null
 }
 
+type Etapa = 'portada' | 'proli' | 'elegir'
+
 export default function Inicio() {
   const fijo = useMemo(pedido, [])
-  const [proyecto, setProyecto] = useState<IdProyecto | null>(fijo)
+  // Al recargar se vuelve a donde iba el visitante (src/recordar.ts), no a la portada
+  const antes = useMemo(() => (fijo ? null : recordado<{ etapa: Etapa; proyecto: IdProyecto | null }>('inicio')), [fijo])
+  const [proyecto, setProyecto] = useState<IdProyecto | null>(fijo ?? (activos.some((x) => x.id === antes?.proyecto) ? antes!.proyecto : null))
   // Pantallas antes de los proyectos: portada → conozca a Proli → elegir proyecto.
   // Quien entra con ?proyecto= va directo, sin portada.
-  const [etapa, setEtapa] = useState<'portada' | 'proli' | 'elegir'>(fijo ? 'elegir' : 'portada')
+  const [etapa, setEtapa] = useState<Etapa>(fijo ? 'elegir' : antes?.etapa ?? 'portada')
+  useEffect(() => { if (!fijo) recordar('inicio', { etapa, proyecto }) }, [fijo, etapa, proyecto])
   const [modo, setModo] = useState<Modo>(leerModo)
   const [turno, setTurno] = useState(0)   // auto: qué proyecto sigue
 
@@ -86,7 +92,7 @@ export default function Inicio() {
   // Proli puede llevar al visitante a estas pantallas y abrir los demos (src/proli/ordenes.ts)
   useEffect(() => registrar('inicio', (o) => {
     if (o.nombre === 'ir_a_pantalla') {
-      const destino = { portada: 'portada', conozca_a_proli: 'proli', elegir_demo: 'elegir' }[String(o.entrada.pantalla)] as typeof etapa | undefined
+      const destino = { portada: 'portada', conozca_a_proli: 'proli', elegir_demo: 'elegir' }[String(o.entrada.pantalla)] as Etapa | undefined
       if (!destino) return 'Pantalla no reconocida.'
       setProyecto(null); setEtapa(destino)
       return `Listo: el visitante está en ${destino === 'proli' ? 'Conoce a Proli' : destino === 'elegir' ? 'la página para elegir demo' : 'la portada'}.`

@@ -782,8 +782,8 @@ h1, h2, h3, p { margin: 0; }
 /* =========================================================
    8b. Portada del stand (primera pantalla, pantalla de atracción)
    ========================================================= */
-/* Navy con letras blancas y foco verde, como la portada del manual («blanco sobre navy»).
-   No cambia con el tema: es la cara del stand y debe leerse igual desde lejos. */
+/* Tema oscuro: navy con letras blancas y foco verde, como la portada del manual («blanco sobre navy»).
+   Tema claro: al final de esta sección, papel blanco con letras navy (el mismo manual en positivo). */
 .portada-stand {
   isolation: isolate; cursor: pointer; color: #ffffff;
   background:
@@ -844,6 +844,27 @@ h1, h2, h3, p { margin: 0; }
 }
 .portada-stand__boton { background: var(--p-indigo); color: #ffffff; font-size: 1.1rem; padding-inline: 2.2rem; }
 .portada-stand__boton:focus-visible { outline-color: var(--p-verde); }
+
+/* Tema claro: papel con un brillo índigo y verde suaves, letras navy; el verde como texto pasa a
+   su versión legible sobre blanco y el logo vuelve a sus colores */
+:root:not([data-tema='oscuro']) .portada-stand {
+  color: var(--tinta);
+  background:
+    radial-gradient(75% 45% at 100% 0%, rgba(90, 68, 221, 0.16), transparent 70%),
+    radial-gradient(65% 40% at 0% 100%, rgba(123, 198, 137, 0.18), transparent 70%),
+    var(--papel);
+}
+:root:not([data-tema='oscuro']) .portada-stand__brillo { background: radial-gradient(30% 22% at 35% 45%, rgba(123, 198, 137, 0.16), transparent 70%); }
+:root:not([data-tema='oscuro']) .portada-stand .marca-agua { opacity: 0.12; }
+:root:not([data-tema='oscuro']) .portada-stand .logo-trozo { filter: none; }
+:root:not([data-tema='oscuro']) .portada-stand__evento { color: var(--suave); }
+:root:not([data-tema='oscuro']) .portada-stand .kicker { color: var(--verde-texto); }
+:root:not([data-tema='oscuro']) .portada-stand .display, :root:not([data-tema='oscuro']) .portada-stand__frase { color: var(--tinta); }
+:root:not([data-tema='oscuro']) .portada-stand .display em { color: var(--violeta); }
+:root:not([data-tema='oscuro']) .portada-stand__bajada { color: var(--suave); }
+:root:not([data-tema='oscuro']) .portada-stand .acento { color: var(--verde-texto); }
+:root:not([data-tema='oscuro']) .portada-stand__proli .proli__img { filter: drop-shadow(0 0.8rem 1.6rem rgba(22, 43, 42, 0.18)); }
+:root:not([data-tema='oscuro']) .portada-stand__proli .proli__globo { background: var(--blanco); border: 1px solid var(--linea); box-shadow: 0 0.6rem 1.6rem rgba(22, 43, 42, 0.1); }
 
 /* Tótem: todo más grande, para leerse a uno o dos metros */
 :root[data-modo='stand'] .portada-stand__contenido, :root[data-modo='auto'] .portada-stand__contenido { gap: 1.3rem; padding: 1.5rem 1.8rem 1.7rem; }

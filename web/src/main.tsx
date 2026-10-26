@@ -18,6 +18,16 @@ import './tema'  // aplica el tema (claro/oscuro) antes del primer render
 import Inicio from './Inicio'
 import Asistente from './proli/Asistente'
 
+// Versión nueva publicada: el service worker nuevo toma el control y la página se recarga para
+// mostrarla ya, sin esperar a una segunda visita. El visitante sigue en la misma pantalla
+// (src/recordar.ts). La primera instalación no recarga. Cada 30 min se busca una versión nueva
+// (el tótem pasa el día entero con la página abierta).
+if ('serviceWorker' in navigator) {
+  const habia = !!navigator.serviceWorker.controller
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (habia) window.location.reload() })
+  window.setInterval(() => { navigator.serviceWorker.getRegistration().then((r) => r?.update()).catch(() => {}) }, 30 * 60 * 1000)
+}
+
 // Proli vive fuera de las pantallas: la conversación sigue aunque el visitante cambie de pantalla o de demo
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

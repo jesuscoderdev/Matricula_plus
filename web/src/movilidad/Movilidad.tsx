@@ -15,6 +15,7 @@ import Intro from '../componentes/Intro'
 import Esqueleto from '../componentes/Esqueleto'
 import { cargarMovilidad, esquinasCon, nombreLocalidad, type Bbox, type DatosMovilidad, type Nivel } from './datos'
 import { informarPantalla, registrar } from '../proli/ordenes'
+import { recordado, recordar } from '../recordar'
 import MapaMovilidad from './MapaMovilidad'
 import {
   Anio, CAPITULOS_MOV, Cierre, Decide, Evaluar, Fuentes, Giro, Metodo, PortadaMov, Presupuesto, numeroMov, tamanoHex,
@@ -22,6 +23,10 @@ import {
 } from './Paneles'
 
 const ORDEN: VistaMov[] = ['portada', ...CAPITULOS_MOV.map((c) => c.id)]
+
+interface Recordado {
+  vista: VistaMov; tocadas: number[]; localidad: number | null; monto: number | null; zona: 'barrio' | 'avenidas'; version: string
+}
 
 export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPortada }: {
   /** volver a la página de inicio (elegir proyecto) */
@@ -37,21 +42,34 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   const [datos, setDatos] = useState<DatosMovilidad | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [intento, setIntento] = useState(0)
-  const [intro, setIntro] = useState(true)
-  const [vista, setVista] = useState<VistaMov>('portada')
-  const [tocadas, setTocadas] = useState<number[]>([])
-  const [localidad, setLocalidad] = useState<number | null>(null)
+  // Al recargar, donde iba el visitante (src/recordar.ts); al salir del demo se olvida
+  const [antes] = useState(() => {
+    const a = recordado<Recordado>('movilidad')
+    return a && CAPITULOS_MOV.some((c) => c.id === a.vista) ? a : null
+  })
+  const [intro, setIntro] = useState(!antes)
+  const [vista, setVista] = useState<VistaMov>(antes?.vista ?? 'portada')
+  const [tocadas, setTocadas] = useState<number[]>(antes?.tocadas ?? [])
+  const [localidad, setLocalidad] = useState<number | null>(antes?.localidad ?? null)
   const [anio, setAnio] = useState<'k24' | 'k25'>('k25')
   // Presupuesto en millones; null = el primer monto de referencia (sale de los datos)
-  const [montoElegido, setMonto] = useState<number | null>(null)
+  const [montoElegido, setMonto] = useState<number | null>(antes?.monto ?? null)
   const monto = montoElegido ?? datos?.experiencia.pantalla_presupuesto_barrio.escenarios.bajo.presupuesto_millones ?? 0
-  const [zona, setZona] = useState<'barrio' | 'avenidas'>('barrio')
+  const [zona, setZona] = useState<'barrio' | 'avenidas'>(antes?.zona ?? 'barrio')
   const [vuelta, setVuelta] = useState(0)
 
   useEffect(() => {
     setError(null)
-    cargarMovilidad().then(setDatos).catch((e) => setError(String(e.message ?? e)))
-  }, [intento])
+    cargarMovilidad().then((d) => {
+      // Las esquinas recordadas son posiciones en los datos: si cambió el modelo, ya no valen
+      if (antes && antes.version !== d.experiencia.version_modelo) { setTocadas([]); setLocalidad(null) }
+      setDatos(d)
+    }).catch((e) => setError(String(e.message ?? e)))
+  }, [intento, antes])
+  useEffect(() => {
+    if (datos) recordar('movilidad', { vista, tocadas, localidad, monto: montoElegido, zona, version: datos.experiencia.version_modelo } satisfies Recordado)
+  }, [datos, vista, tocadas, localidad, montoElegido, zona])
+  useEffect(() => () => recordar('movilidad', null), [])
   useEffect(() => { document.documentElement.dataset.modo = modo }, [modo])
   useEffect(() => {
     if (!modoAutomatico()) return

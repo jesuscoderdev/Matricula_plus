@@ -3,14 +3,15 @@
  * y la puerta de entrada en celular y PC. Toda la pantalla es el botón: tocar en cualquier parte
  * sigue a la pantalla siguiente (conozca a Proli).
  *
- * Fondo navy con letras blancas y foco verde, como la portada del manual de marca («blanco sobre
- * navy»); el logo va en su versión blanca con la «o» verde. Es igual en tema claro y oscuro.
+ * Sigue el tema. Oscuro: fondo navy con letras blancas y foco verde, como la portada del manual de
+ * marca («blanco sobre navy»), con el logo en su versión blanca. Claro: papel con letras navy.
  * Los textos se cambian en config.ts (PORTADA_STAND).
  */
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { PORTADA_STAND, SEGUNDOS_PORTADA_AUTO } from './config'
 import { esTotem, type Modo } from './modo'
+import { useTema } from './tema'
 import { BotonTema, LogoEmpresa, MarcaDeAgua } from './componentes/Marca'
 import Proli from './componentes/Proli'
 
@@ -25,6 +26,7 @@ function conResaltado(texto: string) {
 export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alContinuar: () => void }) {
   const p = PORTADA_STAND
   const totem = esTotem(modo)
+  const tema = useTema()
 
   // Modo automático: se queda unos segundos y sigue solo
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alCont
         <motion.header className="portada-stand__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa />
           <span className="portada-stand__evento">{p.evento}</span>
-          {modo !== 'auto' && <BotonTema sobreOscuro />}
+          {modo !== 'auto' && <BotonTema sobreOscuro={tema === 'oscuro'} />}
         </motion.header>
 
         <div className="portada-stand__cabeza">

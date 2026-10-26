@@ -21,8 +21,10 @@ import Explorar from './capitulos/Explorar'
 import { calcularOpciones, recordarOpciones } from './colegioNuevo'
 import Agendar from './capitulos/Agendar'
 import { informarPantalla, registrar } from './proli/ordenes'
+import { recordado, recordar } from './recordar'
 
 const ORDEN: Vista[] = ['portada', ...CAPITULOS.map((c) => c.id)]
+const VISTAS: Vista[] = [...ORDEN, 'caso', 'explorar', 'agendar']
 
 // Modo automático: en cada vuelta, otra localidad y otras palancas. En Problema se elige la
 // localidad; en Acción se mueven las palancas y se aprieta ▶ Asignar.
@@ -47,11 +49,18 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
   const [modo, setModo] = useState<Modo>(leerModo)
   const [datos, setDatos] = useState<Datos | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [intro, setIntro] = useState(true)
-  const [vista, setVista] = useState<Vista>('portada')
+  // Al recargar, el capítulo y la localidad en que iba (src/recordar.ts); al salir del demo se olvidan
+  const [antes] = useState(() => {
+    const a = recordado<{ vista: Vista; localidad: string | null }>('matricula')
+    return a && VISTAS.includes(a.vista) && a.vista !== 'portada' ? a : null
+  })
+  const [intro, setIntro] = useState(!antes)
+  const [vista, setVista] = useState<Vista>(antes?.vista ?? 'portada')
   const [supuestos, setSupuestos] = useState<Supuestos | null>(null)
   const [palancas, setPalancas] = useState<Palancas | null>(null)
-  const [localidad, setLocalidad] = useState<string | null>(null)
+  const [localidad, setLocalidad] = useState<string | null>(antes?.localidad ?? null)
+  useEffect(() => { recordar('matricula', { vista, localidad }) }, [vista, localidad])
+  useEffect(() => () => recordar('matricula', null), [])
   // Proceso animado
   const [asignado, setAsignado] = useState(false)
   const [reproduccion, setReproduccion] = useState(0)
@@ -161,7 +170,7 @@ export default function App({ alSalir, alInactivo, alTerminarVuelta, alPortada }
   refLocalidad.current = localidad
   useEffect(() => {
     if (!datos) return
-    const vistas: Vista[] = ['portada', ...CAPITULOS.map((c) => c.id), 'caso', 'explorar', 'agendar']
+    const vistas = VISTAS
     const nombreVista = (v: Vista) => CAPITULOS.find((c) => c.id === v)?.nombre
       ?? { portada: 'portada', caso: 'Simula una familia', explorar: 'Explorar', agendar: 'Agendar' }[v as string] ?? v
     return registrar('matricula', (o) => {
