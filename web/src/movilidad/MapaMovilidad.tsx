@@ -9,14 +9,15 @@
  *  · capa "kappa"       — riesgo anual corregido (lo que se puede prometer)
  *  · capa "sel"         — las esquinas que alcanza el presupuesto elegido
  * Encima: las esquinas que tocó el visitante (numeradas) y, si se pide, las peores de 2024 (anillos).
+ * Con `croquis` (Tú decides): las localidades de fondo, y sus límites y nombres sobre los hexágonos.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import DeckGL from '@deck.gl/react'
 import { FlyToInterpolator, type PickingInfo } from '@deck.gl/core'
 import { encuadrar } from '../mapa/encuadre'
-import { PolygonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
+import { PathLayer, PolygonLayer, ScatterplotLayer, TextLayer } from '@deck.gl/layers'
 import { useTema, type Tema } from '../tema'
-import type { Bbox, DatosMovilidad } from './datos'
+import type { Bbox, Croquis, DatosMovilidad } from './datos'
 
 type RGB = [number, number, number]
 type RGBA = [number, number, number, number]
@@ -28,10 +29,11 @@ const RAMPA: Record<Tema, RGB[]> = {
   oscuro: [[52, 48, 130], [78, 62, 200], [120, 104, 236], [178, 168, 250], [232, 230, 255]],
 }
 const PALETA = {
+  // tierra: el croquis de Bogotá (más claro que el fondo en el tema claro, apenas más claro en el oscuro)
   claro: { vacio: [210, 222, 238, 255] as RGBA, avenida: [230, 237, 246, 255] as RGBA, tinta: [22, 43, 42, 255] as RGBA,
-    superficie: [255, 255, 255, 245] as RGBA, fuera: 70 },
+    superficie: [255, 255, 255, 245] as RGBA, fuera: 70, tierra: [255, 255, 255, 255] as RGBA },
   oscuro: { vacio: [36, 64, 62, 255] as RGBA, avenida: [24, 48, 46, 255] as RGBA, tinta: [240, 246, 245, 255] as RGBA,
-    superficie: [29, 54, 52, 245] as RGBA, fuera: 60 },
+    superficie: [29, 54, 52, 245] as RGBA, fuera: 60, tierra: [23, 43, 42, 255] as RGBA },
 }
 const VIOLETA: RGBA = [90, 68, 221, 255]
 
@@ -163,12 +165,14 @@ interface Props {
   /** vista de toda la ciudad: los hexágonos de 115 m se suman en celdas de ~500 m para que se lean */
   agrupar?: boolean
   leyenda?: boolean
+  /** croquis de Bogotá: localidades de fondo, y sus límites y nombres sobre los hexágonos */
+  croquis?: boolean
   children?: ReactNode
 }
 
 export default function MapaMovilidad({
   datos, capa, localidad = null, esquinas = 0, tocadas = [], onTocar, peores = false, interactivo = true,
-  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, children,
+  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, croquis = false, children,
 }: Props) {
   const tema = useTema()
   const P = PALETA[tema]
@@ -254,6 +258,44 @@ export default function MapaMovilidad({
   }, [bolsa, reloj])
   const tonoDestello: RGB = tema === 'oscuro' ? [232, 230, 255] : rampa[4]
 
+  // Croquis: un polígono por anillo (las localidades con islas traen varios)
+  const anillos = useMemo(() => (croquis ? datos.croquis.flatMap((c) => c.anillos.map((a) => ({ c, a }))) : []), [croquis, datos])
+  const propia = (c: Croquis) => localidad != null && c.loc === localidad
+  const atenuada = (c: Croquis) => localidad != null && c.loc !== localidad
+  const tinta = P.tinta
+  // Un nombre solo si cabe a lo ancho de su localidad con el zoom del encuadre (en el centro hay
+  // localidades pequeñas y los nombres se pisarían); la elegida siempre
+  const nombresQueCaben = useMemo(() => datos.croquis.filter((c) => {
+    if (localidad != null && c.loc === localidad) return true
+    const lon = c.anillos.flat().map((p) => p[0])
+    const anchoPx = ((Math.max(...lon) - Math.min(...lon)) * 111320 * Math.cos((c.etiqueta[1] * Math.PI) / 180)) / mPorPx
+    return anchoPx > c.nombre.length * 11 * e * 0.62
+  }), [datos, localidad, mPorPx, e])
+  const capasFondo = anillos.length ? [
+    new PolygonLayer<{ c: Croquis; a: [number, number][] }>({
+      id: 'croquis-tierra', data: anillos, filled: true, stroked: false, getPolygon: (d) => d.a,
+      getFillColor: (d) => (atenuada(d.c) ? [P.tierra[0], P.tierra[1], P.tierra[2], 150] : P.tierra) as RGBA,
+      updateTriggers: { getFillColor: [tema, localidad] }, transitions: { getFillColor: 500 },
+    }),
+  ] : []
+  const capasCroquis = anillos.length ? [
+    new PathLayer<{ c: Croquis; a: [number, number][] }>({
+      id: 'croquis-limites', data: anillos, getPath: (d) => d.a, widthUnits: 'pixels', jointRounded: true,
+      // Encima de los hexágonos para que se lea dónde empieza y termina cada localidad; la elegida, en violeta
+      getWidth: (d) => (propia(d.c) ? 3 : 1.2) * e,
+      getColor: (d) => (propia(d.c) ? VIOLETA : [tinta[0], tinta[1], tinta[2], atenuada(d.c) ? 60 : 120]) as RGBA,
+      updateTriggers: { getWidth: [localidad, e], getColor: [localidad, tema] },
+    }),
+    new TextLayer<Croquis>({
+      id: 'croquis-nombres', data: nombresQueCaben, getPosition: (c) => c.etiqueta, getText: (c) => c.nombre,
+      getSize: (c) => (propia(c) ? 15 : 11) * e, fontFamily: 'Poppins, sans-serif', fontWeight: 600, characterSet: 'auto',
+      getColor: (c) => (propia(c) ? VIOLETA : [tinta[0], tinta[1], tinta[2], atenuada(c) ? 110 : 200]) as RGBA,
+      // Borde del color de la tierra: el nombre se lee aunque caiga sobre hexágonos oscuros
+      fontSettings: { sdf: true }, outlineWidth: 4, outlineColor: P.tierra,
+      updateTriggers: { getSize: [localidad, e], getColor: [localidad, tema] },
+    }),
+  ] : []
+
   const capas: any[] = celdas ? [
     new PolygonLayer<Celda>({
       id: 'celdas', data: celdas, filled: true, stroked: false,
@@ -273,6 +315,7 @@ export default function MapaMovilidad({
       getRadius: (d) => e * 2.6 * (1 - 0.5 * d.u), getFillColor: (d) => [...tonoDestello, Math.round(255 * Math.max(0, 1 - 1.6 * d.u))] as RGBA,
     }),
   ] : [
+    ...capasFondo,
     new PolygonLayer<number>({
       id: 'hexagonos', data: indices, filled: true, stroked: false,
       getPolygon: (i) => s.forma.map(([dx, dy]) => [s.lon[i] + dx, s.lat[i] + dy]),
@@ -295,6 +338,7 @@ export default function MapaMovilidad({
       getFillColor: [...rampa[tema === 'oscuro' ? 4 : 3], 255] as RGBA,
       updateTriggers: { getFillColor: [tema], getRadius: [radioElegida, aparicion] },
     }),
+    ...capasCroquis,
     peores && new ScatterplotLayer<number>({
       id: 'peores', data: datos.peores, getPosition: (i) => [s.lon[i], s.lat[i]],
       getRadius: 7 * e, radiusUnits: 'pixels', filled: false, stroked: true, lineWidthUnits: 'pixels', getLineWidth: 1.8 * e,

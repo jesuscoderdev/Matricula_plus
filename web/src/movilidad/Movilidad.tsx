@@ -244,7 +244,9 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * rem), arriba: window.innerHeight * 0.05, abajo: window.innerHeight * 0.05 }
             : { arriba: window.innerHeight * 0.4, abajo: window.innerHeight * 0.2 } }
       case 'decide':
-        return { capa: 'k24', interactivo, localidad, tocadas, onTocar: modo === 'auto' ? undefined : tocar }
+        return { capa: 'k24', interactivo, localidad, tocadas, onTocar: modo === 'auto' ? undefined : tocar, croquis: true,
+          // Un respiro alrededor de la localidad: que el límite completo quede a la vista
+          margen: { arriba: 2 * rem, abajo: 2 * rem, izquierda: 2 * rem, derecha: 3 * rem } }
       case 'anio':
         return { capa: anio, interactivo, tocadas, peores: true, encuadre: encuadreTocadas }
       case 'giro':

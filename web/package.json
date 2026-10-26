@@ -10,6 +10,7 @@
     "build:archivo": "tsc -b && vite build --mode archivo && node -e \"require('fs').copyFileSync('dist-archivo/index.html','demo-offline.html')\"",
     "verificar": "node scripts/verificar-motor.ts",
     "proli:conocimiento": "node scripts/proli-conocimiento.mjs",
+    "movilidad:localidades": "node scripts/movilidad-localidades.mjs",
     "proli:local": "node scripts/servidor-local.mjs"
   },
   "dependencies": {

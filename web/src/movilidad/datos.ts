@@ -112,6 +112,20 @@ export interface ListaPresupuesto {
 
 export type Bbox = [[number, number], [number, number]]
 
+/** Croquis: límites de localidad (localidades.geojson). Sumapaz no viene (no es urbana). */
+interface LocalidadesGeo {
+  features: { properties: { codigo: string; nombre: string }; geometry: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] } }[]
+}
+export interface Croquis {
+  nombre: string
+  /** anillos exteriores (los huecos no hacen falta para un croquis) */
+  anillos: [number, number][][]
+  /** posición en sitios.localidades (−1 si no tiene esquinas) */
+  loc: number
+  /** dónde va el nombre: la mediana de sus hexágonos (cae dentro aunque la forma sea irregular) */
+  etiqueta: [number, number]
+}
+
 export interface DatosMovilidad {
   experiencia: Experiencia
   fuentes: Fuentes
@@ -129,7 +143,10 @@ export interface DatosMovilidad {
   rangoBarrio: Int32Array
   /** encuadre de la ciudad (sin los extremos: Sumapaz queda fuera del cuadro inicial) */
   bboxCiudad: Bbox
+  /** encuadre de cada localidad: su límite completo si hay croquis; si no, sus hexágonos */
   bboxLocalidad: Bbox[]
+  /** vacío si no se pudo cargar localidades.geojson (el mapa sigue funcionando sin él) */
+  croquis: Croquis[]
 }
 
 // true solo en el build "archivo" (un HTML que se abre con doble clic): ver vite.config.ts
@@ -142,14 +159,15 @@ async function json<T>(ruta: string): Promise<T> {
 }
 const DIR = './movilidad/datos/'
 
-async function leer(): Promise<[Experiencia, Fuentes, Resumen, SitiosCompactos]> {
+async function leer(): Promise<[Experiencia, Fuentes, Resumen, SitiosCompactos, LocalidadesGeo | null]> {
   if (__EMBEBIDO__) {
     // Incrustados en el HTML (file:// no permite fetch); el build normal deja este módulo vacío
-    const m = (await import('virtual:movilidad-embebido')).default as unknown as [Experiencia, Fuentes, Resumen, SitiosCompactos]
+    const m = (await import('virtual:movilidad-embebido')).default as unknown as [Experiencia, Fuentes, Resumen, SitiosCompactos, LocalidadesGeo | null]
     return m
   }
-  const [experiencia, fuentes, resumen] = await Promise.all([
+  const [experiencia, fuentes, resumen, localidades] = await Promise.all([
     json<Experiencia>(DIR + 'experiencia.json'), json<Fuentes>(DIR + 'fuentes.json'), json<Resumen>(DIR + 'resumen.json'),
+    json<LocalidadesGeo>(DIR + 'localidades.geojson').catch(() => null),
   ])
   // El build genera un derivado compacto; si no está o es de otra versión del modelo (alguien
   // reemplazó datos/), se lee el geojson original y se compacta aquí
@@ -159,7 +177,34 @@ async function leer(): Promise<[Experiencia, Fuentes, Resumen, SitiosCompactos]>
     if (c.version === experiencia.version_modelo && c.n > 0) sitios = c
   } catch { /* sin derivado: geojson */ }
   sitios ??= compactar(await json(DIR + 'sitios.geojson'), experiencia.version_modelo)
-  return [experiencia, fuentes, resumen, sitios]
+  return [experiencia, fuentes, resumen, sitios, localidades]
+}
+
+/** "La Candelaria" y "CANDELARIA" son la misma: sin tildes, en mayúsculas y sin artículo inicial. */
+const claveLocalidad = (n: string) => n.normalize('NFD').replace(/\p{Diacritic}/gu, '').toUpperCase().replace(/^(LA|LOS|EL) /, '').trim()
+
+function armarCroquis(geo: LocalidadesGeo | null, s: SitiosCompactos): Croquis[] {
+  if (!geo) return []
+  const posicion = new Map(s.localidades.map((l, i) => [claveLocalidad(l), i]))
+  const mediana = (a: number[]) => a.sort((x, y) => x - y)[Math.floor(a.length / 2)]
+  return geo.features.map(({ properties: p, geometry: g }) => {
+    const anillos = (g.type === 'Polygon' ? [g.coordinates as number[][][]] : (g.coordinates as number[][][][]))
+      .map((poligono) => poligono[0] as [number, number][])
+    const loc = posicion.get(claveLocalidad(p.nombre)) ?? -1
+    const mios = loc < 0 ? [] : s.id.map((_, i) => i).filter((i) => s.loc[i] === loc)
+    // Sin hexágonos: el promedio de los vértices del anillo más largo
+    const mayor = anillos.reduce((a, b) => (b.length > a.length ? b : a))
+    const etiqueta: [number, number] = mios.length
+      ? [mediana(mios.map((i) => s.lon[i])), mediana(mios.map((i) => s.lat[i]))]
+      : [mayor.reduce((t, c) => t + c[0], 0) / mayor.length, mayor.reduce((t, c) => t + c[1], 0) / mayor.length]
+    return { nombre: p.nombre, anillos, loc, etiqueta }
+  })
+}
+
+/** Encuadre de un croquis: todo su límite. */
+function bboxAnillos(anillos: [number, number][][]): Bbox {
+  const c = anillos.flat()
+  return [[Math.min(...c.map((p) => p[0])), Math.min(...c.map((p) => p[1]))], [Math.max(...c.map((p) => p[0])), Math.max(...c.map((p) => p[1]))]]
 }
 
 /** Encuadre con cuantiles (deja fuera los hexágonos sueltos de los bordes). */
@@ -174,17 +219,21 @@ let promesa: Promise<DatosMovilidad> | null = null
 
 /** Carga una sola vez por sesión (volver a entrar no descarga de nuevo). */
 export function cargarMovilidad(): Promise<DatosMovilidad> {
-  promesa ??= leer().then(([experiencia, fuentes, resumen, sitios]) => {
+  promesa ??= leer().then(([experiencia, fuentes, resumen, sitios, localidades]) => {
     const posId = new Map(sitios.id.map((x, i) => [x, i]))
     const peores = experiencia.pantalla_2_pasa_un_anio.referencia_30_peores_esquinas_de_barrio_2024.hexagonos
       .map((h) => posId.get(h)).filter((x): x is number => x != null)
     const todos = sitios.id.map((_, i) => i)
-    const bboxLocalidad = sitios.localidades.map((_, l) => bboxDe(sitios, todos.filter((i) => sitios.loc[i] === l), 0))
+    const croquis = armarCroquis(localidades, sitios)
+    const bboxLocalidad = sitios.localidades.map((_, l) => {
+      const c = croquis.find((x) => x.loc === l)
+      return c ? bboxAnillos(c.anillos) : bboxDe(sitios, todos.filter((i) => sitios.loc[i] === l), 0)
+    })
     const rangoBarrio = new Int32Array(sitios.n).fill(-1)
     todos.filter((i) => sitios.local[i] === 1 && sitios.k23[i] + sitios.k24[i] > 0)
       .sort((a, b) => sitios.kappa[b] - sitios.kappa[a] || (sitios.id[a] < sitios.id[b] ? -1 : 1))
       .forEach((i, r) => { rangoBarrio[i] = r })
-    return { experiencia, fuentes, resumen, sitios, posId, peores, rangoBarrio, bboxCiudad: bboxDe(sitios, todos), bboxLocalidad }
+    return { experiencia, fuentes, resumen, sitios, posId, peores, rangoBarrio, bboxCiudad: bboxDe(sitios, todos), bboxLocalidad, croquis }
   })
   promesa.catch(() => { promesa = null })
   return promesa

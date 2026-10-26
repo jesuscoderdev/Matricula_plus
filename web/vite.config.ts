@@ -50,7 +50,8 @@ const movilidad = (archivo: boolean) => ({
   load(id: string) {
     if (id !== '\0movilidad-embebido') return null
     if (!archivo) return 'export default null'
-    const d = [leerMovilidad('experiencia.json'), leerMovilidad('fuentes.json'), leerMovilidad('resumen.json'), sitiosCompactos()]
+    const d = [leerMovilidad('experiencia.json'), leerMovilidad('fuentes.json'), leerMovilidad('resumen.json'), sitiosCompactos(),
+      fs.existsSync(DIR_MOVILIDAD + 'localidades.geojson') ? leerMovilidad('localidades.geojson') : null]
     return `export default JSON.parse(${JSON.stringify(JSON.stringify(d))})`
   },
   generateBundle(this: { emitFile: (f: { type: 'asset'; fileName: string; source: string }) => void }) {
