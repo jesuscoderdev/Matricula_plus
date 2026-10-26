@@ -35,9 +35,18 @@ UBICACIONES_NUEVO = [
 
 @dataclass
 class ParametrosSimulador:
-    # --- Cifras del Estudio de insuficiencia SED 2025 (solo NUEVOS) ---
-    demanda_nuevos_total: int = 158_957   # solicitudes de estudiantes nuevos (2024)
-    cupos_nuevos_total: int = 140_377     # cupos para nuevos (2025)
+    # --- Cifras del Estudio de insuficiencia y limitaciones SED 2025 (EIL; solo NUEVOS) ---
+    # Ojo: 158.957 es la demanda de nuevos de 2024 (p. 13, corte 30-abr-2024) y 140.377 los cupos
+    # proyectados para nuevos en 2025 (pp. 14-15, con adultos y aceleración): no son del mismo
+    # proceso, así que su resta NO es un déficit. El déficit que reporta la SED es `deficit_sed`.
+    demanda_nuevos_total: int = 158_957   # tamaño de la demanda simulada: nuevos de 2024
+    # Cupos de nuevos en toda la ciudad por cada solicitud (supuesto). La evidencia dice que en el
+    # agregado hay cupos (2025: 122.907 cupos de nuevos y más de 35.000 libres en enero) y que faltan
+    # en zonas puntuales; con 1,0 el faltante sale solo de dónde están los cupos y dónde viven los niños.
+    cupos_por_solicitud: float = 1.0
+    cupos_nuevos_total: int | None = None  # None = round(demanda × cupos_por_solicitud)
+    deficit_sed: int = 16_807             # déficit de cupos de Bogotá en 2024 según la SED (EIL, p. 53)
+    upz_insuficientes_sed: int = 17       # UPZ en categorías de insuficiencia: 2 muy, 7 media, 8 leve (EIL, p. 12)
     anio_corte: str = "Oferta y demanda SED 03.2025 · proyección de población 2026"
 
     # --- Escala: cada familia sintética representa a N estudiantes ---
@@ -68,6 +77,10 @@ class ParametrosSimulador:
 
     pesos: dict = field(default_factory=lambda: PESOS)
     ubicaciones_nuevo: list = field(default_factory=lambda: UBICACIONES_NUEVO)
+
+    def __post_init__(self):
+        if self.cupos_nuevos_total is None:
+            self.cupos_nuevos_total = int(round(self.demanda_nuevos_total * self.cupos_por_solicitud))
 
     def como_dict(self) -> dict:
         return asdict(self)

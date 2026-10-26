@@ -223,8 +223,12 @@ def main():
                         f"({miles(fam.n)} familias), repartidas según la población de 5 a 17 años por UPZ"
                         + (" y ubicadas en manzanas residenciales (estratificación SDP)." if base.manzanas is not None else "."),
             "corte": p.anio_corte,
-            "cupos": f"{miles(p.demanda_nuevos_total)} solicitudes y {miles(p.cupos_nuevos_total)} cupos de nuevos "
-                     "(Estudio de insuficiencia SED 2025).",
+            "cupos": f"Se simulan {miles(p.demanda_nuevos_total)} solicitudes de nuevos (la demanda de nuevos de 2024 "
+                     f"del Estudio de insuficiencia SED 2025) y {miles(p.cupos_nuevos_total)} cupos de nuevos "
+                     f"({str(p.cupos_por_solicitud).replace('.', ',')} por solicitud en toda la ciudad: supuesto, porque "
+                     "en el total hay cupos y faltan donde viven los niños), repartidos según la oferta de cada sede "
+                     f"(SED 03.2025). Dato oficial: la SED reporta un déficit de {miles(p.deficit_sed)} cupos en 2024 "
+                     f"y {p.upz_insuficientes_sed} UPZ con insuficiencia.",
             "distancia": "Distancia en línea recta casa–colegio.",
             "opciones": f"Cada familia pide hasta {p.n_opciones} colegios; 'sin cupo' = no quedó en ninguno.",
             "jornada_unica": f"Jornada única: −{int(p.reduccion_jornada_unica * 100)}% de capacidad en todas las sedes.",

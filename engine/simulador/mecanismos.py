@@ -16,13 +16,24 @@ from engine.simulador.familias import DECIMALES, Familias
 
 def capacidades(cupos_sedes: np.ndarray, cupos_nuevo: int | None, jornada_unica: bool,
                 reduccion: float, estudiantes_por_familia: int) -> np.ndarray:
-    """Capacidad en FAMILIAS de las sedes activas (el colegio nuevo, si existe, va al final)."""
-    cupos = np.asarray(cupos_sedes, dtype=float)
+    """Capacidad en FAMILIAS de las sedes activas (el colegio nuevo, si existe, va al final).
+
+    Se redondea por mayor residuo para que el total de familias cuadre con el total de cupos: con
+    floor por sede se perdían hasta 9 cupos en cada una (3.117 en la ciudad). Misma fórmula y mismo
+    orden de operaciones que `capacidades` en web/src/motor.ts.
+    """
+    enteros = np.asarray(cupos_sedes, dtype=np.int64)
     if cupos_nuevo is not None:
-        cupos = np.append(cupos, cupos_nuevo)
-    if jornada_unica:
-        cupos = cupos * (1 - reduccion)
-    return np.floor(cupos / estudiantes_por_familia).astype(np.int64)
+        enteros = np.append(enteros, cupos_nuevo)
+    factor = (1 - reduccion) if jornada_unica else 1.0
+    x = enteros.astype(float) * factor / estudiantes_por_familia
+    cap = np.floor(x).astype(np.int64)
+    total = int(np.floor(int(enteros.sum()) * factor / estudiantes_por_familia + 0.5))
+    faltan = total - int(cap.sum())
+    if faltan > 0:
+        orden = np.argsort(-(x - cap), kind="stable")   # mayor residuo primero; empate, menor índice
+        cap[orden[:faltan]] += 1
+    return cap
 
 
 def claves_prioridad(fam: Familias, prefs: np.ndarray, candidato: int | None,

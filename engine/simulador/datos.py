@@ -3,8 +3,10 @@ Base de datos del simulador: UPZ, sedes con cupos de NUEVOS, demanda de nuevos p
 de residencia, ubicaciones candidatas del colegio nuevo y zona crítica.
 
 Decisiones de modelado (aprobadas en la fase 0):
-  - Se simulan solo NUEVOS con las cifras del estudio SED: 158.957 solicitudes y 140.377 cupos.
-    Los cupos de nuevos se reparten entre sedes en proporción a su oferta regular (03.2025).
+  - Se simulan solo NUEVOS: tantas solicitudes como la demanda de nuevos de 2024 del Estudio de
+    insuficiencia SED 2025 (158.957) y `cupos_por_solicitud` cupos por solicitud en toda la ciudad
+    (1,0 por defecto: hay cupos en el agregado, faltan donde viven los niños). Los cupos de nuevos
+    se reparten entre sedes en proporción a su oferta regular (03.2025).
   - Las familias viven según la población de 5 a 17 años por UPZ (proyección SDP/DANE 2026),
     ajustada para que el total por localidad cuadre con la participación de cada localidad en
     la demanda oficial. Dentro de su UPZ, cada familia vive en una manzana residencial (estrato 1 a 6
@@ -45,7 +47,7 @@ def _base_real(p, verbose):
     upz, localidades = cargar_geografia()
     oferta, _, _ = cargar_oferta_demanda(upz, verbose=verbose)
 
-    # Cupos de nuevos por sede: proporcionales a su oferta regular, sumando 140.377
+    # Cupos de nuevos por sede: proporcionales a su oferta regular, sumando p.cupos_nuevos_total
     cupos = _reparto_entero(oferta["cupos_regulares"].to_numpy() * p.cupos_nuevos_total
                             / oferta["cupos_regulares"].sum(), p.cupos_nuevos_total)
     sedes = pd.DataFrame({
@@ -86,7 +88,7 @@ def _base_real(p, verbose):
 
 # ---------------------------------------------------------------- sintética
 def _base_sintetica(p):
-    """Mismas proporciones que los datos reales (0,883 cupos por solicitud de nuevos)."""
+    """Ciudad sintética con los mismos totales de nuevos que los parámetros (cupos_nuevos_total)."""
     from engine.config import Supuestos
     from engine.fuentes.sintetica import generar
 
