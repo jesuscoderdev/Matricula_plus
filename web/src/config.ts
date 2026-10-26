@@ -37,6 +37,14 @@ export const URL_CITA = AGENDA_CITA ||
 /** Con agenda o WhatsApp configurados, los QR de cita se generan solos (sin imagen aparte). */
 export const MOSTRAR_QR_GENERADO = !!URL_CITA
 
+/**
+ * El destino de la cita con el reto que Proli resumió en la conversación. Con WhatsApp, el mensaje
+ * ya lleva el reto escrito (el visitante lo envía desde su teléfono); sin reto, el destino normal.
+ */
+export const urlCitaCon = (reto: string) => (reto && WHATSAPP_CITA
+  ? whatsappCon(`Hola ${EMPRESA}, vi los demos en el GovTech Summit y quiero agendar una reunión. Mi reto: ${reto}`)
+  : URL_CITA)
+
 /** Enlace de WhatsApp con un mensaje armado desde el formulario de cita. */
 export const whatsappCon = (mensaje: string) => `https://wa.me/${WHATSAPP_CITA}?text=${encodeURIComponent(mensaje)}`
 
@@ -130,8 +138,9 @@ export const PROYECTOS: {
 export const LLAMADO_INICIO = {
   kicker: 'Para entidades públicas',
   titulo: '¿Tienes un reto en tu entidad?',
-  texto: 'Estos demos usan solo datos abiertos. Cuéntanos tu reto y buscamos juntos por dónde empezar.',
-  boton: 'Agenda una reunión →',
+  texto: 'Estos demos usan solo datos abiertos. Cuéntale tu reto a Proli: te hace un par de preguntas y te ayuda a agendar con el equipo.',
+  botonProli: 'Cuéntale tu reto a Proli →',
+  boton: 'O agenda directamente una reunión',
 }
 
 // Modo automático sin ?proyecto: segundos en la página de inicio antes de entrar al siguiente proyecto

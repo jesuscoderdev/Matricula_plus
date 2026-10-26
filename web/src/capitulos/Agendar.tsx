@@ -3,6 +3,7 @@ import Proli from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
 import { AGENDA_CITA, APP_NAME, EMPRESA, WHATSAPP_CITA, whatsappCon } from '../config'
 import { esTotem } from '../modo'
+import { useReto } from '../proli/ordenes'
 import type { PropsCapitulo } from './tipos'
 
 /**
@@ -14,6 +15,7 @@ import type { PropsCapitulo } from './tipos'
 export default function Agendar({ modo }: PropsCapitulo) {
   const [f, setF] = useState({ nombre: '', entidad: '', cargo: '', mensaje: '' })
   const [enviado, setEnviado] = useState(false)
+  const reto = useReto()     // si Proli ya conoce el reto, va en el mensaje
   const cambiar = (k: keyof typeof f) => (e: { target: { value: string } }) => setF({ ...f, [k]: e.target.value })
   const abrirAgenda = () => window.open(AGENDA_CITA, '_blank', 'noopener')
   const enviar = (e: FormEvent) => {
@@ -23,6 +25,7 @@ export default function Agendar({ modo }: PropsCapitulo) {
       `Nombre: ${f.nombre}`,
       f.entidad && `Entidad: ${f.entidad}`,
       f.cargo && `Cargo: ${f.cargo}`,
+      reto && `Mi reto: ${reto}`,
       f.mensaje && `Mensaje: ${f.mensaje}`,
     ].filter(Boolean).join('\n')
     window.open(whatsappCon(texto), '_blank', 'noopener')

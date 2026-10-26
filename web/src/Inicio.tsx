@@ -10,7 +10,7 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, type IdProyecto } from './config'
+import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, urlCitaCon, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
 import Proli from './componentes/Proli'
@@ -19,7 +19,7 @@ import Qr from './componentes/Qr'
 import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
-import { informarPantalla, registrar } from './proli/ordenes'
+import { informarPantalla, pedirAProli, registrar, useReto } from './proli/ordenes'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -131,6 +131,7 @@ const entrar = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }
 
 function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; entrar: (p: IdProyecto) => void; alPortada: () => void; siguiente: IdProyecto | null }) {
   const reducir = useReducedMotion()
+  const reto = useReto()
   return (
     <div className="app inicio">
       <MarcaDeAgua className="marca-agua--inicio" />
@@ -189,9 +190,15 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             <p className="llamado__titulo">{LLAMADO_INICIO.titulo}</p>
             <p className="nota">{LLAMADO_INICIO.texto}</p>
           </div>
-          {URL_CITA && (esTotem(modo)
-            ? <Qr texto={URL_CITA} etiqueta={<>Escanea para<br /><b>agendar una reunión</b></>} />
-            : <a className="boton boton--violeta" href={URL_CITA} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>)}
+          {modo !== 'auto' && (
+            <div className="llamado__acciones">
+              {/* Paola: el llamado abre a Proli, que pregunta por el reto y lleva a agendar */}
+              <button type="button" className="boton boton--violeta" onClick={() => pedirAProli('Tengo un reto en mi entidad')}>{LLAMADO_INICIO.botonProli}</button>
+              {URL_CITA && (esTotem(modo)
+                ? <Qr texto={urlCitaCon(reto)} etiqueta={<>O escanea para<br /><b>agendar una reunión</b></>} />
+                : <a className="boton-texto" href={urlCitaCon(reto)} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>)}
+            </div>
+          )}
         </motion.aside>
       </div>
       <PieEmpresa modo={modo} />

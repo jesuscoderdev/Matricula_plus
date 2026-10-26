@@ -11,7 +11,8 @@ import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from '../
 import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
 import Veredicto from '../componentes/Veredicto'
-import { ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, TITULO_MOVILIDAD, URL_CITA } from '../config'
+import { ESQUINAS_A_TOCAR, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, TITULO_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
+import { useReto } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
 import { entero, millones, nombreLocalidad, pctFraccion, type DatosMovilidad, type Nivel } from './datos'
 
@@ -403,6 +404,7 @@ export function Cierre({ datos, modo, ir, alInicio }: PropsMov) {
   const [pregunta, resto] = partir(datos.experiencia.cierre.texto_sugerido, '? ')
   const i = pregunta.indexOf(' en tu ')
   const totem = esTotem(modo)
+  const reto = useReto()
   return (
     <div className="panel">
       <header className="panel__cabeza">
@@ -415,7 +417,7 @@ export function Cierre({ datos, modo, ir, alInicio }: PropsMov) {
         <QrCita />
       </div>
       <div className="panel__pie">
-        {!totem && URL_CITA && <button className="boton boton--violeta boton--ancho" onClick={() => window.open(URL_CITA, '_blank', 'noopener')}>Agenda una reunión para conocer tu reto</button>}
+        {!totem && URL_CITA && <button className="boton boton--violeta boton--ancho" onClick={() => window.open(urlCitaCon(reto), '_blank', 'noopener')}>Agenda una reunión para conocer tu reto</button>}
         {modo !== 'auto' && (
           <div className="fila">
             <button className="boton boton--claro" onClick={() => ir('portada')}>Ver de nuevo</button>

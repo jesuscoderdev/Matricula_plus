@@ -430,6 +430,8 @@ h1, h2, h3, p { margin: 0; }
   position: absolute; left: 0.8rem; right: 0.8rem; bottom: 0.8rem; display: flex; gap: 0.35rem; align-items: center;
   background: var(--flotante); border-radius: 99rem; padding: 0.3rem; box-shadow: var(--sombra); max-width: 24rem;
 }
+/* En vertical, Proli vive en la esquina derecha del mapa: la barra de la animación le deja espacio */
+:root:is([data-modo='stand'], [data-modo='celular']) .mapa__controles { right: 7.5rem; }
 .mapa__controles button { border: 0; background: var(--solido); color: var(--sobre-solido); width: 2.2rem; height: 2.2rem; border-radius: 50%; font-size: 0.8rem; flex: none; font-family: var(--f-mono); }
 .mapa__controles button:nth-child(n+2) { background: var(--violeta-suave); color: var(--violeta-osc); font-weight: 600; }
 .mapa__barra { flex: 1; height: 0.3rem; background: var(--linea); border-radius: 99rem; overflow: hidden; margin: 0 0.5rem; }
@@ -444,8 +446,9 @@ h1, h2, h3, p { margin: 0; }
 .mapa__escala i { height: 0.5rem; display: block; }
 .mapa__zona { display: flex; align-items: center; gap: 0.35rem; font-size: 0.62rem; color: var(--suave); }
 .mapa__zona i { width: 1.2rem; height: 0; border-top: 2px dashed var(--tinta); }
+/* A la izquierda, encima de los contadores: la esquina derecha es de Proli */
 .mapa__clave {
-  position: absolute; right: 0.8rem; bottom: 3.6rem; display: flex; flex-direction: column; gap: 0.2rem;
+  position: absolute; left: 0.8rem; bottom: 10.5rem; display: flex; flex-direction: column; gap: 0.2rem;
   font-size: 0.62rem; color: var(--suave); background: var(--flotante); padding: 0.4rem 0.55rem; border-radius: var(--r-chico); max-width: 13rem; pointer-events: none;
 }
 .mapa__clave span { display: flex; gap: 0.35rem; align-items: center; }
@@ -1033,6 +1036,7 @@ h1, h2, h3, p { margin: 0; }
   border-left: 4px solid var(--p-verde);
 }
 .llamado__texto { display: flex; flex-direction: column; gap: 0.35rem; flex: 1 1 18rem; }
+.llamado__acciones { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
 .llamado__titulo { font-family: var(--f-display); font-weight: 700; font-size: 1.3rem; line-height: 1.15; color: var(--tinta); }
 .llamado .boton { text-decoration: none; flex: none; }
 .proyecto__progreso { position: absolute; left: 0; bottom: 0; height: 0.25rem; width: 0; background: var(--violeta); animation: progreso var(--seg) linear forwards; }

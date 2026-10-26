@@ -24,7 +24,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type Anthropic from '@anthropic-ai/sdk'
 import ProliAnimado from '../componentes/ProliAnimado'
 import { leerModo } from '../modo'
-import { ejecutar, leerPantalla, usePantalla, type Orden } from './ordenes'
+import { alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, type Orden } from './ordenes'
 import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
 
@@ -81,12 +81,24 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
 const URL = './api/proli'
 
 interface Linea { quien: 'visitante' | 'proli' | 'accion' | 'aviso'; texto: string }
-interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string }
+/** `conversar`: en vez de responder con algo guardado, abre la conversación con la IA (sin conexión, usa `sinConexion`). */
+interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string; conversar?: boolean }
+
+/**
+ * ¿Proli terminó proponiendo una acción de sí o no («¿Te llevo a Resultados?»)? Entonces va el botón
+ * «Sí, muéstramelo». Una pregunta abierta («¿En qué secretaría trabajas?») no lo lleva.
+ */
+function esPropuesta(texto: string) {
+  const t = texto.trim()
+  if (!t.endsWith('?')) return false
+  const pregunta = t.slice(t.lastIndexOf('¿') + 1).toLowerCase()
+  return !/^(qu[eé]|cu[aá]l(es)?|cu[aá]nt[oa]s?|d[oó]nde|c[oó]mo|cu[aá]ndo|qui[eé]n(es)?|por qu[eé]|para qu[eé]|en qu[eé]|de qu[eé]|a qu[eé]|con qu[eé])(?=[\s,?])/.test(pregunta)
+}
 
 /** Preguntas sugeridas según dónde está el visitante. */
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
-    texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }],
+    texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
     sinConexion: '¡Cuéntanos! Proliferante lo resuelve con los datos y las reglas de tu entidad. Agenda una reunión con el equipo: con el código QR o con el botón de la pantalla.',
   })
   if (pantalla.startsWith('Movilidad+')) return [
@@ -212,7 +224,7 @@ export default function Asistente() {
     setLineas([]); setOcupado(false); setTexto('')
   }, [])
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
-  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
+  useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); fijarReto(''); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
   useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas])
   // Tiempo de lectura: cuando Proli termina de responder con el panel abierto, se da un margen
   // antes de que el tótem vuelva a la portada por inactividad. Si el visitante se fue, el tótem
@@ -321,11 +333,18 @@ export default function Asistente() {
     }
   }, [ocupado, responderSinConexion])
 
+  /** Abre la conversación y le pregunta a Proli (desde el menú o desde otra pantalla). */
+  const conversar = (pregunta: string, s?: Sugerencia) => { setMenu(false); setDicho(''); setSaludando(false); setAbierto(true); preguntar(pregunta, s) }
+  const refConversar = useRef(conversar)
+  refConversar.current = conversar
+  // «Cuéntale tu reto a Proli» (página para elegir un reto) y otros pedidos desde fuera del panel
+  useEffect(() => alPedirAProli((t) => refConversar.current(t)), [])
+
   // Ni en la portada del stand ni en «Conoce a Proli»: ahí Proli ya es el protagonista de la pantalla
   if (modo === 'auto' || pantalla === 'portada del stand' || pantalla === 'Conoce a Proli') return null
   // Si Proli terminó proponiendo algo («¿Lo llevo a Resultados?»), se acepta con un toque
   const ultima = lineas[lineas.length - 1]
-  const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && ultima.texto.trim().endsWith('?')
+  const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && esPropuesta(ultima.texto)
   const opciones: Sugerencia[] = [
     ...(propuso ? [{ texto: 'Sí, muéstramelo', sinConexion: 'Ahora no tengo conexión para hacerlo, pero puedes tocar la pantalla para llegar allí.' }] : []),
     ...sugerencias(pantalla),
@@ -354,10 +373,10 @@ export default function Asistente() {
                       </div>
                     </>
                   )}
-                  <span className="proli-flotante__seccion">Pregúnteme</span>
+                  <span className="proli-flotante__seccion">Pregúntame</span>
                   <ul className="proli-flotante__preguntas">
                     {sugerencias(pantalla).map((s) => (
-                      <li key={s.texto}><button type="button" role="menuitem" disabled={guiando} onClick={() => responder(s)}>{s.texto}</button></li>
+                      <li key={s.texto}><button type="button" role="menuitem" disabled={guiando || ocupado} onClick={() => (s.conversar ? conversar(s.texto, s) : responder(s))}>{s.texto}</button></li>
                     ))}
                     <li><button type="button" role="menuitem" className="proli-flotante__escribir" onClick={() => { setMenu(false); setAbierto(true) }}>✎ Escribir otra pregunta</button></li>
                   </ul>
