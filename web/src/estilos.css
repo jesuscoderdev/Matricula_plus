@@ -1361,3 +1361,28 @@ h1, h2, h3, p { margin: 0; }
 @media (min-width: 900px) and (orientation: landscape) {
   .proli-panel--sobre-mapa { max-width: 34rem; margin-left: auto; }
 }
+
+/* Movilidad+ · Presupuesto: la curva de siniestros evitados según el monto (método vs. lista a ojo) */
+.curva { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.curva svg { width: 100%; height: auto; overflow: visible; }
+.curva__base { stroke: var(--linea-2); stroke-width: 1; }
+.curva__metodo { fill: none; stroke: var(--violeta); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
+.curva__ojo { fill: none; stroke: var(--violeta-claro); stroke-width: 2; stroke-dasharray: 5 4; }
+.curva__guia { stroke: var(--tenue); stroke-width: 1; stroke-dasharray: 2 3; }
+.curva__punto { fill: var(--violeta); stroke: var(--blanco); stroke-width: 1.5; }
+.curva__punto--ojo { fill: var(--violeta-claro); }
+.curva__eje { font-family: var(--f-mono); font-size: 9px; fill: var(--suave); }
+.curva__valor { font-family: var(--f-mono); font-size: 11px; font-weight: 600; fill: var(--violeta-osc); }
+.curva__valor--ojo { fill: var(--suave); }
+.curva__leyenda { display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; font-size: 0.68rem; color: var(--suave); }
+.curva__leyenda span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.curva__clave { display: inline-block; width: 1.2rem; height: 0; border-top: 3px solid var(--violeta); }
+.curva__clave--ojo { border-top: 2px dashed var(--violeta-claro); }
+/* ¿Barrio o avenidas?: lo que se evitaría poniéndolo todo en cada clase de vía y la mejor combinación */
+.reparto-red { display: flex; flex-direction: column; gap: 0.45rem; }
+.reparto-red__fila { display: grid; grid-template-columns: minmax(7.5rem, 38%) 1fr; gap: 0.6rem; align-items: center; font-size: 0.8rem; color: var(--texto); }
+.reparto-red__fila small { display: block; font-size: 0.68rem; color: var(--suave); }
+.reparto-red__fila--mejor { padding: 0.45rem 0.6rem; border-radius: var(--r-chico); background: var(--verde-suave); font-weight: 600; }
+/* ¿Funcionó la obra?: las pruebas de que la caída no es de obras */
+.pruebas-mov { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.82rem; line-height: 1.4; color: var(--texto); }
+.pruebas-mov li::marker { color: var(--verde-texto); }
