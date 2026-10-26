@@ -17,7 +17,7 @@ Simulador de asignación de cupos en colegios oficiales de Bogotá, construido c
 | Población de 5 a 17 años por UPZ | [SDP/DANE · Proyecciones de población por UPZ](https://datosabiertos.bogota.gov.co/dataset/proyecciones-y-retroproyecciones-de-poblacion-2005-2035) | proyección 2026 |
 | Polígonos de UPZ | [SED · Tasa de aprobación escolar oficial por UPZ](https://datosabiertos.bogota.gov.co/dataset/tasa-de-aprobacion-escolar-en-colegios-oficiales-por-upz-bogota-d-c) | 2024 |
 | Límites de localidades | [IDECA · Localidad](https://datosabiertos.bogota.gov.co/dataset/localidad-bogota-d-c) | vigente |
-| Totales de nuevos (158.957 solicitudes, 140.377 cupos) | Estudio de insuficiencia SED 2025 | 2024–2025 |
+| Demanda de nuevos de 2024 (158.957), déficit de 16.807 cupos y 17 UPZ con insuficiencia | [Estudio de insuficiencia y limitaciones SED 2025](https://www.educacionbogota.edu.co/portal_institucional/sites/default/files/inline-files/2022/bogota-EIL-para-2025.pdf) (pp. 12, 13 y 53) | 2024 |
 
 ## Ubicación de las familias y de los colegios
 **Familias.** 38.546 manzanas residenciales caen en las 112 UPZ urbanas; todas las UPZ tienen al menos una, así que
@@ -53,9 +53,21 @@ nombre de la sede también sale ahora del DANE de sede y no del punto más cerca
 
 ## Decisiones de modelado
 
-1. **Solo estudiantes nuevos.** Los datasets no separan nuevos de antiguos. Se usan los totales del estudio
-   SED: 158.957 solicitudes y 140.377 cupos (0,883 cupos por solicitud). Los cupos de nuevos se reparten
-   entre las sedes en proporción a su oferta regular.
+1. **Solo estudiantes nuevos.** Los datasets no separan nuevos de antiguos. Se simulan 158.957 solicitudes,
+   la demanda de nuevos de 2024 del Estudio de insuficiencia SED 2025 (p. 13), y **tantos cupos como
+   solicitudes en toda la ciudad** (`cupos_por_solicitud = 1,0`, editable en `config.py`). Los cupos de
+   nuevos se reparten entre las sedes en proporción a su oferta regular.
+   - *Por qué no 140.377.* Antes se usaban 158.957 solicitudes frente a 140.377 cupos (0,883). Pero en el
+     estudio esas cifras no son del mismo proceso: 158.957 es la demanda de nuevos de **2024** (corte
+     30-abr-2024) y 140.377 los cupos **proyectados para 2025** (785.191 − 644.814 de continuidad, con
+     adultos y aceleración). Su resta (18.580) no es un déficit oficial; el estudio reporta **16.807**
+     cupos de déficit en 2024 (p. 53), concentrado en 17 UPZ (p. 12).
+   - *Por qué 1,0.* La evidencia dice que en el agregado hay cupos de nuevos y que faltan en zonas
+     puntuales: para 2025 la SED ofreció 122.907 cupos de nuevos y el 7-ene-2025 seguían libres más de
+     35.000 (prensa); la propia SED ubica la insuficiencia en Tibabuyes, El Rincón, Bosa, Patio Bonito,
+     Calandaima, etc. Con 1,0, todo faltante de la simulación sale de **dónde están los cupos frente a
+     dónde viven los niños**, que es el problema que se quiere mostrar. Con 0,883, el faltante se
+     repartía casi parejo por toda la ciudad (17 de 19 localidades en déficit).
 2. **Dónde viven las familias.** La demanda de nuevos se reparte por UPZ según la población de 5 a 17 años
    (proyección 2026; de la cohorte 15–19 se toma el 60%, que corresponde a 15, 16 y 17 años). Luego se ajusta
    para que cada localidad conserve su participación en la demanda oficial. Dentro de su UPZ, cada familia vive
@@ -155,26 +167,33 @@ elige el visitante y vuelve a correr las dos asignaciones completas.
 
 | | 1.ª opción | Fuera de opciones | Reubicados | Sin cupo cercano | Viajes > 2 km | Vulnerables fuera | Zona crítica fuera |
 |---|---|---|---|---|---|---|---|
-| Hoy (orden de llegada) | 53,2% | 23,6% | 9,9% | 13,7% | 6,3% | 22,5% | 23,1% |
-| Equilibrada | 43,7% | 17,7% | 4,1% | 13,7% | 2,3% | 0,4% | 17,7% |
-| Equidad | 44,5% | 17,6% | 3,9% | 13,7% | 2,1% | 0,0% | 17,8% |
-| Equilibrada + colegio en Tibabuyes | 43,9% | 17,1% | 4,2% | 12,9% | 2,3% | 0,4% | 7,4% |
-| Equilibrada + 5 opciones | 41,1% | 14,5% | 0,8% | 13,7% | 1,4% | 0,2% | 12,2% |
-| Equilibrada + jornada única | 40,4% | 25,3% | 2,6% | 22,7% | 0,8% | 0,7% | 23,3% |
+| Hoy (orden de llegada) | 60,5% | 16,3% | 12,6% | 3,7% | 6,1% | 15,4% | 17,8% |
+| Equilibrada | 51,4% | 9,0% | 5,6% | 3,4% | 4,8% | 0,0% | 10,2% |
+| Equidad | 51,7% | 8,8% | 5,4% | 3,4% | 4,6% | 0,0% | 10,1% |
+| Equilibrada + colegio en Tibabuyes | 51,4% | 8,4% | 5,4% | 3,0% | 4,6% | 0,0% | 0,8% |
+| Equilibrada + 5 opciones | 47,9% | 3,9% | 1,3% | 2,6% | 3,1% | 0,0% | 4,1% |
+| Equilibrada + jornada única | 45,9% | 15,0% | 4,9% | 10,1% | 3,3% | 0,2% | 15,7% |
 
 Lecturas:
+- **Hay cupos, pero no donde viven los niños.** Aunque en la ciudad haya tantos cupos como solicitudes,
+  hoy 5.850 niños (3,7%) no tienen ningún cupo a menos de 3 km, y al final quedan **5.850 cupos vacíos**
+  en otras zonas (a unos 3,8 km de esos niños, en mediana). Se concentran en Suba, Kennedy, Bosa y
+  Engativá: las zonas de insuficiencia que reporta la SED.
 - **Matrícula+ hace que quepan más niños en sus opciones, con cualquier regla.** Fuera de sus opciones
-  baja de 23,6% a 17,7% (de 37.460 a 28.180 niños), sin separar hermanos. Las reglas de prioridad
-  deciden sobre todo *quién* entra: con Equilibrada o Equidad, los vulnerables fuera pasan de 22,5% a
-  menos de 0,5%.
-- **El precio:** menos niños en su 1.ª opción (53,2% → 43,7%), porque algunos pasan a otra de sus opciones.
-- **La capacidad decide cuántos quedan sin ningún cupo cercano** (13,7% en todos los casos sin colegio
-  nuevo). Un colegio de 1.200 cupos en Tibabuyes baja la zona crítica de 17,7% a 7,4% fuera de sus
-  opciones y los sin cupo cercano de 13,7% a 12,9%; la jornada única sin ampliar capacidad los sube a 22,7%.
-- **Más opciones** (5 en vez de 3) bajan «fuera de sus opciones», pero no los niños sin cupo cercano:
-  el faltante es real.
+  baja de 16,3% a 9,0% (de 25.950 a 14.330 niños), sin separar hermanos. Esa ganancia viene de asignar
+  todas las solicitudes a la vez y **optimizar** (sin la optimización, la diferida sola queda igual o
+  peor que hoy). Las reglas de prioridad deciden sobre todo *quién* entra: con Equilibrada o Equidad,
+  ningún niño vulnerable queda fuera de sus opciones (hoy, 15,4%).
+- **El precio:** menos niños en su 1.ª opción (60,5% → 51,4%), porque algunos pasan a otra de sus opciones.
+- **Reordenar no crea cupos donde faltan.** Los niños sin ningún cupo cercano casi no cambian con la
+  regla (3,7% → 3,4%); bajan con capacidad donde viven: un colegio de 1.200 cupos en Tibabuyes baja la
+  zona crítica de 10,2% a 0,8% fuera de sus opciones. La jornada única sin ampliar capacidad sube los
+  sin cupo cercano a 10,1%.
 
 ## Limitaciones
+- **Cupos por familia:** cada familia son 10 niños; la capacidad de cada sede se redondea por mayor
+  residuo para que el total cuadre (con el redondeo hacia abajo que se usaba antes se perdían 3.117
+  cupos, y por eso «sin cupo cercano» salía mayor que el faltante).
 - **La optimización no es estable:** para que quepa una familia más, otra con más prioridad puede pasar a
   otra de las opciones que pidió (nunca pierde su cupo ni se separa de su hermano). Python valida solo
   la fase diferida; la optimización la valida `npm run verificar`.

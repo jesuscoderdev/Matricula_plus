@@ -136,11 +136,23 @@ export function preferencias(f: DatosFamilias, s: Supuestos, at: Atributos, nuev
   return { k, prefs, dist }
 }
 
-/** Capacidad en familias (misma fórmula que Python). El colegio nuevo va al final. */
+/**
+ * Capacidad en familias (misma fórmula que Python). El colegio nuevo va al final. Se redondea por
+ * mayor residuo para que el total de familias cuadre con el total de cupos (con floor por sede se
+ * perdían hasta 9 cupos en cada una).
+ */
 export function capacidades(cuposSedes: number[], cuposNuevo: number | null, jornadaUnica: boolean,
                             reduccion: number, estudiantesPorFamilia: number): Int32Array {
   const cupos = cuposNuevo !== null ? [...cuposSedes, cuposNuevo] : cuposSedes
-  return Int32Array.from(cupos, (c) => Math.floor((jornadaUnica ? c * (1 - reduccion) : c) / estudiantesPorFamilia))
+  const factor = jornadaUnica ? 1 - reduccion : 1
+  const x = cupos.map((c) => (c * factor) / estudiantesPorFamilia)
+  const cap = Int32Array.from(x, Math.floor)
+  const suma = cupos.reduce((a, c) => a + c, 0)
+  let faltan = Math.floor((suma * factor) / estudiantesPorFamilia + 0.5) - cap.reduce((a, c) => a + c, 0)
+  // Mayor residuo primero; en empate, el menor índice (sort estable, como argsort estable en Python)
+  const orden = x.map((_, i) => i).sort((a, b) => (x[b] - cap[b]) - (x[a] - cap[a]))
+  for (let j = 0; j < orden.length && faltan > 0; j++, faltan--) cap[orden[j]]++
+  return cap
 }
 
 /** Clave de prioridad de cada (familia, opción): menor = más prioridad. Mismo orden de operaciones que Python. */

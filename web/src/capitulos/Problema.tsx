@@ -8,8 +8,7 @@ import { kicker, type PropsCapitulo } from './tipos'
  * así se asigna hoy (orden de llegada) y luego la reubicación de quienes no cupieron.
  */
 export default function Problema({ datos, r, modo, supuestos, localidad, elegirLocalidad, ir, terminado, repetir }: PropsCapitulo) {
-  const p = datos.indice.parametros as { cupos_nuevos_total: number; demanda_nuevos_total: number }
-  const por100 = Math.round((100 * p.cupos_nuevos_total) / p.demanda_nuevos_total)
+  const p = datos.indice.parametros as { demanda_nuevos_total: number; deficit_sed: number; upz_insuficientes_sed: number }
   const epf = datos.familias.estudiantes_por_familia
   const loc = useMemo(() => {
     if (!localidad) return null
@@ -25,15 +24,16 @@ export default function Problema({ datos, r, modo, supuestos, localidad, elegirL
       <div className="panel">
         <header className="panel__cabeza">
           <span className="kicker">{kicker('problema')}</span>
-          <h1 className="display">Faltan cupos <em>donde viven</em> los niños</h1>
-          <p className="lead">Hoy los cupos se reparten por orden de llegada: <span className="acento">quien llega primero, elige primero.</span>
-            Así, <b>{decimal(r.bogota.hoy.pctFueraDeOpciones)}%</b> de los niños nuevos no queda en ninguno de sus {supuestos.opciones} colegios.</p>
+          <h1 className="display">Los cupos no están <em>donde viven</em> los niños</h1>
+          <p className="lead">Hoy, en la fase general, cada familia toma el cupo por orden de llegada: <span className="acento">quien llega primero, elige primero.</span>
+            {' '}En la simulación, <b>{decimal(r.bogota.hoy.pctFueraDeOpciones)}%</b> de los niños nuevos no queda en ninguno de sus {supuestos.opciones} colegios.</p>
         </header>
         <div className="datos-linea">
-          <div><b>{entero(p.demanda_nuevos_total)}</b><span>niños nuevos piden cupo</span></div>
-          <div><b>{entero(p.cupos_nuevos_total)}</b><span>cupos para nuevos</span></div>
-          <div><b>{por100}</b><span>cupos por cada 100 que piden</span></div>
+          <div><b>{entero(p.demanda_nuevos_total)}</b><span>niños nuevos pidieron cupo en 2024</span></div>
+          <div><b>{entero(p.deficit_sed)}</b><span>cupos de déficit</span></div>
+          <div><b>{p.upz_insuficientes_sed}</b><span>UPZ con insuficiencia de cupos</span></div>
         </div>
+        <small className="nota">Fuente: Estudio de insuficiencia y limitaciones, Secretaría de Educación del Distrito, 2025.</small>
         <div className="grupo">
           <div className="grupo__titulo"><b>Elige una localidad para verlo en acción</b><span>o tócala en el mapa</span></div>
           <div className="chips">
