@@ -34,13 +34,13 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] }, resumen: { type: 'string' } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---
-  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Tú decides; anio = Pasó un año; giro = El giro; metodo = El método; presupuesto; evaluar = ¿Funcionó la obra? (antes y después frente al método); fuentes; cierre = Hablemos (QR).',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'metodo', 'presupuesto', 'evaluar', 'fuentes', 'cierre'] } })),
+  h('movilidad_capitulo', 'Movilidad+: va a un capítulo. decide = Tú decides; anio = Pasó un año; giro = El giro; solucion = La solución (el método explicado); metodo = Antes y después (cómo se elige hoy frente al método); presupuesto; evaluar = ¿Funcionó la obra? (antes y después frente al método); fuentes; cierre = Hablemos (QR).',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'decide', 'anio', 'giro', 'solucion', 'metodo', 'presupuesto', 'evaluar', 'fuentes', 'cierre'] } })),
   h('movilidad_localidad', 'Movilidad+: acerca el mapa a una localidad (o vuelve a toda Bogotá) en el capítulo «Tú decides».',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MOVILIDAD, 'TODA_BOGOTA'] } })),
   h('movilidad_presupuesto', 'Movilidad+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
     objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),
-  h('movilidad_tipo_via', 'Movilidad+: en El método, muestra la comparación de calles de barrio o de avenidas.',
+  h('movilidad_tipo_via', 'Movilidad+: en Antes y después, muestra la comparación de calles de barrio o de avenidas.',
     objeto({ zona: { type: 'string', enum: ['barrio', 'avenidas'] } })),
   h('movilidad_anio_mapa', 'Movilidad+: en Pasó un año, muestra el mapa de 2024 o el de 2025.',
     objeto({ anio: { type: 'string', enum: ['2024', '2025'] } })),

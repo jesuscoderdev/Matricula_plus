@@ -103,9 +103,13 @@ export function guia(pantalla: string, paso: number): Paso | null {
     }
     if (c === 'El giro') return {
       pregunta: '¿Te muestro cómo se corrige?',
-      opciones: [{ texto: 'Sí, el método', ordenes: [cap('movilidad', 'metodo')], respuesta: 'Se compara con lo que se esperaba sin obra.' }],
+      opciones: [{ texto: 'Sí, la solución', ordenes: [cap('movilidad', 'solucion')], respuesta: 'Se compara cada esquina con otras parecidas.' }],
     }
-    if (c === 'El método') return {
+    if (c === 'La solución') return {
+      pregunta: '¿Comparamos cómo se elige hoy y con el método?',
+      opciones: [{ texto: 'Sí, antes y después', ordenes: [cap('movilidad', 'metodo')], respuesta: 'Mira cuánto prometió cada forma y cuánto pasó.' }],
+    }
+    if (c === 'Antes y después') return {
       pregunta: '¿Comparamos calles de barrio o avenidas?',
       opciones: [
         { texto: 'Calles de barrio', ordenes: [o('movilidad_tipo_via', { zona: 'barrio' })], respuesta: 'Las calles de barrio, donde hay menos datos.' },

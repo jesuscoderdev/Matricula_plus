@@ -2,8 +2,9 @@
  * Movilidad+: «Con este presupuesto, ¿dónde se evitan más siniestros graves?», con enfoque en las
  * calles de barrio. Sección propia: sus datos (public/movilidad/datos) solo se leen aquí.
  *
- * Recorrido: Tú decides (toca esquinas) → Pasó un año → El giro → El método → Presupuesto →
- * Fuentes → Hablemos. Misma navegación que Matrícula+: capítulos, ← Atrás (también el atrás del
+ * Recorrido (Problema → Solución → Antes y después → Resultados → Cierre): Tú decides (toca
+ * esquinas) → Pasó un año → El giro → La solución → Antes y después → Presupuesto → ¿Funcionó la
+ * obra? → Fuentes → Hablemos. Misma navegación que Matrícula+: capítulos, ← Atrás (también el atrás del
  * celular), logo que reinicia, teclado en escritorio, recorrido solo en ?modo=auto.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
@@ -18,7 +19,7 @@ import { informarPantalla, registrar } from '../proli/ordenes'
 import { recordado, recordar } from '../recordar'
 import MapaMovilidad from './MapaMovilidad'
 import {
-  Anio, CAPITULOS_MOV, Cierre, Decide, Evaluar, Fuentes, Giro, Metodo, PortadaMov, Presupuesto, numeroMov, tamanoHex,
+  Anio, CAPITULOS_MOV, Cierre, Decide, Evaluar, Fuentes, Giro, Metodo, PortadaMov, Presupuesto, SECCIONES_MOV, Solucion, seccionDe, tamanoHex,
   type CapituloMov, type PropsMov, type VistaMov,
 } from './Paneles'
 
@@ -157,7 +158,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
         case 'movilidad_tipo_via': {
           if (e.zona !== 'barrio' && e.zona !== 'avenidas') return 'Tipo de vía no reconocido.'
           setZona(e.zona); refIr.current('metodo')
-          return `Listo: El método muestra la comparación en ${e.zona === 'barrio' ? 'calles de barrio' : 'avenidas'}.`
+          return `Listo: Antes y después muestra la comparación en ${e.zona === 'barrio' ? 'calles de barrio' : 'avenidas'}.`
         }
         case 'movilidad_anio_mapa': {
           if (e.anio !== '2024' && e.anio !== '2025') return 'Año no reconocido.'
@@ -256,27 +257,32 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   const propsMapa = useMemo((): Omit<ComponentProps<typeof MapaMovilidad>, 'datos'> => {
     const interactivo = modo !== 'auto' && vista !== 'portada'
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    // El croquis de Bogotá en todos los pasos, y la localidad elegida sigue en todos: se elige
+    // tocándola en el mapa (o con los botones de «Tú decides») y se suelta con «Toda Bogotá»
+    const lugar = { croquis: true, localidad, onLocalidad: interactivo ? setLocalidad : undefined }
     switch (vista) {
       case 'portada':
-        return { capa: 'k24', interactivo: false, respirar: true, leyenda: false, agrupar: true,
+        return { capa: 'k24', interactivo: false, respirar: true, leyenda: false, agrupar: true, croquis: true,
           margen: modo === 'escritorio' ? { izquierda: Math.min(window.innerWidth * 0.46, 44 * rem), arriba: window.innerHeight * 0.05, abajo: window.innerHeight * 0.05 }
             : { arriba: window.innerHeight * 0.4, abajo: window.innerHeight * 0.2 } }
       case 'decide':
-        return { capa: 'k24', interactivo, localidad, tocadas, onTocar: modo === 'auto' ? undefined : tocar, croquis: true,
+        return { ...lugar, capa: 'k24', interactivo, tocadas, onTocar: modo === 'auto' ? undefined : tocar,
           // Un respiro alrededor de la localidad: que el límite completo quede a la vista
           margen: { arriba: 2 * rem, abajo: 2 * rem, izquierda: 2 * rem, derecha: 3 * rem } }
       case 'anio':
-        return { capa: anio, interactivo, tocadas, peores: true, encuadre: encuadreTocadas }
+        return { ...lugar, capa: anio, interactivo, tocadas, peores: true, encuadre: localidad == null ? encuadreTocadas : null }
       case 'giro':
-        return { capa: 'k25', interactivo, tocadas, peores: true }
+        return { ...lugar, capa: 'k25', interactivo, tocadas, peores: true }
+      case 'solucion':
+        return { ...lugar, capa: 'kappa', interactivo }
       case 'metodo':
-        return { capa: 'kappa', interactivo, peores: zona === 'barrio' }
+        return { ...lugar, capa: 'kappa', interactivo, peores: zona === 'barrio' }
       case 'presupuesto':
-        return { capa: 'sel', esquinas: datos ? esquinasCon(datos, monto) : 0, interactivo }
+        return { ...lugar, capa: 'sel', esquinas: datos ? esquinasCon(datos, monto) : 0, interactivo }
       case 'evaluar':
-        return { capa: 'k25', interactivo, peores: true }
+        return { ...lugar, capa: 'k25', interactivo, peores: true }
       default:
-        return { capa: 'k24', interactivo, respirar: true, agrupar: true, leyenda: false }
+        return { ...lugar, capa: 'k24', interactivo, respirar: true, agrupar: localidad == null, leyenda: false }
     }
   }, [vista, modo, localidad, tocadas, tocar, anio, encuadreTocadas, zona, monto, datos])
 
@@ -299,6 +305,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       case 'decide': return <Decide {...props} />
       case 'anio': return <Anio {...props} />
       case 'giro': return <Giro {...props} />
+      case 'solucion': return <Solucion {...props} />
       case 'metodo': return <Metodo {...props} />
       case 'presupuesto': return <Presupuesto {...props} />
       case 'evaluar': return <Evaluar {...props} />
@@ -307,7 +314,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       default: return null
     }
   })()
-  const iActual = CAPITULOS_MOV.findIndex((c) => c.id === vista)
+  const iActual = vista === 'portada' ? -1 : seccionDe(vista)
   const r = datos.resumen
   const faltan = ESQUINAS_A_TOCAR - tocadas.length
 
@@ -324,10 +331,11 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           )}
           <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} nombre={NOMBRE_MOVILIDAD} />
           <nav className="capitulos" aria-label="Capítulos">
-            {CAPITULOS_MOV.map((c, i) => (
-              <button key={c.id} disabled={modo === 'auto'} onClick={() => ir(c.id as CapituloMov)} data-proli={`cap-${c.id}`}
-                      className={`capitulo ${c.id === vista ? 'capitulo--actual' : iActual > i ? 'capitulo--hecho' : ''}`}>
-                <span className="capitulo__n">{numeroMov(c.id)}</span><span className="capitulo__nombre">{c.nombre}</span>
+            {/* Cinco secciones; cada botón lleva a la primera pantalla de la suya (Proli las señala por cualquiera de ellas) */}
+            {SECCIONES_MOV.map((c, i) => (
+              <button key={c.nombre} disabled={modo === 'auto'} onClick={() => ir(c.vistas[0] as CapituloMov)} data-proli={c.vistas.map((v) => `cap-${v}`).join(' ')}
+                      className={`capitulo ${i === iActual ? 'capitulo--actual' : iActual > i ? 'capitulo--hecho' : ''}`}>
+                <span className="capitulo__n">{String(i + 1).padStart(2, '0')}</span><span className="capitulo__nombre">{c.nombre}</span>
               </button>
             ))}
           </nav>
@@ -340,6 +348,13 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           <MapaMovilidad datos={datos} {...propsMapa}>
             {vista === 'decide' && modo !== 'auto' && faltan > 0 && (
               <div className="mapa__aviso">{tocadas.length ? `Toca ${faltan} más` : `Toca ${ESQUINAS_A_TOCAR} esquinas`}</div>
+            )}
+            {/* Pasó un año: el año del mapa se cambia sobre el mismo mapa */}
+            {vista === 'anio' && modo !== 'auto' && (
+              <div className="segmentos mapa__anio" role="group" aria-label="Año en el mapa">
+                <button data-proli="anio-2024" className={`segmento ${anio === 'k24' ? 'segmento--activo' : ''}`} onClick={() => setAnio('k24')}>Mapa {datos.experiencia.pantalla_1_usted_decide.anio_mostrado}</button>
+                <button data-proli="anio-2025" className={`segmento ${anio === 'k25' ? 'segmento--activo' : ''}`} onClick={() => setAnio('k25')}>Mapa {r.anio_validacion}</button>
+              </div>
             )}
           </MapaMovilidad>
         </div>

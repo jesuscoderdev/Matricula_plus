@@ -9,7 +9,9 @@
  *  · capa "kappa"       — riesgo anual corregido (lo que se puede prometer)
  *  · capa "sel"         — las esquinas que alcanza el presupuesto elegido
  * Encima: las esquinas que tocó el visitante (numeradas) y, si se pide, las peores de 2024 (anillos).
- * Con `croquis` (Tú decides): las localidades de fondo, y sus límites y nombres sobre los hexágonos.
+ * Con `croquis`: las localidades de fondo, y sus límites y nombres sobre los hexágonos. Con
+ * `onLocalidad`, tocar una localidad la elige (el mapa se acerca a ella); ya adentro, el toque elige
+ * esquinas (`onTocar`) y tocar otra localidad cambia a esa.
  */
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import DeckGL from '@deck.gl/react'
@@ -134,6 +136,22 @@ function agruparEnCeldas(s: DatosMovilidad['sitios'], valor: number[]): Celda[] 
   }).sort((a, b) => a.v - b.v)
 }
 
+/** La localidad del croquis que contiene el punto (rayo hacia la derecha), o null. */
+function localidadEn(croquis: Croquis[], [x, y]: [number, number]): number | null {
+  for (const c of croquis) {
+    if (c.loc < 0) continue
+    for (const a of c.anillos) {
+      let dentro = false
+      for (let i = 0, j = a.length - 1; i < a.length; j = i++) {
+        const [xi, yi] = a[i], [xj, yj] = a[j]
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) dentro = !dentro
+      }
+      if (dentro) return c.loc
+    }
+  }
+  return null
+}
+
 function useTamano<T extends HTMLElement>() {
   const ref = useRef<T>(null)
   const [tam, setTam] = useState({ w: 600, h: 600 })
@@ -156,6 +174,8 @@ interface Props {
   tocadas?: number[]
   /** el visitante toca una esquina: se elige la de más siniestros cerca del toque */
   onTocar?: (i: number) => void
+  /** el visitante toca una localidad en el croquis (null: volver a toda Bogotá) */
+  onLocalidad?: (l: number | null) => void
   peores?: boolean
   interactivo?: boolean
   respirar?: boolean
@@ -171,7 +191,7 @@ interface Props {
 }
 
 export default function MapaMovilidad({
-  datos, capa, localidad = null, esquinas = 0, tocadas = [], onTocar, peores = false, interactivo = true,
+  datos, capa, localidad = null, esquinas = 0, tocadas = [], onTocar, onLocalidad, peores = false, interactivo = true,
   respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, croquis = false, children,
 }: Props) {
   const tema = useTema()
@@ -297,6 +317,7 @@ export default function MapaMovilidad({
   ] : []
 
   const capas: any[] = celdas ? [
+    ...capasFondo,
     new PolygonLayer<Celda>({
       id: 'celdas', data: celdas, filled: true, stroked: false,
       getPolygon: (c) => c.poligono,
@@ -314,6 +335,7 @@ export default function MapaMovilidad({
       id: 'destellos-punto', data: destellos, getPosition: (d) => [s.lon[d.i], s.lat[d.i]], radiusUnits: 'pixels',
       getRadius: (d) => e * 2.6 * (1 - 0.5 * d.u), getFillColor: (d) => [...tonoDestello, Math.round(255 * Math.max(0, 1 - 1.6 * d.u))] as RGBA,
     }),
+    ...capasCroquis,
   ] : [
     ...capasFondo,
     new PolygonLayer<number>({
@@ -358,8 +380,16 @@ export default function MapaMovilidad({
     }),
   ].filter(Boolean)
 
-  // Toque: entre las calles de barrio con siniestros en 2024 cerca del dedo, la de más siniestros
+  // Toque: con croquis, primero la localidad (tocar otra cambia a esa); adentro de la elegida, la esquina
   const alTocar = (info: PickingInfo) => {
+    if (!info.coordinate || !info.viewport) return
+    const tocada = onLocalidad && croquis ? localidadEn(datos.croquis, info.coordinate as [number, number]) : null
+    if (tocada != null && tocada !== localidad) return onLocalidad!(tocada)
+    if (onLocalidad && localidad == null) return
+    if (onTocar) tocarEsquina(info)
+  }
+  // Entre las calles de barrio con siniestros en 2024 cerca del dedo, la de más siniestros
+  const tocarEsquina = (info: PickingInfo) => {
     if (!onTocar || !info.coordinate || !info.viewport) return
     const vp = info.viewport
     const [px, py] = vp.project(info.coordinate as [number, number])
@@ -378,7 +408,7 @@ export default function MapaMovilidad({
   }
 
   const titulo = capa === 'sel' ? 'Esquinas que alcanza el presupuesto'
-    : capa === 'kappa' ? 'Riesgo real de cada esquina, sin la mala suerte de un año · calles de barrio'
+    : capa === 'kappa' ? 'Riesgo real de cada esquina, sin el azar de un año · calles de barrio'
       : `Siniestros graves ${capa === 'k25' ? datos.resumen.anio_validacion : datos.experiencia.pantalla_1_usted_decide.anio_mostrado} · calles de barrio`
   const nombres = etiquetas(cortes, enteros)
   const css = (c: RGB | RGBA) => `rgb(${c[0]},${c[1]},${c[2]})`
@@ -386,7 +416,12 @@ export default function MapaMovilidad({
     <div ref={ref} className="mapa mapa--movilidad">
       <DeckGL initialViewState={viewState} layers={capas.filter(Boolean)} onClick={alTocar}
               controller={interactivo ? { dragRotate: false, touchRotate: false, doubleClickZoom: false, scrollZoom: { speed: 0.02, smooth: true } } : false}
-              getCursor={({ isDragging }) => (isDragging ? 'grabbing' : onTocar ? 'crosshair' : interactivo ? 'grab' : 'default')} />
+              getCursor={({ isDragging }) => (isDragging ? 'grabbing' : onTocar && (localidad != null || !onLocalidad) ? 'crosshair' : onLocalidad ? 'pointer' : interactivo ? 'grab' : 'default')} />
+      {onLocalidad && croquis && (localidad != null ? (
+        <button className="mapa__localidad" onClick={() => onLocalidad(null)} title="Ver toda Bogotá">
+          <b>{datos.croquis.find((c) => c.loc === localidad)?.nombre}</b><span>✕ Toda Bogotá</span>
+        </button>
+      ) : <span className="mapa__localidad mapa__localidad--pista">Toca una localidad para acercarte</span>)}
       {leyenda && (
         <div className="mapa__leyenda">
           <span className="mapa__leyenda-titulo">{titulo}</span>
