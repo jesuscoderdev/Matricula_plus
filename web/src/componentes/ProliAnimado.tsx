@@ -3,17 +3,12 @@ import { motion, useReducedMotion } from 'framer-motion'
 import imagenCuerpo from '../assets/proli-cuerpo.webp'
 import imagenBrazo from '../assets/proli-brazo.webp'
 import { EMPRESA } from '../config'
+import { ANCHO, ALTO, OJOS, BOCA, HOMBRO_PX, TINTA, RANGO, BRILLO, SALUDO, SALUDO_S, HABLA, HABLA_S } from './proliGeometria'
 
-// Proli por capas, en las coordenadas de la imagen (480 × 474): el cuerpo, el brazo que saluda
+// Proli por capas (geometría en proliGeometria.ts): el cuerpo, el brazo que saluda
 // (gira desde el hombro) y, encima, ojos y boca dibujados. El cuerpo queda quieto: la vida está en
 // la mirada (sigue al puntero, mira alrededor, parpadea, se interesa) y en la boca.
-const ANCHO = 480, ALTO = 474
-const OJOS = [{ cx: 181, cy: 179.5 }, { cx: 226, cy: 179.5 }]
-const BOCA = { x0: 180, x1: 224, y: 215, curva: 232 }
-const HOMBRO = `${(386 / ANCHO) * 100}% ${(282 / ALTO) * 100}%`
-const TINTA = '#2e170a'
-const RANGO = { x: 10, y: 8 }          // cuánto se mueven los ojos dentro de la cara
-const BRILLO = { x: 4.5, y: 3.5 }      // el brillo se mueve un poco más que el ojo: da profundidad
+const HOMBRO = `${(HOMBRO_PX.x / ANCHO) * 100}% ${(HOMBRO_PX.y / ALTO) * 100}%`
 
 /**
  * Proli vivo: parpadea, sigue con los ojos al puntero (`seguir`) o mira hacia un punto (`mirar`, de
@@ -48,8 +43,8 @@ export default function ProliAnimado({ tamano, hablando = false, saludar = false
           role="img" aria-label={`Proli, de ${EMPRESA}`}>
       <img src={imagenCuerpo} alt="" draggable={false} />
       <motion.img src={imagenBrazo} alt="" draggable={false} style={{ transformOrigin: HOMBRO }}
-                  animate={saluda ? { rotate: [0, -24, 4, -24, 4, -24, 4, 0] } : { rotate: 0 }}
-                  transition={saluda ? { duration: 2.6, ease: 'easeInOut' } : { duration: 0.3 }} />
+                  animate={saluda ? { rotate: SALUDO } : { rotate: 0 }}
+                  transition={saluda ? { duration: SALUDO_S, ease: 'easeInOut' } : { duration: 0.3 }} />
       <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} aria-hidden>
         {OJOS.map((o) => (
           <motion.g key={o.cx} animate={{ x: vx * RANGO.x, y: vy * RANGO.y }} transition={{ type: 'spring', stiffness: 260, damping: 20 }}>
@@ -69,8 +64,8 @@ export default function ProliAnimado({ tamano, hablando = false, saludar = false
           // Al hablar, la boca se abre y se cierra a ritmo irregular, como sílabas
           <motion.ellipse cx={(BOCA.x0 + BOCA.x1) / 2} cy={BOCA.y + 7} rx={15} ry={10} fill={TINTA}
                           style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
-                          animate={{ scaleY: [0.25, 1, 0.45, 0.85, 0.3, 1, 0.25], scaleX: [1, 0.85, 1, 0.9, 1, 0.85, 1] }}
-                          transition={{ duration: 0.9, repeat: Infinity, ease: 'easeInOut' }} />
+                          animate={{ scaleY: HABLA.alto, scaleX: HABLA.ancho }}
+                          transition={{ duration: HABLA_S, repeat: Infinity, ease: 'easeInOut' }} />
         ) : saluda || atento ? (
           // Sonrisa abierta: al saludar y cuando le prestan atención
           <path d={`M${BOCA.x0 - 3} ${BOCA.y - 2} Q${(BOCA.x0 + BOCA.x1) / 2} ${BOCA.curva + 14} ${BOCA.x1 + 3} ${BOCA.y - 2} Z`} fill={TINTA} />
