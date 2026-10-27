@@ -46,8 +46,8 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ anio: { type: 'string', enum: ['2024', '2025'] } })),
 
   // --- Matrícula+ (abre el demo si no está abierto) ---
-  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; metodo = Así lo resolvimos; explorar = UPZ por UPZ; agendar.',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'metodo', 'explorar', 'agendar'] } })),
+  h('matricula_capitulo', 'Matrícula+: va a un capítulo. problema; accion = elegir reglas y asignar; resultado; laboratorio = Supuestos; fuentes = De dónde salen los datos; metodo = Así lo resolvimos; explorar = UPZ por UPZ; agendar.',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'accion', 'resultado', 'laboratorio', 'fuentes', 'metodo', 'explorar', 'agendar'] } })),
   h('matricula_localidad', 'Matrícula+: elige la localidad y muestra en el capítulo Problema cómo se asignan hoy los cupos allí.',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MATRICULA] } })),
   h('matricula_reglas', 'Matrícula+: cambia las reglas de prioridad en el capítulo Acción. equilibrada = cercanía, hermanos y vulnerabilidad pesan igual; cercania = primero quien vive cerca; familias = primero quien tiene hermanos; equidad = primero las familias vulnerables.',

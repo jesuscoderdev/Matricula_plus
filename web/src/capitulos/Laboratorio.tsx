@@ -81,7 +81,7 @@ export default function Laboratorio({ datos, r, modo, supuestos, cambiarSupuesto
       )}
       {!auto && (
         <div className="panel__pie">
-          <button className="boton boton--violeta boton--ancho" onClick={() => ir('metodo')}>Cómo lo hicimos →</button>
+          <button className="boton boton--violeta boton--ancho" onClick={() => ir('fuentes')}>De dónde salen los datos →</button>
           {editados && <button className="boton-texto" onClick={restaurarSupuestos}>↺ Volver a los supuestos originales</button>}
         </div>
       )}

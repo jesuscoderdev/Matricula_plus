@@ -140,7 +140,7 @@ const filasMat = LOCALIDADES_MATRICULA.map((n) => {
 const matricula = `
 ## Demo Matrícula+ (cupos escolares)
 Pregunta: «¿Cómo logramos que más niños tengan colegio cerca de casa?». El problema: en Bogotá hay cupos para los niños nuevos, pero no siempre donde viven; hoy, en la fase general, el cupo se toma por orden de llegada. Simulador de asignación de cupos para estudiantes NUEVOS en colegios oficiales de Bogotá. Es una herramienta para comparar reglas, no una predicción.
-Capítulos: Problema (el visitante elige una localidad y ve cómo se asigna hoy: las familias llegan una por una y quien llega tarde no cabe) → Acción (elige las reglas, un colegio nuevo y la jornada única, y toca ▶ Asignar) → Resultado (localidad, Bogotá y zona crítica) → Supuestos (editables) → Así lo resolvimos (método, Proli y QR). Extras: Explorar (UPZ por UPZ) y Agendar.
+Capítulos: Problema (el visitante elige una localidad y ve cómo se asigna hoy: las familias llegan una por una y quien llega tarde no cabe) → Acción (elige las reglas, un colegio nuevo y la jornada única, y toca ▶ Asignar) → Resultado (localidad, Bogotá y zona crítica) → Supuestos (editables) → Fuentes (de dónde salen los datos; cifras oficiales frente a simuladas) → Así lo resolvimos (método, Proli y QR). Extras: Explorar (UPZ por UPZ) y Agendar.
 
 ### Datos de partida
 - ${ind.supuestos.cupos} Corte: ${ind.supuestos.corte}.
