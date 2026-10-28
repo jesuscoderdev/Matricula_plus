@@ -1,5 +1,13 @@
 # Pendientes — Matrícula+ · ¿Dónde cabe cada niño?
 
+Estado al 28-10-2026: Matrícula+ v2 según el guion aprobado el 27-oct (Problema → Solución → Antes y después →
+Resultados → Cómo se hizo → Tu reto), con la misma estructura de Movilidad+. Código en `web/src/matricula/`; datos en
+`web/public/matricula/datos/`, generados con `python -m engine.reparto_v2` (≈ 1,5 min). Después de regenerarlos:
+`npm run proli:conocimiento`, `npm run build` y `npm run build:archivo`. La versión anterior (simulador con reglas y
+supuestos) sigue en `?matricula=anterior`, pero Proli ya solo maneja la v2.
+- [ ] Reglas para que Proli pregunte por el reto del visitante (las envía la coordinación).
+- [ ] Revisar textos de pantalla con comunicaciones y decidir si se borra la versión anterior (`App.tsx`, `capitulos/`).
+
 Estado al 23-10-2026: además de lo de abajo, identidad del manual de marca, Proli asistente (IA, guía paso a paso y
 cursor), optimización de cupos en Matrícula+ (sin separar hermanos) y colegio nuevo según la localidad.
 

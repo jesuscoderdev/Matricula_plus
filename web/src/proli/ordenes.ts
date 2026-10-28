@@ -3,7 +3,7 @@
  * (p. ej. movilidad_presupuesto {nivel: 'medio'}); aquí se reparten al componente que las sabe hacer:
  *  · «inicio»    → Inicio.tsx (portada, conozca a Proli, elegir demo, abrir un demo)
  *  · «movilidad» → movilidad/Movilidad.tsx
- *  · «matricula» → App.tsx (Matrícula+)
+ *  · «matricula» → matricula/Matricula.tsx (Matrícula+)
  * Si el demo de una orden no está abierto, se abre y la orden espera a que el demo cargue sus datos.
  *
  * Cada componente valida la entrada contra sus propios datos (nombres de localidad, capítulos…):
@@ -52,8 +52,7 @@ export function registrar(ambito: Ambito, manejador: Manejador): () => void {
  */
 export async function ejecutar(orden: Orden): Promise<string> {
   const selector = selectorDe(orden)
-  // Si el control se conoce solo al aplicar la orden (el colegio sugerido), Proli lo toca después
-  const estaba = !!selector && orden.nombre !== 'matricula_colegio_sugerido' && !!visible(selector)
+  const estaba = !!selector && !!visible(selector)
   if (estaba) await senalar(selector!)
   const r = await aplicarOrden(orden)
   if (selector && !estaba) {
@@ -76,7 +75,7 @@ function aplicarOrden(orden: Orden): Promise<string> {
     const demo = orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad'
     return aplicarOrden(demo === 'movilidad'
       ? { nombre: 'movilidad_capitulo', entrada: { capitulo: 'cierre' } }
-      : { nombre: 'matricula_capitulo', entrada: { capitulo: 'agendar' } })
+      : { nombre: 'matricula_capitulo', entrada: { capitulo: 'reto' } })
   }
   const ambito = ambitoDe(orden.nombre)
   const manejador = manejadores.get(ambito)

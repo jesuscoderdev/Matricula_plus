@@ -22,17 +22,13 @@ export function selectorDe(o: Orden): string | null {
   const v = (k: string) => String(e[k])
   switch (o.nombre) {
     case 'matricula_capitulo': case 'movilidad_capitulo': return `[data-proli~="cap-${v('capitulo')}"]`
-    case 'matricula_reglas': return `[data-proli="reglas-${v('reglas')}"]`
-    case 'matricula_colegio_nuevo': return `[data-proli="colegio-${v('ubicacion')}"]`
-    // El colegio que queda elegido (se sabe cuál solo después de aplicar la orden)
-    case 'matricula_colegio_sugerido': return '.chip--colegio.chip--activo'
-    case 'matricula_jornada_unica': return '[data-proli="jornada"]'
-    case 'matricula_asignar': return '[data-proli="asignar"]'
+    case 'matricula_reparto': return `[data-proli="reparto-${v('reparto')}"]`
+    case 'matricula_nivel': return `[data-proli="nivel-${v('nivel').toLowerCase()}"]`
     case 'movilidad_presupuesto': return `[data-proli="presupuesto-${v('nivel')}"]`
     case 'movilidad_tipo_via': return `[data-proli="zona-${v('zona')}"]`
     case 'movilidad_anio_mapa': return `[data-proli="anio-${v('anio')}"]`
     case 'abrir_demo': return `[data-proli="demo-${v('demo')}"]`
-    case 'abrir_agenda': return `[data-proli~="cap-${v('demo') === 'movilidad' ? 'cierre' : 'agendar'}"]`
+    case 'abrir_agenda': return `[data-proli~="cap-${v('demo') === 'movilidad' ? 'cierre' : 'reto'}"]`
     default: return null
   }
 }
