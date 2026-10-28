@@ -1511,3 +1511,89 @@ h1, h2, h3, p { margin: 0; }
 .chips--localidades .chip small { font-family: var(--f-mono); color: var(--tenue); margin-left: 0.3rem; }
 /* Celular: en «Antes y después» el selector Hoy / Con Matrícula+ ocupa el lugar de la pista */
 :root[data-modo='celular'] .mapa--matricula:has(.mapa__anio) .mapa__localidad--pista { display: none; }
+
+/* ---------------------------------------------------------------- Movilidad+: pantallas con la estructura de Matrícula+ */
+.app--movilidad { --mov-contar: #8a93ad; --mov-contar-suave: #eef0f5; }
+:root[data-tema="oscuro"] .app--movilidad { --mov-contar: #8ea3b6; --mov-contar-suave: #22403e; }
+.respuesta-mov { border-left: 3px solid var(--verde); color: var(--tinta); margin: 0; padding-left: 0.9rem; font-weight: 500; line-height: 1.45; }
+.nota-mov { color: var(--texto); margin: 0; font-size: 0.88rem; }
+.subtitulo-mov { font-family: var(--f-display); color: var(--tinta); margin: 0.3rem 0 0; font-size: 1.2rem; font-weight: 700; }
+.cifras-mov { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; display: grid; }
+.cifra-mov { background: var(--hundido); border-radius: var(--r); align-content: start; gap: 0.15rem; padding: 0.8rem 0.9rem; display: grid; }
+.cifra-mov > b { font-family: var(--f-display); font-variant-numeric: tabular-nums; color: var(--tinta); font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
+.cifra-mov span { color: var(--suave); font-size: 0.8rem; line-height: 1.35; }
+.cifra-mov--contar b { color: var(--mov-contar); }
+.cifra-mov--bueno b { color: var(--verde-texto); }
+.cifra-mov--acento b { color: var(--violeta-osc); }
+.lista-mov { gap: 0.3rem; display: grid; }
+.esq-mov { text-align: left; cursor: pointer; background: var(--blanco); border: 1px solid var(--linea); border-radius: var(--r-chico); color: var(--texto); grid-template-columns: 1.8rem 1fr auto; align-items: center; gap: 0.6rem; padding: 0.45rem 0.7rem; display: grid; }
+.esq-mov:hover:not(:disabled) { border-color: var(--violeta); }
+.esq-mov:disabled { cursor: default; }
+.esq-mov[aria-pressed="true"] { background: var(--violeta-suave); border-color: var(--violeta); }
+.esq-mov__n { font-family: var(--f-display); color: var(--violeta-osc); font-weight: 800; }
+.esq-mov__donde { line-height: 1.25; display: grid; }
+.esq-mov__donde b { color: var(--tinta); font-weight: 600; }
+.esq-mov__donde small { color: var(--tenue); font-size: 0.75rem; }
+.esq-mov__k { font-variant-numeric: tabular-nums; color: var(--tinta); white-space: nowrap; font-size: 1.05rem; font-weight: 700; }
+.esq-mov__k small { color: var(--tenue); font-size: 0.72rem; font-weight: 400; }
+.barras-mov { gap: 0.55rem; display: grid; }
+.barra-mov { grid-template-columns: 1.6rem 1fr; align-items: center; gap: 0.6rem; display: grid; }
+.barra-mov__n { font-family: var(--f-display); color: var(--violeta-osc); font-weight: 800; }
+.barra-mov__pistas { gap: 0.2rem; display: grid; }
+.pista-mov { color: var(--suave); align-items: center; gap: 0.45rem; font-size: 0.78rem; display: flex; }
+.pista-mov b { color: var(--tinta); }
+.pista-mov i { border-radius: 999px; flex: none; height: 0.55rem; transition: width 0.8s; display: block; }
+.pista-mov__antes { background: var(--mov-contar); }
+.pista-mov__despues { background: var(--verde); }
+.pasos-mov { counter-reset: p; gap: 0.55rem; margin: 0; padding: 0; list-style: none; display: grid; }
+.pasos-mov li { counter-increment: p; color: var(--texto); grid-template-columns: 1.9rem 1fr; align-items: start; gap: 0.6rem; font-size: 0.92rem; display: grid; }
+.pasos-mov li:before { content: counter(p); background: var(--violeta-suave); width: 1.8rem; height: 1.8rem; color: var(--violeta-osc); font-family: var(--f-display); border-radius: 50%; place-items: center; font-weight: 800; display: grid; }
+.pasos-mov b { color: var(--tinta); }
+.arrastre-mov { background: var(--hundido); border-radius: var(--r); gap: 0.4rem; padding: 0.8rem; display: grid; }
+.arrastre-mov svg { width: 100%; height: auto; display: block; }
+.arrastre-mov text { fill: var(--suave); font-family: Poppins, sans-serif; font-size: 10px; }
+.arrastre-mov__eje { stroke: var(--linea-2); }
+.arrastre-mov__parecida { fill: var(--verde); transition: opacity 0.4s; }
+.arrastre-mov__hilo { stroke: var(--violeta); stroke-dasharray: 3 3; stroke-width: 1px; }
+.arrastre-mov__anio { fill: none; stroke: var(--mov-contar); stroke-width: 1.8px; }
+.arrastre-mov__esquina { fill: var(--violeta); }
+.arrastre-mov__real { fill: none; stroke: var(--verde-osc); stroke-width: 2.5px; }
+.arrastre-mov text.arrastre-mov__fuerte { fill: var(--tinta); font-weight: 600; }
+.arrastre-mov text.arrastre-mov__bueno { fill: var(--verde-texto); font-weight: 600; }
+.arrastre-mov g { transition: opacity 0.4s; }
+.dos-mov { grid-template-columns: 1fr 1fr; gap: 0.6rem; font-size: 0.86rem; display: grid; }
+.dos-mov > div { border-radius: var(--r); color: var(--texto); align-content: start; gap: 0.3rem; padding: 0.75rem 0.85rem; line-height: 1.4; display: grid; }
+.dos-mov > div > b:first-child { color: var(--tinta); }
+.dos-mov__contar { background: var(--mov-contar-suave); }
+.dos-mov__proli { background: var(--verde-suave); }
+.dos-mov__proli > b:first-child { color: var(--verde-texto); }
+.promesas--tres { gap: 0.6rem; }
+.tabla-mov { border: 1px solid var(--linea); border-radius: var(--r-chico); overflow-x: auto; }
+.tabla-mov table { border-collapse: collapse; font-variant-numeric: tabular-nums; width: 100%; font-size: 0.84rem; }
+.tabla-mov th,
+.tabla-mov td { border-bottom: 1px solid var(--linea); text-align: right; color: var(--texto); padding: 0.45rem 0.6rem; }
+.tabla-mov th:first-child,
+.tabla-mov td:first-child { text-align: left; }
+.tabla-mov th { background: var(--cabeza-tabla); color: var(--tinta); font-size: 0.76rem; font-weight: 600; }
+.tabla-mov tr:last-child td { border-bottom: 0; }
+.tabla-mov .mal { color: var(--mov-contar); font-weight: 700; }
+.tabla-mov .bien { color: var(--verde-texto); font-weight: 700; }
+.tabla-mov b { color: var(--tinta); }
+.pregunta-mov { border: 1px dashed var(--linea-2); border-radius: var(--r-chico); color: var(--texto); gap: 0.25rem; padding: 0.6rem 0.8rem; font-size: 0.82rem; line-height: 1.4; display: grid; }
+.pregunta-mov b { color: var(--tinta); }
+.chips--localidades .chip small { color: var(--tenue); margin-left: 0.2rem; }
+.promesa__cabeza b small { color: var(--tenue); font-weight: 400; }
+.cajitas-mov { grid-template-columns: 1fr 1fr; gap: 0.5rem; display: grid; }
+.cajita-mov { background: var(--hundido); border-radius: var(--r); color: var(--suave); align-content: start; gap: 0.2rem; padding: 0.7rem 0.8rem; font-size: 0.82rem; line-height: 1.35; display: grid; }
+.cajita-mov b { color: var(--tinta); font-size: 0.88rem; }
+.fuentes-lista-mov { color: var(--suave); gap: 0.2rem; margin: 0; padding-left: 1.1rem; font-size: 0.78rem; display: grid; }
+.portada-mov__contexto { color: var(--suave); max-width: 40rem; margin: 0; font-size: 0.95rem; }
+.portada-mov__contexto b { color: var(--tinta); }
+.app--movilidad .portada-mov__titulo { letter-spacing: -0.01em; gap: 0.3rem; font-size: clamp(1.5rem, 3.2vw, 2.5rem); font-weight: 800; display: grid; }
+.portada-mov__titulo .n-contar { color: var(--mov-contar); }
+.portada-mov__l2 { color: var(--verde-texto); }
+.portada-mov__l3 { color: var(--suave); margin: 0; font-size: 1.1rem; }
+.mapa__zona .k-punto { box-sizing: border-box; border-radius: 50%; width: 0.75rem; height: 0.75rem; display: inline-block; }
+@media (width<=26rem) { .cifras-mov, .dos-mov, .cajitas-mov { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .pista-mov i, .arrastre-mov g, .arrastre-mov__parecida { transition: none; } }
+.app--movilidad .promesa--bien { background: var(--verde-suave); border-color: var(--verde); }

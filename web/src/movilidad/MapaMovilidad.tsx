@@ -38,6 +38,8 @@ const PALETA = {
     superficie: [29, 54, 52, 245] as RGBA, fuera: 60, tierra: [23, 43, 42, 255] as RGBA },
 }
 const VIOLETA: RGBA = [90, 68, 221, 255]
+// Listas resaltadas: contar (naranja), modelo (verde), las dos (gris pizarra)
+const COLOR_RESALTE: Record<'naranja' | 'verde' | 'gris', RGBA> = { naranja: [224, 122, 31, 240], verde: [62, 142, 82, 240], gris: [80, 91, 125, 200] }
 
 /** Cortes de la escala a partir de los datos (cuantiles de los valores positivos, sin repetir). */
 function cortesDe(valores: number[], enteros: boolean): number[] {
@@ -188,11 +190,19 @@ interface Props {
   /** croquis de Bogotá: localidades de fondo, y sus límites y nombres sobre los hexágonos */
   croquis?: boolean
   children?: ReactNode
+  /** listas de esquinas resaltadas con un color (p. ej. las 30 que escoge cada forma); `hueco`: solo el
+   * anillo; `texto`: su línea en la leyenda */
+  resaltar?: Resalte[]
+  /** si se da, el toque solo elige entre estas esquinas (la más cercana) */
+  candidatas?: number[]
+  /** número o letra encima de cada esquina resaltada o tocada (p. ej. su puesto en la lista) */
+  etiqueta?: (i: number) => string
 }
+export interface Resalte { indices: number[]; color: 'naranja' | 'verde' | 'gris'; hueco?: boolean; texto?: string }
 
 export default function MapaMovilidad({
   datos, capa, localidad = null, esquinas = 0, tocadas = [], onTocar, onLocalidad, peores = false, interactivo = true,
-  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, croquis = false, children,
+  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, croquis = false, children, resaltar = [], candidatas, etiqueta,
 }: Props) {
   const tema = useTema()
   const P = PALETA[tema]
@@ -361,6 +371,22 @@ export default function MapaMovilidad({
       updateTriggers: { getFillColor: [tema], getRadius: [radioElegida, aparicion] },
     }),
     ...capasCroquis,
+    // Encima del croquis: las listas resaltadas (con su número si se pide)
+    ...resaltar.flatMap((r, k) => [
+      new ScatterplotLayer<number>({
+        id: `resaltar-${k}`, data: r.indices, getPosition: (i) => [s.lon[i], s.lat[i]], radiusUnits: 'pixels',
+        getRadius: (etiqueta ? 9 : r.color === 'gris' ? 5 : 7) * e, filled: !r.hueco, stroked: true, lineWidthUnits: 'pixels',
+        getLineWidth: (r.hueco ? 2.2 : 1.5) * e,
+        getFillColor: r.hueco ? [P.superficie[0], P.superficie[1], P.superficie[2], 220] : COLOR_RESALTE[r.color],
+        getLineColor: r.hueco ? COLOR_RESALTE[r.color] : [255, 255, 255, 230],
+        updateTriggers: { getRadius: [e, !!etiqueta], getLineWidth: [e], getFillColor: [tema] },
+      }),
+      etiqueta && new TextLayer<number>({
+        id: `resaltar-n-${k}`, data: r.indices, getPosition: (i) => [s.lon[i], s.lat[i]], getText: etiqueta,
+        getSize: 10 * e, getColor: r.hueco ? COLOR_RESALTE[r.color] : [255, 255, 255, 255], fontFamily: 'Poppins, sans-serif', fontWeight: 700,
+        updateTriggers: { getText: [etiqueta], getSize: [e] },
+      }),
+    ]),
     peores && new ScatterplotLayer<number>({
       id: 'peores', data: datos.peores, getPosition: (i) => [s.lon[i], s.lat[i]],
       getRadius: 7 * e, radiusUnits: 'pixels', filled: false, stroked: true, lineWidthUnits: 'pixels', getLineWidth: 1.8 * e,
@@ -373,16 +399,17 @@ export default function MapaMovilidad({
       updateTriggers: { getRadius: [e], getLineWidth: [e] },
     }),
     tocadas.length > 0 && new TextLayer<number>({
-      id: 'tocadas-n', data: tocadas, getPosition: (i) => [s.lon[i], s.lat[i]], getText: (i) => String(tocadas.indexOf(i) + 1),
+      id: 'tocadas-n', data: tocadas, getPosition: (i) => [s.lon[i], s.lat[i]], getText: etiqueta ?? ((i) => String(tocadas.indexOf(i) + 1)),
       getSize: 13 * e, getPixelOffset: [0, -22 * e], getColor: VIOLETA, fontFamily: 'Poppins, sans-serif', fontWeight: 600,
       background: true, getBackgroundColor: P.superficie, backgroundPadding: [5, 2],
-      updateTriggers: { getText: [tocadas], getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
+      updateTriggers: { getText: [tocadas, etiqueta], getSize: [e], getPixelOffset: [e], getBackgroundColor: [tema] },
     }),
   ].filter(Boolean)
 
   // Toque: con croquis, primero la localidad (tocar otra cambia a esa); adentro de la elegida, la esquina
   const alTocar = (info: PickingInfo) => {
     if (!info.coordinate || !info.viewport) return
+    if (candidatas) return tocarEsquina(info)
     const tocada = onLocalidad && croquis ? localidadEn(datos.croquis, info.coordinate as [number, number]) : null
     if (tocada != null && tocada !== localidad) return onLocalidad!(tocada)
     if (onLocalidad && localidad == null) return
@@ -394,6 +421,16 @@ export default function MapaMovilidad({
     const vp = info.viewport
     const [px, py] = vp.project(info.coordinate as [number, number])
     let mejor = -1, mejorK = -1, mejorD = Infinity
+    // Con candidatas: la más cercana de ellas, si el toque cae cerca
+    if (candidatas) {
+      for (const i of candidatas) {
+        const [x, y] = vp.project([s.lon[i], s.lat[i]])
+        const d = Math.hypot(x - px, y - py)
+        if (d < Math.min(mejorD, 26 * e)) { mejor = i; mejorD = d }
+      }
+      if (mejor >= 0) onTocar(mejor)
+      return
+    }
     for (const radio of [16 * e, 40 * e]) {
       for (let i = 0; i < s.n; i++) {
         if (!s.local[i] || s.k24[i] <= 0 || (localidad != null && s.loc[i] !== localidad)) continue
@@ -421,7 +458,7 @@ export default function MapaMovilidad({
         <button className="mapa__localidad" onClick={() => onLocalidad(null)} title="Ver toda Bogotá">
           <b>{datos.croquis.find((c) => c.loc === localidad)?.nombre}</b><span>✕ Toda Bogotá</span>
         </button>
-      ) : <span className="mapa__localidad mapa__localidad--pista">Toca una localidad para acercarte</span>)}
+      ) : <span className="mapa__localidad mapa__localidad--pista">Toca una localidad para ver su detalle</span>)}
       {leyenda && (
         <div className="mapa__leyenda">
           <span className="mapa__leyenda-titulo">{titulo}</span>
@@ -431,6 +468,11 @@ export default function MapaMovilidad({
             <div className="mapa__escala">{nombres.map((n, i) => <span key={n}><i style={{ background: css(rampa[i] ?? rampa[rampa.length - 1]) }} />{n}</span>)}</div>
           )}
           <span className="mapa__zona mapa__zona--avenidas"><i className="k-cuadro" style={{ background: css(P.avenida), outline: `1px solid ${css(P.vacio)}` }} />avenidas{capa === 'sel' ? '' : ' (no se colorean)'}</span>
+          {resaltar.filter((r) => r.texto).map((r) => (
+            <span key={r.texto} className="mapa__zona">
+              <i className="k-punto" style={r.hueco ? { border: `2px solid ${css(COLOR_RESALTE[r.color])}` } : { background: css(COLOR_RESALTE[r.color]) }} />{r.texto}
+            </span>
+          ))}
           {peores && <span className="mapa__zona"><i className="k-anillo-vacio" />las {datos.peores.length} peores esquinas de barrio de {datos.experiencia.pantalla_1_usted_decide.anio_mostrado}</span>}
         </div>
       )}

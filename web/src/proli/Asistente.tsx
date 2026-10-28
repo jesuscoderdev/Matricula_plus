@@ -103,10 +103,10 @@ function sugerencias(pantalla: string): Sugerencia[] {
   })
   if (pantalla.startsWith('Movilidad+')) return [
     { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, buscamos qué esquinas arreglar primero con un presupuesto limitado, y cuánto se puede prometer sin exagerar.' },
-    { texto: '¿Por qué bajaron las peores esquinas?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'giro' } }],
+    { texto: '¿Por qué bajaron las esquinas con más siniestros?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'falla' } }],
       sinConexion: 'Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Por eso, para saber si una obra funcionó, hay que compararla con lo que se esperaba que pasara sin ella.' },
-    { texto: 'Muéstrame el presupuesto', ordenes: [{ nombre: 'movilidad_presupuesto', entrada: { nivel: 'bajo' } }],
-      sinConexion: 'Aquí está. Con estos supuestos, se esperaría evitar los siniestros que ves en pantalla; elegir solo mirando el pasado prometería más.' },
+    { texto: 'Muéstrame los resultados', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'resultados' } }],
+      sinConexion: 'Aquí están. Con estos supuestos, mirar la historia de cada esquina cambia dónde se invierte frente a mirar solo el último año, y el modelo promete evitar casi lo mismo que se evita.' },
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [

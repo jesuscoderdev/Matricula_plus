@@ -155,6 +155,6 @@ export const DURACION_PASOS_MATRICULA = {
 }
 
 // Movilidad+: duración de cada capítulo en modo automático (segundos): ~60 s por vuelta
-export const DURACION_PASOS_MOVILIDAD = { portada: 5, decide: 10, anio: 9, giro: 6, solucion: 7, metodo: 9, presupuesto: 11, evaluar: 10, fuentes: 5, cierre: 5 }
-// Movilidad+: esquinas que toca el visitante en "Tú decides"
-export const ESQUINAS_A_TOCAR = 3
+export const DURACION_PASOS_MOVILIDAD = {
+  portada: 6, problema: 6, escoge: 9, falla: 8, ysi: 9, antes: 10, resultados: 10, localidad: 7, presupuesto: 11, como: 6, fuentes: 4, cierre: 5,
+}
