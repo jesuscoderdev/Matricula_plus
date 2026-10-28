@@ -110,11 +110,11 @@ function sugerencias(pantalla: string): Sugerencia[] {
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: en Bogotá hay cupos escolares, pero no siempre donde viven los niños. Aquí comparas reglas para repartirlos, con datos abiertos y familias simuladas.' },
-    { texto: 'Prioriza a las familias vulnerables', ordenes: [{ nombre: 'matricula_reglas', entrada: { reglas: 'equidad' } }, { nombre: 'matricula_asignar', entrada: {} }],
-      sinConexion: 'Listo: reglas de Equidad. Matrícula+ optimiza para que quepan más niños en sus colegios, y primero las familias vulnerables.' },
-    { texto: 'Pon un colegio nuevo en Tibabuyes', ordenes: [{ nombre: 'matricula_colegio_nuevo', entrada: { ubicacion: 'tibabuyes' } }, { nombre: 'matricula_asignar', entrada: {} }],
-      sinConexion: 'Listo: un colegio nuevo en Tibabuyes, en un proyecto real de la Secretaría de Educación. Mira cómo cambia la asignación.' },
+    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: hoy el cupo escolar se reparte por orden de llegada y muchos niños quedan lejos de casa. Aquí ves qué pasa si se reparte con datos, con los mismos colegios y cupos, y con niños recreados a partir de datos abiertos.' },
+    { texto: 'Muéstrame el antes y el después', ordenes: [{ nombre: 'matricula_reparto', entrada: { reparto: 'despues' } }],
+      sinConexion: 'Aquí está: en verde, los niños que estaban lejos y con Matrícula+ quedan cerca.' },
+    { texto: '¿Dónde faltan cupos?', ordenes: [{ nombre: 'matricula_capitulo', entrada: { capitulo: 'faltan' } }],
+      sinConexion: 'Repartir mejor no crea cupos: el mapa muestra dónde siguen niños lejos y de qué nivel faltan cupos.' },
     agenda('matricula'),
   ]
   return [

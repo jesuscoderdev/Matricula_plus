@@ -3,6 +3,7 @@
  * Movilidad+…) → proyecto.
  *
  *  ?proyecto=educacion|movilidad → entra directo a uno, sin portada (útil para el tótem)
+ *  ?matricula=anterior           → Matrícula+ en su versión anterior (simulador con reglas y supuestos)
  *  ?modo=auto sin ?proyecto      → portada, Proli, elegir proyecto y un recorrido de cada uno, en bucle
  *  ?modo=stand sin ?proyecto     → la inactividad vuelve a la portada (pantalla de atracción)
  *
@@ -25,8 +26,11 @@ import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
 
-// Movilidad+ se descarga aparte, solo si se entra a ella
+// Cada demo se descarga aparte, solo si se entra a él
 const Movilidad = lazy(() => import('./movilidad/Movilidad'))
+const Matricula = lazy(() => import('./matricula/Matricula'))
+// La versión anterior de Matrícula+ (simulador con reglas y supuestos) sigue disponible con ?matricula=anterior
+const matriculaAnterior = new URLSearchParams(window.location.search).get('matricula') === 'anterior'
 
 const activos = PROYECTOS.filter((p) => !p.proximamente)
 const pedido = (): IdProyecto | null => {
@@ -119,12 +123,12 @@ export default function Inicio() {
     // El logo de Proliferante lleva a la portada del stand (en todos los modos salvo el automático)
     alPortada: modo === 'auto' ? undefined : aPortada,
   }
-  if (proyecto === 'educacion') return <App {...salidas} />
-  if (proyecto === 'movilidad') {
-    const p = PROYECTOS.find((x) => x.id === 'movilidad')!
+  if (proyecto === 'educacion' && matriculaAnterior) return <App {...salidas} />
+  if (proyecto) {
+    const p = PROYECTOS.find((x) => x.id === proyecto)!
     return (
       <Suspense fallback={<div className="app"><Esqueleto nombre={p.nombre} variante={p.variante} estado="Cargando" /></div>}>
-        <Movilidad {...salidas} />
+        {proyecto === 'movilidad' ? <Movilidad {...salidas} /> : <Matricula {...salidas} />}
       </Suspense>
     )
   }

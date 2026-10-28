@@ -124,9 +124,9 @@ export const PROYECTOS: {
   proximamente?: boolean
 }[] = [
   { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta',
-    pregunta: '¿Cómo lograr una mejor asignación de cupos escolares?',
-    bajada: 'Cambia los criterios y mira quién consigue colegio cerca de casa.',
-    gancho: '¿Quién se queda por fuera? Míralo en un minuto.', cta: 'Explorar el reto →' },
+    pregunta: '¿Cómo lograr que más niños estudien cerca de casa?',
+    bajada: 'Mismos colegios, mismos cupos: mira qué cambia si se reparten con datos y no por orden de llegada.',
+    gancho: '¿Cuántos niños estudian lejos de casa? Míralo en un minuto.', cta: 'Explorar el reto →' },
   { id: 'movilidad', area: 'Seguridad vial', nombre: NOMBRE_MOVILIDAD, letra: 'M', variante: 'violeta',
     pregunta: '¿Dónde conviene invertir primero para evitar siniestros graves?',
     bajada: 'Mira cómo los datos ayudan a priorizar con un presupuesto limitado.',
@@ -145,6 +145,14 @@ export const LLAMADO_INICIO = {
 
 // Modo automático sin ?proyecto: segundos en la página de inicio antes de entrar al siguiente proyecto
 export const SEGUNDOS_INICIO_AUTO = 6
+
+// Matrícula+: lema de la portada y de la entrada, y localidad de ejemplo del stand (acordada el 27-oct)
+export const LEMA_MATRICULA = 'Mismos colegios, mismos cupos. Solo cambia la forma de repartirlos.'
+export const LOCALIDAD_EJEMPLO_MATRICULA = 'Bosa'
+// Matrícula+: duración de cada pantalla en modo automático (segundos): ~85 s por vuelta
+export const DURACION_PASOS_MATRICULA = {
+  portada: 6, problema: 9, solucion: 9, prioridad: 8, antes: 9, localidad: 9, resultados: 9, faltan: 12, como: 7, fuentes: 4, reto: 5,
+}
 
 // Movilidad+: duración de cada capítulo en modo automático (segundos): ~60 s por vuelta
 export const DURACION_PASOS_MOVILIDAD = { portada: 5, decide: 10, anio: 9, giro: 6, solucion: 7, metodo: 9, presupuesto: 11, evaluar: 10, fuentes: 5, cierre: 5 }

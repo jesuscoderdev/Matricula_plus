@@ -5,10 +5,9 @@
  * Volver a correrlo cada vez que cambien los datos de un demo:
  *   npm run proli:conocimiento
  *
- * Fuentes: public/movilidad/datos/ (experiencia, fuentes, resumen, sitios) y public/simulador/
- * (todos.json: índice y escenarios precalculados; upz.geojson: oferta y demanda por UPZ).
+ * Fuentes: public/movilidad/datos/ (experiencia, fuentes, resumen, sitios) y public/matricula/datos/
+ * (resultados.json, de engine/reparto_v2.py).
  */
-import { simular, metricas } from '../src/motor.ts'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -103,68 +102,50 @@ ${filasMov.join('\n')}
 function ref30() { return exp.pantalla_2_pasa_un_anio.referencia_30_peores_esquinas_de_barrio_2024.de_un_total_de }
 
 // ------------------------------------------------------------------ Matrícula+
-const todos = leer('public/simulador/todos.json')
-const ind = todos.indice
-const upz = leer('public/simulador/upz.geojson')
-// Las cifras de Matrícula+ salen del mismo motor que corre en el navegador (src/motor.ts), con la
-// optimización de cupos incluida, para que Proli diga lo mismo que muestra la pantalla
-const fam = leer('public/simulador/familias.json')
-const sedes = leer('public/simulador/colegios.geojson').features.filter((x) => x.properties.tipo === 'sede')
-const ctx = { cuposSedes: sedes.map((x) => x.properties.cupos), posSedes: sedes.map((x) => x.geometry.coordinates) }
-const par = ind.parametros
-const SUP = { opciones: par.n_opciones, pctVulnerable: par.pct_vulnerable, pctHermano: par.pct_hermano, cuposColegioNuevo: par.cupos_colegio_nuevo,
-  reduccionJornada: par.reduccion_jornada_unica, radioReubicacionKm: 3, umbralViajeLargoKm: 2, pesoDesempate: par.desempate_peso }
-const zonaCritica = new Set(ind.zona_critica.map((z) => ind.upz.indexOf(z.codigo)))
-const M = ({ mecanismo = 'diferida', preset = 'equilibrada', colegio = null, jornada = false }) => {
-  const u = colegio && ind.colegio_nuevo.find((x) => x.clave === colegio)
-  const sim = simular(fam, ctx, SUP, { mecanismo, pesos: ind.pesos_presets[preset], colegioNuevo: u ? { clave: u.clave, lon: u.lon, lat: u.lat } : null, jornadaUnica: jornada })
-  return { ...metricas(fam, sim, SUP), zona: metricas(fam, sim, SUP, (i) => zonaCritica.has(fam.upz[i])) }
-}
-const lineaMetricas = (m) =>
-  `${fmt(m.fueraDeOpciones)} niños no entran a ninguno de los colegios que pidieron (${pct(m.pctFueraDeOpciones)}), ${pct(m.pctPrimera)} en su primera opción, ${fmt(m.sinCupo)} sin ningún cupo cercano tras la reubicación (${pct(m.pctSinCupo)}), ${pct(m.pctVulnerablesFuera)} de los vulnerables fuera de sus opciones, ${pct(m.zona.pctFueraDeOpciones)} fuera de sus opciones en la zona crítica, ${pct(m.pctViajeLargo)} viajan más de 2 km`
-const HOY = M({ mecanismo: 'llegada' })
-
-const porLocM = new Map()
-for (const { properties: p } of upz.features) {
-  const l = porLocM.get(p.localidad) ?? { cupos: 0, demanda: 0, sinCupo: 0, critica: false }
-  l.cupos += p.cupos; l.demanda += p.demanda; l.sinCupo += p.demanda * p.pct_sin_cupo_base / 100
-  l.critica ||= p.zona_critica
-  porLocM.set(p.localidad, l)
-}
-const LOCALIDADES_MATRICULA = [...porLocM.keys()].sort((a, b) => a.localeCompare(b, 'es'))
+// Las cifras salen de public/matricula/datos/resultados.json (engine/reparto_v2.py): las mismas de la pantalla
+const R = leer('public/matricula/datos/resultados.json')
+const G = R.grupos, B = G.bogota, S = R.simulacion, H = R.hermanos, F = R.flujos, X = R.por_que_siguen_lejos, D = R.desercion
+const NIV = ['Preescolar', 'Primaria', 'Secundaria', 'Media']
+const ld = (c) => `${fmt(c.lejos_antes)} → ${fmt(c.lejos_despues)}`
+const LOCALIDADES_MATRICULA = Object.keys(R.por_localidad).filter((l) => R.por_localidad[l].ninos > 0).sort((a, b) => a.localeCompare(b, 'es'))
 const filasMat = LOCALIDADES_MATRICULA.map((n) => {
-  const l = porLocM.get(n)
-  return `| ${n} | ${fmt(l.demanda)} | ${fmt(l.cupos)} | ${fmt(l.cupos / Math.max(1, l.demanda), 2)} | ${pct(100 * l.sinCupo / Math.max(1, l.demanda))} |`
+  const c = R.por_localidad[n]
+  return `| ${n} | ${fmt(c.ninos)} | ${fmt(c.cupos)} | ${ld(c)} | ${NIV.map((k) => fmt(c.lejos_despues_por_nivel[k])).join(' | ')} |`
 })
 
 const matricula = `
 ## Demo Matrícula+ (cupos escolares)
-Pregunta: «¿Cómo logramos que más niños tengan colegio cerca de casa?». El problema: en Bogotá hay cupos para los niños nuevos, pero no siempre donde viven; hoy, en la fase general, el cupo se toma por orden de llegada. Simulador de asignación de cupos para estudiantes NUEVOS en colegios oficiales de Bogotá. Es una herramienta para comparar reglas, no una predicción.
-Capítulos: Problema (el visitante elige una localidad y ve cómo se asigna hoy: las familias llegan una por una y quien llega tarde no cabe) → Acción (elige las reglas, un colegio nuevo y la jornada única, y toca ▶ Asignar) → Resultado (localidad, Bogotá y zona crítica) → Supuestos (editables) → Fuentes (de dónde salen los datos; cifras oficiales frente a simuladas) → Así lo resolvimos (método, Proli y QR). Extras: Explorar (UPZ por UPZ) y Agendar.
+Pregunta: «¿Y si el cupo no se diera por orden de llegada, sino cruzando datos para darle prioridad a quien más lo necesita?». Titular: en Bogotá, ${fmt(B.lejos_antes)} niños estudian lejos de casa; con Matrícula+, ${fmt(B.lejos_despues)}. Mismos colegios, mismos cupos: solo cambia la forma de repartirlos. Una sola medida: un niño está «lejos» si su colegio queda a más de ${fmt(R.radio_km)} km de su casa.
+Seis secciones: El problema · La solución · Antes y después · Resultados · Cómo se hizo · Tu reto. Pantallas (en orden): El problema (problema) → La solución (solucion) → ¿Quién es quién? (prioridad) → Antes y después (antes; el mapa cambia entre «Hoy» y «Con Matrícula+») → Mira tu localidad (localidad) → Resultados (resultados) → ¿Dónde faltan cupos? (faltan; mapa por nivel) → Cómo se hizo (como) → Fuentes (fuentes) → Tu reto (reto, QR para agendar).
+Todas las cifras de niños son de una simulación con datos abiertos (niños recreados, no reales); dilo así. La única cifra oficial del problema es la cantidad de niños nuevos que pidieron cupo.
 
-### Datos de partida
-- ${ind.supuestos.cupos} Corte: ${ind.supuestos.corte}.
-- Hoy (reglas actuales, por orden de llegada): ${lineaMetricas(HOY)}.
-- ${ind.supuestos.familias}
-- ${ind.supuestos.opciones.replace("'sin cupo' = no quedó en ninguno", "«fuera de sus opciones» = no quedó en ninguno")} ${ind.supuestos.distancia}
-- Zona crítica de la Secretaría de Educación: ${ind.zona_critica.map((z) => z.nombre).join(' y ')} (Suba). ${ind.zona_critica_fuente}.
+### El problema
+- Cada año unos ${fmt(Math.round(B.ninos / 1000) * 1000)} niños piden cupo nuevo en un colegio público (dato oficial: ${fmt(S.nuevos_oficial)}, Secretaría de Educación). ${fmt(G.menores_10.ninos)} tienen menos de 10 años.
+- Hoy, quien se inscribe primero elige primero (tres colegios); quien llega tarde se queda con lo que sobre. Resultado simulado: ${fmt(B.lejos_antes)} niños (${pct(100 * B.lejos_antes / B.ninos)}) quedan lejos. De ellos, ${fmt(G.vulnerables_menores_10.lejos_antes)} son a la vez menores de 10 y de estrato 1 o 2.
 
-### Cómo asigna Matrícula+
-Primero una asignación diferida (todas las familias piden a la vez y cada colegio se queda con las de más prioridad) y luego una OPTIMIZACIÓN de cupos: busca cadenas de cambios entre las opciones de cada familia para que entre el máximo posible de niños a alguno de los colegios que pidieron. Nadie que tenía cupo lo pierde, aunque algunos pasan a su segunda o tercera opción. No crea cupos: con los mismos cupos, caben más niños en sus opciones; las reglas de prioridad deciden quién tiene preferencia. Los niños sin ningún cupo cercano dependen de dónde están los cupos: en el total de la ciudad hay cupos (en la simulación quedan cupos libres lejos de esos niños), pero no donde viven; para bajarlos hace falta capacidad en esas zonas (colegio nuevo).
+### La solución (prioridad)
+1. Familias de estrato 1 y 2 (estrato 1 primero): ${fmt(G.vulnerables.ninos)} niños, ${fmt(G.estrato_1.ninos)} de estrato 1. Estratificación por manzana (SDP).
+2. Los más pequeños (menores de 10: ${fmt(G.menores_10.ninos)}) y los más grandes (14 a 16 años, ≈ noveno a once: ${fmt(G.grandes.ninos)}).
+3. Con hermano en un colegio cercano (supuesto: ${fmt(100 * S.pct_hermano)} %, ${fmt(G.con_hermano.ninos)} niños).
+Puntos: estrato 1 suma ${S.puntos.estrato_1}, estrato 2 suma ${S.puntos.estrato_2}, ser menor de 10 o tener 14 a 16 suma ${S.puntos.edad}, quedar con el hermano también suma. Regla de oro: ninguna localidad termina con más niños lejos que hoy.
+Por qué los grandes: ${fmt(D.noveno_no_pasa_a_decimo_pct, 1)} % de los estudiantes de noveno no pasa a décimo y solo el ${fmt(D.media_se_gradua_pct, 1)} % de los que llegan a la media se gradúa (${D.fuente_grado}). La causa de deserción más reportada es el cambio de residencia (${fmt(D.cambio_residencia_pct, 2)} %; ${D.fuente_causas}). ${D.advertencia}
+Por qué estrato: es el dato público por manzana. La Secretaría ya prioriza en la primera fase a ${R.priorizados_sed.join(', ')}; esos datos son por niño y no son públicos.
+La edad y el grado de cada niño no se publican: la edad es la típica de su nivel (DANE).
 
-### Reglas que el visitante puede elegir (prioridad de cada colegio)
-${ind.presets.map((p) => `- ${p.etiqueta}: ${p.descripcion}. En Bogotá: ${lineaMetricas(M({ preset: p.clave }))}.`).join('\n')}
+### Antes y después (hoy → Matrícula+)
+- Niños lejos: ${ld(B)} (${fmt(100 * (B.lejos_antes - B.lejos_despues) / B.lejos_antes)} % menos). Distancia promedio: ${fmt(B.km_antes, 1)} → ${fmt(B.km_despues, 1)} km.
+- Estrato 1 y 2: ${ld(G.vulnerables)}. Estrato 1: ${ld(G.estrato_1)}. Menores de 10: ${ld(G.menores_10)}. De 14 a 16 años: ${ld(G.grandes)}. Menores de 10 de estrato 1 y 2: ${ld(G.vulnerables_menores_10)}. Adolescentes de 14 a 16 de estrato 1 y 2: ${ld(G.vulnerables_grandes)}.
+- Hermanos en el mismo colegio: ${fmt(H.juntos_antes)} → ${fmt(H.juntos_despues)} (de ${fmt(H.total)}). Siguen separados ${fmt(H.separados)}: ${fmt(H.colegio_del_hermano_sin_su_nivel)} porque el colegio del hermano no tiene su nivel y ${fmt(H.colegio_del_hermano_lleno)} porque está lleno con niños de más prioridad; solo ${fmt(H.separados_y_lejos)} quedan lejos.
+- ¿Son los mismos niños? ${fmt(F.lejos_a_cerca)} pasan de lejos a cerca, ${fmt(F.siguen_lejos)} siguen lejos y ${fmt(F.cerca_a_lejos)} pasan de cerca a lejos para que un niño con más prioridad quede cerca (${fmt(F.cerca_a_lejos_estrato['1'])} de estrato 1, ${fmt(F.cerca_a_lejos_estrato['2'])} de estrato 2; quedan en promedio a ${fmt(F.cerca_a_lejos_km_promedio, 1)} km).
+- ¿Y los que siguen lejos? De los ${fmt(X.todos.lejos)}, ${fmt(X.todos.sin_cupo_de_su_nivel_a_2km)} no tienen ningún cupo de su nivel a menos de ${fmt(R.radio_km)} km y ${fmt(X.todos.con_cupo_cerca_ocupado)} tienen cupos cerca ocupados por niños con igual o más prioridad. De los ${fmt(X.vulnerables_menores_10.lejos)} pequeños de estrato 1 y 2, ${fmt(X.vulnerables_menores_10.sin_cupo_de_su_nivel_a_2km)} no tienen ningún cupo de su nivel cerca. Los ${fmt(X.vulnerables_grandes.lejos)} adolescentes de estrato 1 y 2 que siguen lejos no tienen ningún cupo de su nivel cerca. Los que siguen lejos quedan en promedio a ${fmt(R.lejos_km.promedio_despues, 1)} km (hoy ${fmt(R.lejos_km.promedio_antes, 1)}); el máximo baja de ${fmt(R.lejos_km.max_antes, 1)} a ${fmt(R.lejos_km.max_despues, 1)} km.
+- Repartir mejor no crea cupos. Por nivel, siguen lejos: ${NIV.map((k) => `${k.toLowerCase()} ${fmt(R.por_nivel[k].lejos_despues)}`).join(', ')}.
 
-### Colegio nuevo (+${fmt(ind.parametros.cupos_colegio_nuevo)} cupos en un proyecto real de la SED) y jornada única
-${ind.colegio_nuevo.map((u) => {
-  const m = M({ colegio: u.clave })
-  return `- ${u.etiqueta} (${u.proyecto}, UPZ ${u.upz_nombre}). Con reglas Equilibradas, en Bogotá: ${fmt(m.fueraDeOpciones)} niños fuera de sus opciones y ${fmt(m.sinCupo)} sin ningún cupo cercano; en la zona crítica, ${pct(m.zona.pctFueraDeOpciones)} fuera de sus opciones.`
-}).join('\n')}
-- ${ind.supuestos.jornada_unica} Con reglas Equilibradas y jornada única: ${fmt(M({ jornada: true }).fueraDeOpciones)} niños fuera de sus opciones y ${fmt(M({ jornada: true }).sinCupo)} sin ningún cupo cercano.
+### Cómo se hizo
+${fmt(S.fuentes_publicas)} fuentes públicas; ${fmt(S.sedes_con_cupos_de_nuevos)} sedes con cupos por nivel; ${fmt(S.colegios_con_solicitudes_por_nivel)} colegios con solicitudes por nivel; ${fmt(S.manzanas_residenciales)} manzanas residenciales con su estrato; ${fmt(S.ninos)} niños recreados (grupos de ${R.ninos_por_grupo_simulado}) en ${S.upz} UPZ y ${S.localidades} localidades; ${fmt(S.distancias_calculadas)} distancias; ${fmt(S.combinaciones_nino_colegio)} combinaciones niño–colegio. Hoy: cada familia pide sus 3 colegios más cercanos de su nivel y se atiende por orden de llegada; quien no entra queda en el más cercano con cupo libre. Matrícula+: reparto óptimo por programación lineal con los puntos de prioridad, respetando cupos por nivel y la regla de oro. Límites: distancia en línea recta; cifras en múltiplos de 10; traslados no simulados; el estrato es un indicador por zona. Los niños son recreados: no hay datos personales.
 
-### Oferta y demanda por localidad (estudiantes nuevos, hoy)
-| Localidad | Solicitudes | Cupos | Cupos por solicitud | % sin cupo hoy |
-|---|---|---|---|---|
+### Por localidad (niños que piden cupo, cupos, lejos hoy → con Matrícula+, y los que siguen lejos por nivel)
+| Localidad | Niños | Cupos | Lejos | Preescolar | Primaria | Secundaria | Media |
+|---|---|---|---|---|---|---|---|
 ${filasMat.join('\n')}
 `
 
