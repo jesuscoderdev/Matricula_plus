@@ -15,6 +15,7 @@
  */
 import { useSyncExternalStore } from 'react'
 import { selectorDe, senalar, visible } from './cursor'
+import { NOMBRE_MOVILIDAD } from '../config'
 
 export type Ambito = 'inicio' | 'movilidad' | 'matricula'
 export interface Orden { nombre: string; entrada: Record<string, unknown> }
@@ -81,7 +82,7 @@ function aplicarOrden(orden: Orden): Promise<string> {
   const manejador = manejadores.get(ambito)
   if (manejador) return Promise.resolve(aplicar(manejador, orden))
   if (ambito === 'inicio') return Promise.resolve('La pantalla todavía no está lista; intente de nuevo en un momento.')
-  const nombreDemo = ambito === 'movilidad' ? 'Movilidad+' : 'Matrícula+'
+  const nombreDemo = ambito === 'movilidad' ? NOMBRE_MOVILIDAD : 'Matrícula+'
   return new Promise((resolver) => {
     const pendiente = { orden, responder: (r: string) => { window.clearTimeout(id); resolver(`Se abrió ${nombreDemo}. ${r}`) } }
     const id = window.setTimeout(() => {

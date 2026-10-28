@@ -27,6 +27,7 @@ import { leerModo } from '../modo'
 import { alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, type Orden } from './ordenes'
 import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
+import { NOMBRE_MOVILIDAD } from '../config'
 
 type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
 type Bloque = Anthropic.Beta.Messages.BetaContentBlock
@@ -101,12 +102,12 @@ function sugerencias(pantalla: string): Sugerencia[] {
     texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
     sinConexion: '¡Cuéntanos! Proliferante lo resuelve con los datos y las reglas de tu entidad. Agenda una reunión con el equipo: con el código QR o con el botón de la pantalla.',
   })
-  if (pantalla.startsWith('Movilidad+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, buscamos qué esquinas arreglar primero con un presupuesto limitado, y cuánto se puede prometer sin exagerar.' },
-    { texto: '¿Por qué bajaron las esquinas con más siniestros?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'falla' } }],
-      sinConexion: 'Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Por eso, para saber si una obra funcionó, hay que compararla con lo que se esperaba que pasara sin ella.' },
+  if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
+    { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },
+    { texto: '¿Por qué no basta un solo año?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'falla' } }],
+      sinConexion: 'Un año malo puede ser pasajero. Si solo se mira ese año, parte de la plata puede ir a esquinas donde el riesgo ya iba a bajar, y quedan por fuera esquinas que llevan años con riesgo.' },
     { texto: 'Muéstrame los resultados', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'resultados' } }],
-      sinConexion: 'Aquí están. Con estos supuestos, mirar la historia de cada esquina cambia dónde se invierte frente a mirar solo el último año, y el modelo promete evitar casi lo mismo que se evita.' },
+      sinConexion: 'Aquí están. Con estos supuestos, escoger con más información lleva la misma plata a esquinas con más riesgo, y así se evitan más siniestros graves al año.' },
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [
@@ -119,8 +120,8 @@ function sugerencias(pantalla: string): Sugerencia[] {
   ]
   return [
     { texto: '¿Qué es Proliferante?', sinConexion: 'Un estudio de innovación aplicada: conectamos datos, matemáticas, IA y tecnología para que las organizaciones decidan mejor, y dejamos esas capacidades funcionando. Hacemos simple lo complejo.' },
-    { texto: 'Muéstrame Movilidad+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
-      sinConexion: 'Vamos a Movilidad+: qué esquinas arreglar primero con un presupuesto limitado.' },
+    { texto: `Muéstrame ${NOMBRE_MOVILIDAD}`, ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
+      sinConexion: `Vamos a ${NOMBRE_MOVILIDAD}: cómo invertir mejor un presupuesto limitado de seguridad vial.` },
     { texto: 'Muéstrame Matrícula+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'matricula' } }],
       sinConexion: 'Vamos a Matrícula+: cómo lograr que más niños tengan colegio cerca de casa.' },
   ]

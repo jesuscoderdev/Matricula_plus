@@ -11,7 +11,7 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, urlCitaCon, type IdProyecto } from './config'
+import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, NOMBRE_MOVILIDAD, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, urlCitaCon, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
 import Proli from './componentes/Proli'
@@ -105,7 +105,7 @@ export default function Inicio() {
       const demo = o.entrada.demo === 'matricula' ? 'educacion' : o.entrada.demo === 'movilidad' ? 'movilidad' : null
       if (!demo) return 'Demo no reconocido.'
       aProyecto(demo)
-      return `Listo: se abrió ${demo === 'movilidad' ? 'Movilidad+' : 'Matrícula+'}.`
+      return `Listo: se abrió ${demo === 'movilidad' ? NOMBRE_MOVILIDAD : 'Matrícula+'}.`
     }
     return 'Acción no reconocida.'
   }), [aProyecto])

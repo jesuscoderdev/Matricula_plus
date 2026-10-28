@@ -6,7 +6,7 @@
  * Los nombres y valores deben coincidir con los que entiende src/proli/ordenes.ts.
  */
 import type Anthropic from '@anthropic-ai/sdk'
-import { LOCALIDADES_MATRICULA, LOCALIDADES_MOVILIDAD } from './conocimiento.js'
+import { LOCALIDADES_MATRICULA } from './conocimiento.js'
 
 type Herramienta = Anthropic.Beta.Messages.BetaTool
 
@@ -34,13 +34,11 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] }, resumen: { type: 'string' } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---
-  h('movilidad_capitulo', 'Movilidad+: va a una pantalla. problema = El presupuesto no alcanza; escoge = ¿Cuáles 3 esquinas arreglarías tú?; falla = ¿Qué falla aquí? (qué pasó un año después); ysi = ¿Y si cada esquina se midiera con toda su información? (el modelo explicado, con la animación); antes = Antes y después (qué esquinas cambian y qué esperaba y qué hubo con cada forma de escoger); resultados = con $1.000 millones: dónde se invierte, cuánto se logra y ¿funcionó la obra?; localidad = Tu localidad; presupuesto = cuánto se evita con cada presupuesto, y barrio o avenidas; como = Cómo se hizo; fuentes; cierre = Tu reto (QR).',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'escoge', 'falla', 'ysi', 'antes', 'resultados', 'localidad', 'presupuesto', 'como', 'fuentes', 'cierre'] } })),
-  h('movilidad_localidad', 'Movilidad+: muestra en «Tu localidad» cuántas esquinas le tocan a esa localidad con $1.000 millones, y qué esperaba y qué hubo con cada forma de escoger (TODA_BOGOTA vuelve a la lista de localidades).',
-    objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MOVILIDAD, 'TODA_BOGOTA'] } })),
-  h('movilidad_lista', 'Movilidad+: en Antes y después, resalta en el mapa las esquinas que se escogen contando solo 2024 o las que escoge el modelo.',
+  h('movilidad_capitulo', 'Presupuesto+ (antes Movilidad+): va a una pantalla. problema = El presupuesto no alcanza; escoge = ¿Cuáles 3 esquinas arreglarías tú?; falla = Escogiste mirando un solo año (la información que queda por fuera); ysi = ¿Y si se usa toda la información? (Bayes empírico: historia y esquinas parecidas); antes = Antes y después (qué esquinas se escogen mirando solo 2024 y con el modelo, y qué pasó en 2025); resultados = con $1.000 millones, cuántos siniestros graves se evitan con cada forma; presupuesto = cuánto se evita con cada presupuesto, y barrio o avenidas; como = Cómo se hizo; fuentes; cierre = Tu reto (QR).',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'escoge', 'falla', 'ysi', 'antes', 'resultados', 'presupuesto', 'como', 'fuentes', 'cierre'] } })),
+  h('movilidad_lista', 'Presupuesto+: en Antes y después, resalta en el mapa las esquinas que se escogen mirando solo 2024 o las que escoge el modelo.',
     objeto({ lista: { type: 'string', enum: ['contar', 'modelo'] } })),
-  h('movilidad_presupuesto', 'Movilidad+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
+  h('movilidad_presupuesto', 'Presupuesto+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
     objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),
 
   // --- Matrícula+ (abre el demo si no está abierto) ---

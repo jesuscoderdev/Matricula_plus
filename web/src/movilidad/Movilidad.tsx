@@ -1,10 +1,11 @@
 /**
- * Movilidad+: «Con este presupuesto, ¿dónde se evitan más siniestros graves?», con enfoque en las
- * calles de barrio. Sección propia: sus datos (public/movilidad/datos) solo se leen aquí.
+ * Presupuesto+ (antes Movilidad+): el presupuesto para seguridad vial rinde más cuando se escoge con
+ * más información, en las calles de barrio. Sección propia: sus datos (public/movilidad/datos) solo
+ * se leen aquí.
  *
  * Recorrido con la estructura de Matrícula+: Problema (el presupuesto no alcanza; ¿cuáles 3
- * arreglarías?) → Solución (¿qué falla?; ¿y si…?) → Antes y después → Resultados (con la localidad
- * y el presupuesto) → Cómo se hizo → Tu reto. Misma navegación que Matrícula+: secciones, ← Atrás
+ * arreglarías?) → Solución (escogiste mirando un solo año; ¿y si se usa toda la información?) →
+ * Antes y después → Resultados (y el presupuesto) → Cómo se hizo → Tu reto. Misma navegación que Matrícula+: secciones, ← Atrás
  * (también el atrás del celular), logo que reinicia, teclado en escritorio, recorrido solo en ?modo=auto.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
@@ -14,12 +15,12 @@ import { esTotem, leerModo, modoAutomatico, type Modo } from '../modo'
 import { BotonTema, LogoReinicio, pulsoLogo } from '../componentes/Marca'
 import Intro from '../componentes/Intro'
 import Esqueleto from '../componentes/Esqueleto'
-import { cargarMovilidad, esquinasCon, millones, nombreLocalidad, type DatosMovilidad, type Nivel } from './datos'
+import { cargarMovilidad, esquinasCon, millones, type DatosMovilidad, type Nivel } from './datos'
 import { informarPantalla, registrar } from '../proli/ordenes'
 import { recordado, recordar } from '../recordar'
 import MapaMovilidad from './MapaMovilidad'
 import {
-  Antes, CAPITULOS_MOV, Como, ESQUINAS_A_ESCOGER, Escoge, Falla, Fuentes, Localidad, PortadaMov, Presupuesto, Problema, Resultados, Reto, SECCIONES_MOV,
+  Antes, CAPITULOS_MOV, Como, ESQUINAS_A_ESCOGER, Escoge, Falla, Fuentes, PortadaMov, Presupuesto, Problema, Resultados, Reto, SECCIONES_MOV,
   Ysi, anioBase, seccionDe, tamanoHex, tusEsquinas, type CapituloMov, type PropsMov, type VistaMov,
 } from './Paneles'
 import { guionDe } from './guion'
@@ -27,7 +28,7 @@ import { guionDe } from './guion'
 const ORDEN: VistaMov[] = ['portada', ...CAPITULOS_MOV.map((c) => c.id)]
 
 interface Recordado {
-  vista: VistaMov; tocadas: number[]; localidad: number | null; monto: number | null; lista: 'contar' | 'modelo'; version: string
+  vista: VistaMov; tocadas: number[]; monto: number | null; lista: 'contar' | 'modelo'; version: string
 }
 
 export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPortada }: {
@@ -52,7 +53,6 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   const [intro, setIntro] = useState(!antes)
   const [vista, setVista] = useState<VistaMov>(antes?.vista ?? 'portada')
   const [tocadas, setTocadas] = useState<number[]>(antes?.tocadas ?? [])
-  const [localidad, setLocalidad] = useState<number | null>(antes?.localidad ?? null)
   // Presupuesto en millones; null = el primer monto de referencia (sale de los datos)
   const [montoElegido, setMonto] = useState<number | null>(antes?.monto ?? null)
   const monto = montoElegido ?? datos?.experiencia.pantalla_presupuesto_barrio.escenarios.bajo.presupuesto_millones ?? 0
@@ -63,13 +63,13 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
     setError(null)
     cargarMovilidad().then((d) => {
       // Las esquinas recordadas son posiciones en los datos: si cambió el modelo, ya no valen
-      if (antes && antes.version !== d.experiencia.version_modelo) { setTocadas([]); setLocalidad(null) }
+      if (antes && antes.version !== d.experiencia.version_modelo) setTocadas([])
       setDatos(d)
     }).catch((e) => setError(String(e.message ?? e)))
   }, [intento, antes])
   useEffect(() => {
-    if (datos) recordar('movilidad', { vista, tocadas, localidad, monto: montoElegido, lista, version: datos.experiencia.version_modelo } satisfies Recordado)
-  }, [datos, vista, tocadas, localidad, montoElegido, lista])
+    if (datos) recordar('movilidad', { vista, tocadas, monto: montoElegido, lista, version: datos.experiencia.version_modelo } satisfies Recordado)
+  }, [datos, vista, tocadas, montoElegido, lista])
   useEffect(() => () => recordar('movilidad', null), [])
   useEffect(() => { document.documentElement.dataset.modo = modo }, [modo])
   useEffect(() => {
@@ -90,7 +90,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   useEffect(() => {
     if (primerPulso.current) { primerPulso.current = false; return }
     pulsoLogo()
-  }, [vista, localidad, tocadas.length])
+  }, [vista, tocadas.length])
 
   // Historial para "← Atrás"
   const pila = useRef<VistaMov[]>([])
@@ -98,21 +98,20 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   vistaRef.current = vista
   const reiniciar = useCallback(() => {
     pila.current = []
-    setVista('portada'); setTocadas([]); setLocalidad(null); setMonto(null); setLista('modelo')
+    setVista('portada'); setTocadas([]); setMonto(null); setLista('modelo')
   }, [])
   const ir = useCallback((v: VistaMov) => {
     if (v === 'portada') return reiniciar()
     if (vistaRef.current !== v) pila.current.push(vistaRef.current)
     setVista(v)
   }, [reiniciar])
-  /** Un paso atrás: primero quita la última esquina escogida o suelta la localidad; en la portada, vuelve al inicio. */
+  /** Un paso atrás: primero quita la última esquina escogida; en la portada, vuelve al inicio. */
   const atras = useCallback(() => {
     if (vista === 'portada') return alSalir?.()
     if (vista === 'escoge' && tocadas.length) return setTocadas((t) => t.slice(0, -1))
-    if (vista === 'localidad' && localidad != null) return setLocalidad(null)
     const i = ORDEN.indexOf(vista)
     setVista(pila.current.pop() ?? (i > 0 ? ORDEN[i - 1] : 'portada'))
-  }, [vista, tocadas.length, localidad, alSalir])
+  }, [vista, tocadas.length, alSalir])
   const refAtras = useRef(atras)
   refAtras.current = atras
   useEffect(() => {
@@ -140,19 +139,12 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           const v = String(e.capitulo) as VistaMov
           if (!ORDEN.includes(v)) return 'Capítulo no reconocido.'
           refIr.current(v)
-          return `Listo: Movilidad+ muestra ${v === 'portada' ? 'su portada' : `el capítulo ${CAPITULOS_MOV.find((c) => c.id === v)!.nombre}`}.`
-        }
-        case 'movilidad_localidad': {
-          if (e.localidad === 'TODA_BOGOTA') { setLocalidad(null); refIr.current('localidad'); return 'Listo: «Tu localidad» muestra la lista de localidades.' }
-          const i = datos.sitios.localidades.indexOf(String(e.localidad))
-          if (i < 0) return 'Localidad no reconocida en Movilidad+.'
-          setLocalidad(i); refIr.current('localidad')
-          return `Listo: Resultados muestra el detalle de ${nombreLocalidad(datos.sitios.localidades[i])}.`
+          return `Listo: ${NOMBRE_MOVILIDAD} muestra ${v === 'portada' ? 'su portada' : `el capítulo ${CAPITULOS_MOV.find((c) => c.id === v)!.nombre}`}.`
         }
         case 'movilidad_lista': {
           if (e.lista !== 'contar' && e.lista !== 'modelo') return 'Lista no reconocida.'
           setLista(e.lista); refIr.current('antes')
-          return `Listo: el mapa de Antes y después resalta las esquinas ${e.lista === 'contar' ? 'que se escogen contando' : 'que escoge el modelo'}.`
+          return `Listo: el mapa de Antes y después resalta las esquinas ${e.lista === 'contar' ? 'que se escogen mirando solo un año' : 'que escoge el modelo'}.`
         }
         case 'movilidad_presupuesto': {
           const n = String(e.nivel) as Nivel
@@ -162,19 +154,18 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
           return `Listo: el capítulo Presupuesto muestra ${millones(esc[n].presupuesto_millones)}.`
         }
       }
-      return 'Acción no reconocida en Movilidad+.'
+      return `Acción no reconocida en ${NOMBRE_MOVILIDAD}.`
     })
   }, [datos])
   // Qué está viendo el visitante (Proli lo recibe como contexto)
   useEffect(() => {
     if (!datos) return
     const cap = vista === 'portada' ? 'portada' : CAPITULOS_MOV.find((c) => c.id === vista)?.nombre ?? vista
-    const extra = vista === 'localidad' && localidad != null ? `, localidad ${nombreLocalidad(datos.sitios.localidades[localidad])}`
-      : vista === 'presupuesto' ? `, presupuesto de ${millones(monto)}`
-        : vista === 'antes' ? `, mapa con las esquinas ${lista === 'contar' ? 'que se escogen contando' : 'del modelo'}`
-          : vista === 'escoge' || vista === 'falla' ? `, ${tocadas.length} esquinas escogidas` : ''
-    informarPantalla(`Movilidad+, capítulo ${cap}${extra}`)
-  }, [datos, vista, localidad, monto, lista, tocadas.length])
+    const extra = vista === 'presupuesto' ? `, presupuesto de ${millones(monto)}`
+      : vista === 'antes' ? `, mapa con las esquinas ${lista === 'contar' ? 'que se escogen mirando solo un año' : 'del modelo'}`
+        : vista === 'escoge' || vista === 'falla' ? `, ${tocadas.length} esquinas escogidas` : ''
+    informarPantalla(`${NOMBRE_MOVILIDAD}, capítulo ${cap}${extra}`)
+  }, [datos, vista, monto, lista, tocadas.length])
 
   const tocar = useCallback((i: number) => {
     setTocadas((t) => (t.includes(i) ? t.filter((x) => x !== i) : [...t, i].slice(-ESQUINAS_A_ESCOGER)))
@@ -208,12 +199,9 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
     if (vista === 'escoge') {
       // En cada vuelta, otras tres de la lista (casi siempre las de arriba, como haría un visitante)
       setTocadas([])
-      for (let j = 0; j < ESQUINAS_A_ESCOGER; j++) en(2 + 1.8 * j, () => tocar(g.tabla[(vuelta + j * (3 + (vuelta % 2))) % g.tabla.length]))
+      for (let j = 0; j < ESQUINAS_A_ESCOGER; j++) en(2 + 1.8 * j, () => tocar(g.tablaDesordenada[(vuelta + j * (3 + (vuelta % 2))) % g.tablaDesordenada.length]))
     }
     if (vista === 'antes') { setLista('contar'); en(7, () => setLista('modelo')) }
-    if (vista === 'localidad') {
-      setLocalidad(null); en(1.5, () => setLocalidad(g.porLocalidad[vuelta % Math.min(4, g.porLocalidad.length)].loc))
-    }
     if (vista === 'presupuesto') {
       const esc = datos.experiencia.pantalla_presupuesto_barrio.escenarios
       setMonto(null); en(4, () => setMonto(esc.medio.presupuesto_millones)); en(7.5, () => setMonto(esc.alto.presupuesto_millones))
@@ -251,13 +239,11 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
     if (!datos) return { capa: 'k24', interactivo: false, croquis: true }
     const g = guionDe(datos)
     const a0 = anioBase(datos)
-    // En Resultados y Tu localidad, tocar una localidad la elige (y lleva a su detalle)
-    const elegir = interactivo && (vista === 'resultados' || vista === 'localidad')
-      ? (l: number | null) => { setLocalidad(l); if (l != null && vista !== 'localidad') ir('localidad') } : undefined
-    const lugar = { croquis: true, localidad: vista === 'localidad' ? localidad : null, onLocalidad: elegir }
-    // Su puesto en la lista de «¿Cuáles escogerías?»
-    const puesto = (i: number) => (g.tabla.includes(i) ? String(g.tabla.indexOf(i) + 1) : '')
-    const delModelo = { indices: g.comparacionPresupuesto.modelo.lista, color: 'verde' as const, texto: `Las ${g.comparacionPresupuesto.esquinas} esquinas de ${NOMBRE_MOVILIDAD}` }
+    const lugar = { croquis: true, localidad: null }
+    // Su número en la lista de «¿Cuáles escogerías?» (en desorden)
+    const puesto = (i: number) => (g.tablaDesordenada.includes(i) ? String(g.tablaDesordenada.indexOf(i) + 1) : '')
+    const cP = g.comparacionPresupuesto
+    const delModelo = { indices: cP.modelo.lista, color: 'verde' as const, texto: `Las ${cP.esquinas} esquinas de ${NOMBRE_MOVILIDAD}` }
     switch (vista) {
       case 'portada':
         return { capa: 'k24', interactivo: false, respirar: true, leyenda: false, agrupar: true, croquis: true,
@@ -266,38 +252,31 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       case 'problema':
         return { ...lugar, capa: 'k24', interactivo }
       case 'escoge':
-        return { croquis: true, capa: 'k24', interactivo, tocadas, onTocar: modo === 'auto' ? undefined : tocar, candidatas: g.tabla, etiqueta: puesto,
-          resaltar: [{ indices: g.tabla.filter((i) => !tocadas.includes(i)), color: 'naranja', hueco: true, texto: `Las ${g.tabla.length} con más siniestros graves en ${a0}` }] }
-      case 'falla': {
-        const mias = tusEsquinas(datos, tocadas)
-        return { croquis: true, capa: 'k25', interactivo, tocadas: mias, etiqueta: puesto,
-          resaltar: [{ indices: g.comparacion30.contar1.lista.filter((i) => !mias.includes(i)), color: 'naranja', hueco: true,
-            texto: `Las ${g.comparacion30.esquinas} con más siniestros graves en ${a0}` }] }
-      }
-      case 'ysi': {
-        const i = g.ejemplo, d = 0.02
-        return { croquis: true, capa: 'kappa', interactivo, encuadre: [[datos.sitios.lon[i] - d, datos.sitios.lat[i] - d * 0.8], [datos.sitios.lon[i] + d, datos.sitios.lat[i] + d * 0.8]],
-          resaltar: [{ indices: [i], color: 'naranja', texto: 'La esquina del ejemplo' }] }
-      }
+        return { croquis: true, capa: 'k24', interactivo, tocadas, onTocar: modo === 'auto' ? undefined : tocar, candidatas: g.tablaDesordenada, etiqueta: puesto,
+          resaltar: [{ indices: g.tablaDesordenada.filter((i) => !tocadas.includes(i)), color: 'naranja', hueco: true, texto: `Las ${g.tabla.length} con más siniestros graves en ${a0}` }] }
+      case 'falla':
+        // Las que no se ven mirando solo un año: llevan años con riesgo
+        return { croquis: true, capa: 'k24', interactivo, tocadas: tusEsquinas(datos, tocadas), etiqueta: puesto,
+          resaltar: [{ indices: g.entranPresupuesto, color: 'verde', hueco: true, texto: `${g.entranPresupuesto.length} esquinas con riesgo de varios años` }] }
+      case 'ysi':
+        return { ...lugar, capa: 'kappa', interactivo }
       case 'antes': {
-        const c = g.comparacion30, propia = lista === 'contar' ? c.contar1.lista : c.modelo.lista
-        const otra = new Set(lista === 'contar' ? c.modelo.lista : c.contar1.lista)
+        const propia = lista === 'contar' ? cP.contar1.lista : cP.modelo.lista
+        const otra = new Set(lista === 'contar' ? cP.modelo.lista : cP.contar1.lista)
         return { croquis: true, capa: lista === 'contar' ? 'k24' : 'kappa', interactivo,
           resaltar: [
-            { indices: propia.filter((i) => otra.has(i)), color: 'gris', texto: 'En las dos listas' },
-            { indices: propia.filter((i) => !otra.has(i)), color: lista === 'contar' ? 'naranja' : 'verde', texto: lista === 'contar' ? `Solo contando ${a0}` : 'Solo con el modelo' },
+            { indices: propia.filter((i) => otra.has(i)), color: 'gris', texto: 'Con las dos formas' },
+            { indices: propia.filter((i) => !otra.has(i)), color: lista === 'contar' ? 'naranja' : 'verde', texto: lista === 'contar' ? `Solo mirando ${a0}` : `Solo con ${NOMBRE_MOVILIDAD}` },
           ] }
       }
       case 'resultados':
-        return { ...lugar, capa: 'k25', interactivo, resaltar: [delModelo] }
-      case 'localidad':
-        return { ...lugar, capa: 'kappa', interactivo, resaltar: [delModelo], margen: { arriba: 2 * rem, abajo: 2 * rem, izquierda: 2 * rem, derecha: 3 * rem } }
+        return { ...lugar, capa: 'kappa', interactivo, resaltar: [delModelo] }
       case 'presupuesto':
         return { croquis: true, capa: 'sel', esquinas: esquinasCon(datos, monto), interactivo }
       default:
         return { ...lugar, capa: 'k24', interactivo, respirar: true, agrupar: true, leyenda: false }
     }
-  }, [vista, modo, localidad, tocadas, monto, datos, lista, ir, tocar])
+  }, [vista, modo, tocadas, monto, datos, lista, tocar])
 
   const entrada = intro && <Intro alTerminar={() => setIntro(false)} nombre={NOMBRE_MOVILIDAD} lema={LEMA_MOVILIDAD} />
   if (error || !datos) {
@@ -311,7 +290,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   }
 
   const props: PropsMov = {
-    datos, modo, ir, tocadas, setTocadas, localidad, setLocalidad, monto, setMonto, lista, setLista, alInicio: alSalir, alPortada,
+    datos, modo, ir, tocadas, setTocadas, monto, setMonto, lista, setLista, alInicio: alSalir, alPortada,
   }
   const panel = (() => {
     switch (vista) {
@@ -321,7 +300,6 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       case 'ysi': return <Ysi {...props} />
       case 'antes': return <Antes {...props} />
       case 'resultados': return <Resultados {...props} />
-      case 'localidad': return <Localidad {...props} />
       case 'presupuesto': return <Presupuesto {...props} />
       case 'como': return <Como {...props} />
       case 'fuentes': return <Fuentes {...props} />
