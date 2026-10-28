@@ -8,7 +8,7 @@
  * afirma cómo escoge hoy Bogotá: «una forma común de escoger es contar».
  */
 import { motion } from 'framer-motion'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from '../componentes/Marca'
 import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
@@ -33,7 +33,7 @@ export const SECCIONES_MOV: { nombre: string; vistas: CapituloMov[] }[] = [
 /** Cada pantalla, en orden (el nombre es el que oye Proli) */
 export const CAPITULOS_MOV: { id: CapituloMov; nombre: string }[] = [
   { id: 'problema', nombre: 'El presupuesto no alcanza' },
-  { id: 'escoge', nombre: '¿Cuáles 3 arreglarías tú?' },
+  { id: 'escoge', nombre: '¿Cuáles 3 esquinas arreglarías tú?' },
   { id: 'falla', nombre: '¿Qué falla aquí?' },
   { id: 'ysi', nombre: '¿Y si cada esquina se midiera con toda su información?' },
   { id: 'antes', nombre: 'Antes y después' },
@@ -171,11 +171,10 @@ export function Problema({ datos, modo, ir }: PropsMov) {
   return (
     <div className="panel">
       <Cabeza c="problema" titulo={<>El presupuesto no alcanza para <em>todas</em> las esquinas</>}>
-        <p className="lead">En {anioBase(datos)}, <b>{entero(g.conGraves)} esquinas de barrio</b> tuvieron al menos un siniestro grave.
-          Con {millones(p.escenarios.bajo.presupuesto_millones)} alcanza para poner reductores de velocidad en unas <b>{entero(p.escenarios.bajo.esquinas)}</b>.</p>
+        <p className="lead">En {anioBase(datos)}:</p>
       </Cabeza>
       <div className="cifras-mov">
-        <Cifra n={entero(g.conGraves)} tono="acento">esquinas de barrio con siniestros graves en {anioBase(datos)}</Cifra>
+        <Cifra n={entero(g.conGraves)} tono="acento">esquinas de barrio con siniestros graves</Cifra>
         <Cifra n={entero(p.escenarios.bajo.esquinas)}>esquinas que alcanzan con {millones(p.escenarios.bajo.presupuesto_millones)} (≈ {entero(p.costo_por_esquina_millones)} millones cada una)</Cifra>
       </div>
       <Respuesta>¿Dónde poner la plata para evitar más siniestros graves?</Respuesta>
@@ -192,15 +191,15 @@ export function Escoge({ datos, modo, ir, tocadas, setTocadas }: PropsMov) {
   const tocar = (i: number) => setTocadas(tocadas.includes(i) ? tocadas.filter((x) => x !== i) : [...tocadas, i].slice(-ESQUINAS_A_ESCOGER))
   return (
     <div className="panel">
-      <Cabeza c="escoge" titulo={<>¿Cuáles <em>{ESQUINAS_A_ESCOGER}</em> arreglarías tú?</>}>
-        <p className="lead">Una forma común de escoger es <b>contar</b>: arreglar las esquinas con más siniestros graves. Estas son las {g.tabla.length} de barrio con más en {anioBase(datos)}.</p>
+      <Cabeza c="escoge" titulo={<>¿Cuáles <em>{ESQUINAS_A_ESCOGER} esquinas</em> arreglarías tú?</>}>
+        <p className="lead">Una forma común de escoger es <b>contar</b>: arreglar las esquinas con más siniestros graves. Estas son las {g.tabla.length} esquinas de barrio con más siniestros graves en {anioBase(datos)}.</p>
       </Cabeza>
       <div className="lista-mov">
         {g.tabla.map((i, k) => (
           <button key={i} className="esq-mov" aria-pressed={tocadas.includes(i)} disabled={modo === 'auto'} onClick={() => tocar(i)} data-proli={`esquina-${k + 1}`}>
             <span className="esq-mov__n">{k + 1}</span>
             <span className="esq-mov__donde"><b>{loc(datos, i)}</b><small>esquina de barrio · zona de {tamanoHex(datos)}</small></span>
-            <span className="esq-mov__k">{entero(s.k24[i])} <small>en {anioBase(datos)}</small></span>
+            <span className="esq-mov__k">{entero(s.k24[i])} <small>siniestros graves en {anioBase(datos)}</small></span>
           </button>
         ))}
       </div>
@@ -228,7 +227,7 @@ export function Falla({ datos, modo, ir, tocadas }: PropsMov) {
     <div className="panel">
       <Cabeza c="falla" titulo={<>¿Qué <em>falla</em> aquí?</>}>
         <p className="lead">{tocadas.length ? 'Escogiste' : 'Estas son'} contando: las de más siniestros graves en {a0}.
-          En {tocadas.length ? 'tus esquinas' : 'ellas'} pasaron de <b>{entero(suma(s.k24))}</b> a <b>{entero(suma(s.k25))}</b> en {a1}.</p>
+          En {tocadas.length ? 'tus esquinas' : 'ellas'} pasaron de <b>{entero(suma(s.k24))} siniestros graves</b> en {a0} a <b>{entero(suma(s.k25))}</b> en {a1}.</p>
       </Cabeza>
       <div className="barras-mov">
         {mias.map((i) => (
@@ -242,8 +241,8 @@ export function Falla({ datos, modo, ir, tocadas }: PropsMov) {
         ))}
       </div>
       <div className="cifras-mov">
-        <Cifra n={<>{entero(c.espera)} → {entero(c.hubo)}</>} tono="contar">las {entero(g.comparacion30.esquinas)} esquinas de barrio con más siniestros graves en {a0}, un año después</Cifra>
-        <Cifra n={<>{entero(g.bajaron)} de {entero(g.comparacion30.esquinas)}</>}>bajaron. Pasa cada año: las {entero(antes.de)} de {antes.anio} bajaron de {entero(antes.graves_antes)} a {entero(antes.graves_despues)}</Cifra>
+        <Cifra n={<>{entero(c.espera)} → {entero(c.hubo)}</>} tono="contar">siniestros graves en {a0} y en {a1} en las {entero(g.comparacion30.esquinas)} esquinas de barrio con más siniestros graves en {a0}</Cifra>
+        <Cifra n={<>{entero(g.bajaron)} de {entero(g.comparacion30.esquinas)}</>}>esquinas tuvieron menos siniestros graves en {a1}. Pasa cada año: las {entero(antes.de)} esquinas con más en {antes.anio} bajaron de {entero(antes.graves_antes)} a {entero(antes.graves_despues)} siniestros graves al año siguiente</Cifra>
       </div>
       <Respuesta>Un año muy malo es, en parte, azar. Si solo cuentas, prometes de más y puedes invertir donde el riesgo ya iba a bajar.</Respuesta>
       <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('ysi')}>¿Qué pasaría si…? →</button></Pie>
@@ -333,9 +332,9 @@ export function Ysi({ datos, modo, ir }: PropsMov) {
       <Arrastre key={vuelta} datos={datos} i={i} />
       {modo !== 'auto' && <button className="boton-texto" onClick={() => setVuelta((x) => x + 1)}>↻ Ver de nuevo</button>}
       <p className="nota">Ejemplo real: la esquina de barrio con más siniestros graves en {a0}, en {loc(datos, i)}. Tuvo <b>{s.k23[i]}</b> en {a0 - 1} y <b>{s.k24[i]}</b> en {a0}.
-        Contar solo {a0} espera {entero(s.k24[i])}; contar los dos años, {decimal(s.bruto[i])}. En sus {entero(par.sitios)} esquinas parecidas lo normal es ≈ {decimal(par.porAnio, 2)} al año:
-        casi todas sin siniestros graves. Su historia pesa {100 - pesoParecidas} % y las parecidas, {pesoParecidas} %, así que {NOMBRE_MOVILIDAD} estima <b>≈ {decimal(s.kappa[i])}</b>.
-        En {a1} tuvo {s.k25[i]}.</p>
+        Contar solo {a0} espera {entero(s.k24[i])} siniestros graves al año; contar los dos años, {decimal(s.bruto[i])}. En sus {entero(par.sitios)} esquinas parecidas lo normal es ≈ {decimal(par.porAnio, 2)} al año:
+        casi todas sin siniestros graves. Su historia pesa {100 - pesoParecidas} % y las parecidas, {pesoParecidas} %, así que {NOMBRE_MOVILIDAD} estima <b>≈ {decimal(s.kappa[i])} al año</b>.
+        En {a1} tuvo {s.k25[i]} siniestros graves.</p>
       <p className="nota-mov">Mirar más de un año cambia <b>qué esquinas escoges</b>. Separar el azar te dice <b>cuánto vas a evitar</b>.</p>
       <div className="dos-mov">
         <div className="dos-mov__contar">
@@ -366,6 +365,22 @@ export function Ysi({ datos, modo, ir }: PropsMov) {
 }
 
 // ---------------------------------------------------------------- 3. Antes y después
+/** El modelo «piensa» antes de mostrar el antes y el después: tres pasos que se encienden uno a uno */
+function Piensa({ pasos, alTerminar }: { pasos: ReactNode[]; alTerminar: () => void }) {
+  const [hechos, setHechos] = useState(0)
+  useEffect(() => {
+    const t = 650
+    const relojes = pasos.map((_, i) => setTimeout(() => setHechos(i + 1), t * (i + 0.3)))
+    relojes.push(setTimeout(alTerminar, t * (pasos.length + 0.6)))
+    return () => relojes.forEach(clearTimeout)
+  }, [pasos.length, alTerminar])
+  return (
+    <div className="piensa-mov" role="status">
+      {pasos.map((p, i) => <p key={i} className={i < hechos ? 'listo' : ''}>{p}</p>)}
+    </div>
+  )
+}
+
 export function Antes({ datos, modo, ir, tocadas, lista, setLista }: PropsMov) {
   const G = guionDe(datos)
   const g = G.comparacion30, cambio = G.cambios30
@@ -373,15 +388,31 @@ export function Antes({ datos, modo, ir, tocadas, lista, setLista }: PropsMov) {
   const a0 = anioBase(datos), a1 = anioVal(datos)
   const max = Math.max(...FORMAS.flatMap((f) => [g[f].espera, g[f].hubo]))
   const suma = (v: number[]) => tocadas.reduce((t, i) => t + v[i], 0)
-  return (
+  const quieto = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const [listo, setListo] = useState(quieto)
+  const terminar = useCallback(() => setListo(true), [])
+  const cabeza = (
+    <Cabeza c="antes" titulo={<>Antes: escoges contando. <em>Después: escoges con el modelo.</em></>}>
+      <p className="lead">Con datos hasta {a0} se escogieron las <b>{entero(g.esquinas)} esquinas de barrio</b> de cada forma. Luego se miró <b>qué pasó en {a1}</b>, un año que el modelo no vio.</p>
+    </Cabeza>
+  )
+  if (!listo) return (
     <div className="panel">
-      <Cabeza c="antes" titulo={<>Antes: escoges contando. <em>Después: escoges con el modelo.</em></>}>
-        <p className="lead">Con datos hasta {a0} se escogieron las <b>{entero(g.esquinas)} esquinas de barrio</b> de cada forma. Luego se miró <b>qué pasó en {a1}</b>, un año que el modelo no vio.</p>
-      </Cabeza>
+      {cabeza}
+      <Piensa alTerminar={terminar} pasos={[
+        <>Conectando 3 años de siniestros graves ({a0 - 1}, {a0} y {a1})…</>,
+        <>Comparando cada esquina con miles de esquinas parecidas…</>,
+        <>Calculando el riesgo real de cada esquina de barrio…</>,
+      ]} />
+    </div>
+  )
+  return (
+    <motion.div className="panel" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+      {cabeza}
       {tocadas.length > 0 && (
         <div className="tarjeta tarjeta--violeta">
           <span className="etiqueta">Tus {tocadas.length} esquinas</span>
-          <p>Contando esperabas <b>{entero(suma(s.k24))}</b>. El modelo esperaba <b>≈ {entero(suma(s.kappa))}</b>. En {a1} hubo <b>{entero(suma(s.k25))}</b>.</p>
+          <p>Contando esperabas <b>{entero(suma(s.k24))} siniestros graves</b> en {a1}. El modelo esperaba <b>≈ {entero(suma(s.kappa))}</b>. Hubo <b>{entero(suma(s.k25))}</b>.</p>
         </div>
       )}
       <p className="nota-mov"><b>Cambian {entero(cambio.salen.n)} de las {entero(g.esquinas)} esquinas</b> frente a contar solo {a0}:</p>
@@ -389,7 +420,7 @@ export function Antes({ datos, modo, ir, tocadas, lista, setLista }: PropsMov) {
         <Cifra n={<>{entero(cambio.salen.k24)} → {entero(cambio.salen.k25)}</>} tono="contar">
           siniestros graves en {a0} y en {a1} en las {entero(cambio.salen.n)} que <b>salen</b>. En {a0 - 1} tuvieron {entero(cambio.salen.k23)}: fue un año malo.</Cifra>
         <Cifra n={<>{entero(cambio.entran.k24)} → {entero(cambio.entran.k25)}</>} tono="bueno">
-          en las {entero(cambio.entran.n)} que <b>entran</b>. En {a0 - 1} tuvieron {entero(cambio.entran.k23)}: llevan años con riesgo.</Cifra>
+          siniestros graves en {a0} y en {a1} en las {entero(cambio.entran.n)} que <b>entran</b>. En {a0 - 1} tuvieron {entero(cambio.entran.k23)}: llevan años con riesgo.</Cifra>
       </div>
       <div className="promesas promesas--tres">
         {FORMAS.map((f) => <EsperoHubo key={f} etiqueta={nombreForma(datos, f)} espera={g[f].espera} hubo={g[f].hubo} max={max} bien={f === 'modelo'} />)}
@@ -405,15 +436,15 @@ export function Antes({ datos, modo, ir, tocadas, lista, setLista }: PropsMov) {
       <details className="como-calculamos">
         <summary className="boton-texto">¿Son las mismas esquinas? ▾</summary>
         <ul className="pruebas-mov">
-          <li><b>Contando solo {a0}</b>, el modelo coincide en {entero(g.contar1.comun)} de {entero(g.esquinas)}. Las del modelo tuvieron más siniestros en {a1}:
+          <li><b>Contando solo {a0}</b>, el modelo coincide en {entero(g.contar1.comun)} de {entero(g.esquinas)}. Las del modelo tuvieron más siniestros graves en {a1}:
             {' '}{entero(g.modelo.hubo)} frente a {entero(g.contar1.hubo)}.</li>
           <li><b>Contando dos años</b>, coinciden {entero(g.contar2.comun)} de {entero(g.esquinas)}: mirar más de un año ya acerca la lista a la del modelo. La diferencia está en
-            cuánto se espera: {entero(g.contar2.espera)} frente a ≈ {entero(g.modelo.espera)}.</li>
+            cuánto se espera: {entero(g.contar2.espera)} siniestros graves frente a ≈ {entero(g.modelo.espera)}.</li>
           <li>Muchas esquinas empatan con el mismo número de siniestros. Los empates se rompen por el año más reciente y luego por el código de la zona, como en el modelo.</li>
         </ul>
       </details>
       <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('resultados')}>¿Y con el presupuesto? →</button></Pie>
-    </div>
+    </motion.div>
   )
 }
 
@@ -448,32 +479,37 @@ export function Resultados({ datos, modo, ir }: PropsMov) {
         <Cifra n={`${mas >= 0 ? '+' : '−'}${entero(Math.abs(mas))}`} tono="bueno">siniestros graves evitados al año con la misma plata, frente a contar solo {a0} ({pct(masPct)})</Cifra>
         <Cifra n={<>{entero(cambio.entran.n)} de {entero(p.esquinas)}</>} tono="acento">esquinas cambian: entran las que llevan años con riesgo</Cifra>
       </div>
-      <p className="nota-mov">Las {entero(cambio.salen.n)} que salen tuvieron {entero(cambio.salen.k24)} siniestros graves en {a0}, pero {entero(cambio.salen.k23)} en {a0 - 1}, y {entero(cambio.salen.k25)} en {a1}.
-        Las {entero(cambio.entran.n)} que entran: {entero(cambio.entran.k24)} en {a0}, {entero(cambio.entran.k23)} en {a0 - 1} y <b>{entero(cambio.entran.k25)}</b> en {a1}.</p>
+      <ul className="nota-mov">
+        <li><b>Las {entero(cambio.salen.n)} que escoge contar solo {a0}</b> y el modelo no: tuvieron {entero(cambio.salen.k23)} siniestros graves en {a0 - 1},
+          {' '}{entero(cambio.salen.k24)} en {a0} y {entero(cambio.salen.k25)} en {a1}. Un año malo.</li>
+        <li><b>Las {entero(cambio.entran.n)} que escoge el modelo</b> en su lugar: tuvieron {entero(cambio.entran.k23)} siniestros graves en {a0 - 1},
+          {' '}{entero(cambio.entran.k24)} en {a0} y <b>{entero(cambio.entran.k25)} en {a1}</b>. Riesgo de varios años.</li>
+      </ul>
       {reparto && (
         <div className="pregunta-mov">
           <b>¿Barrio o avenidas?</b>
-          <span>Con {millones(medio)}, todo en calles de barrio evita ≈ <b>{entero(reparto.todo_en_barrio)}</b> siniestros graves al año; todo en avenidas, ≈ <b>{entero(reparto.todo_en_avenidas)}</b>.
-            Saber cuánto rinde cada peso dice dónde ponerlo.</span>
+          <span>Según {NOMBRE_MOVILIDAD}, con {millones(medio)}: si todo se invierte en reductores de velocidad en calles de barrio, se evitarían
+            ≈ <b>{entero(reparto.todo_en_barrio)} siniestros graves al año</b>; si todo se invierte en semáforos con paso peatonal anticipado en avenidas,
+            ≈ <b>{entero(reparto.todo_en_avenidas)} al año</b>. Saber cuántos siniestros evita cada peso en cada tipo de vía dice dónde ponerlo.</span>
         </div>
       )}
 
       <h2 className="subtitulo-mov">Cuánto se logra</h2>
       <div className="tabla-mov">
         <table>
-          <thead><tr><th /><th>Promete evitar al año</th><th>Se evitan ≈</th></tr></thead>
+          <thead><tr><th>Siniestros graves al año</th><th>Promete evitar</th><th>Se evitan ≈</th></tr></thead>
           <tbody>{FORMAS.map(fila)}</tbody>
         </table>
       </div>
       <div className="cifras-mov">
-        <Cifra n={<>{entero(p.modelo.espera * r)} ≈ {entero(p.modelo.hubo * r)}</>} tono="acento">una meta que se puede firmar y cumplir</Cifra>
-        <Cifra n={<>{entero(p.contar1.espera * r)} → {entero(p.contar1.hubo * r)}</>} tono="contar">lo que promete contar solo {a0} y lo que se evita</Cifra>
+        <Cifra n={<>{entero(p.modelo.espera * r)} ≈ {entero(p.modelo.hubo * r)}</>} tono="acento">siniestros graves al año: lo que {NOMBRE_MOVILIDAD} promete evitar y lo que se evita. Una meta que se puede firmar y cumplir</Cifra>
+        <Cifra n={<>{entero(p.contar1.espera * r)} → {entero(p.contar1.hubo * r)}</>} tono="contar">siniestros graves al año: lo que promete evitar contar solo {a0} y lo que de verdad se evita</Cifra>
       </div>
       <div className="pregunta-mov">
         <b>¿Y si se cuentan dos años?</b>
         <span>Se escogen casi las mismas esquinas ({entero(p.contar2.comun)} de {entero(p.esquinas)} en común), y con ellas se evitan incluso un poco más
-          (≈ {entero(p.contar2.hubo * r)} frente a ≈ {entero(p.modelo.hubo * r)}). La diferencia está en la promesa: contando dos años se promete evitar {entero(p.contar2.espera * r)};
-          el modelo promete ≈ {entero(p.modelo.espera * r)}.</span>
+          (≈ {entero(p.contar2.hubo * r)} siniestros graves al año frente a ≈ {entero(p.modelo.hubo * r)}). La diferencia está en la promesa: contando dos años
+          se promete evitar {entero(p.contar2.espera * r)} al año; el modelo promete ≈ {entero(p.modelo.espera * r)}.</span>
       </div>
 
       <h2 className="subtitulo-mov">¿Funcionó la obra?</h2>
@@ -481,11 +517,13 @@ export function Resultados({ datos, modo, ir }: PropsMov) {
       <div className="dos-mov">
         <div className="dos-mov__contar">
           <b>Antes y después</b>
-          <span>Bajaron de {entero(ev.antes_2024)} a {entero(ev.despues_2025)}: parece que la obra los bajó un <b>{pct(Math.abs(ev.efecto_antes_despues_pct), false)}</b>.</span>
+          <span>Esas {entero(ev.esquinas)} esquinas pasaron de {entero(ev.antes_2024)} siniestros graves en {a0} a {entero(ev.despues_2025)} en {a1}:
+            parece que la obra los bajó un <b>{pct(Math.abs(ev.efecto_antes_despues_pct), false)}</b>.</span>
         </div>
         <div className="dos-mov__proli">
           <b>Con {NOMBRE_MOVILIDAD}</b>
-          <span>Sin obra ya se esperaban ≈ {entero(ev.esperado_sin_obra)}. A la obra se le puede atribuir <b>a lo sumo ≈ {pct(Math.round(Math.abs(ev.efecto_con_metodo_pct)), false)}</b>.</span>
+          <span>Aun sin obra, el modelo ya esperaba que bajaran a ≈ {entero(ev.esperado_sin_obra)} siniestros graves en {a1}, porque {a0} fue un año malo.
+            Hubo {entero(ev.despues_2025)}: a la obra se le puede atribuir <b>a lo sumo ≈ {pct(Math.round(Math.abs(ev.efecto_con_metodo_pct)), false)} menos siniestros graves</b>.</span>
         </div>
       </div>
       <p className="nota">Si además se descuenta que en {a1} bajó toda la ciudad ({pct(ev.tendencia_ciudad_pct)}), casi nada. Es un ejemplo hipotético: no se sabe si allí hubo obras.</p>
@@ -617,11 +655,11 @@ export function Presupuesto({ datos, modo, ir, monto, setMonto }: PropsMov) {
       <div className="promesas-duelo">
         <div className="promesa-fila promesa-fila--mal">
           <b>{nombreForma(datos, 'contar2')}</b>
-          <span>Prometes evitar <b>{entero(e.a_ojo_promete)}</b>; según el modelo se evitarían <b>≈ {entero(e.a_ojo_esperado)}</b>.</span>
+          <span>Prometes evitar <b>{entero(e.a_ojo_promete)} siniestros graves al año</b>; según el modelo se evitarían <b>≈ {entero(e.a_ojo_esperado)}</b>.</span>
         </div>
         <div className="promesa-fila promesa-fila--bien">
           <b>{NOMBRE_MOVILIDAD}</b>
-          <span>Prometes evitar <b>≈ {entero(e.metodo_esperado)}</b>; se evitarían <b>≈ {entero(e.metodo_esperado)}</b>.</span>
+          <span>Prometes evitar <b>≈ {entero(e.metodo_esperado)} siniestros graves al año</b>; se evitarían <b>≈ {entero(e.metodo_esperado)}</b>.</span>
         </div>
       </div>
       <p className="lectura">Contando dos años se escogen casi las mismas obras, pero se promete de más. Con {NOMBRE_MOVILIDAD}, prometes lo que puedes cumplir.</p>

@@ -93,7 +93,7 @@ export function guia(pantalla: string, _paso: number): Paso | null {
       pregunta: '¿Escoges tus 3 esquinas?',
       opciones: [{ texto: 'Sí, escoger', ordenes: [cap('movilidad', 'escoge')], respuesta: 'Toca 3 de la lista o del mapa.' }],
     }
-    if (c === '¿Cuáles 3 arreglarías tú?') return null
+    if (c === '¿Cuáles 3 esquinas arreglarías tú?') return null
     if (c === '¿Qué falla aquí?') return {
       pregunta: '¿Te muestro cómo se mide el riesgo real?',
       opciones: [{ texto: 'Sí, muéstrame', ordenes: [cap('movilidad', 'ysi')], respuesta: 'Mira cómo las esquinas parecidas jalan a una esquina con un año malo.' }],

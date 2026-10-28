@@ -210,7 +210,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       setTocadas([])
       for (let j = 0; j < ESQUINAS_A_ESCOGER; j++) en(2 + 1.8 * j, () => tocar(g.tabla[(vuelta + j * (3 + (vuelta % 2))) % g.tabla.length]))
     }
-    if (vista === 'antes') { setLista('contar'); en(5, () => setLista('modelo')) }
+    if (vista === 'antes') { setLista('contar'); en(7, () => setLista('modelo')) }
     if (vista === 'localidad') {
       setLocalidad(null); en(1.5, () => setLocalidad(g.porLocalidad[vuelta % Math.min(4, g.porLocalidad.length)].loc))
     }

@@ -1517,6 +1517,11 @@ h1, h2, h3, p { margin: 0; }
 :root[data-tema="oscuro"] .app--movilidad { --mov-contar: #8ea3b6; --mov-contar-suave: #22403e; }
 .respuesta-mov { border-left: 3px solid var(--verde); color: var(--tinta); margin: 0; padding-left: 0.9rem; font-weight: 500; line-height: 1.45; }
 .nota-mov { color: var(--texto); margin: 0; font-size: 0.88rem; }
+ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
+.piensa-mov { background: var(--violeta-suave); border-radius: var(--r); gap: 0.5rem; padding: 1rem; display: grid; }
+.piensa-mov p { color: var(--tinta); opacity: 0.25; align-items: center; gap: 0.6rem; margin: 0; font-size: 0.92rem; transition: opacity 0.3s; display: flex; }
+.piensa-mov p.listo { opacity: 1; }
+.piensa-mov p:before { content: ""; background: var(--violeta); border-radius: 50%; flex: none; width: 0.6rem; height: 0.6rem; }
 .subtitulo-mov { font-family: var(--f-display); color: var(--tinta); margin: 0.3rem 0 0; font-size: 1.2rem; font-weight: 700; }
 .cifras-mov { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; display: grid; }
 .cifra-mov { background: var(--hundido); border-radius: var(--r); align-content: start; gap: 0.15rem; padding: 0.8rem 0.9rem; display: grid; }
@@ -1534,8 +1539,8 @@ h1, h2, h3, p { margin: 0; }
 .esq-mov__donde { line-height: 1.25; display: grid; }
 .esq-mov__donde b { color: var(--tinta); font-weight: 600; }
 .esq-mov__donde small { color: var(--tenue); font-size: 0.75rem; }
-.esq-mov__k { font-variant-numeric: tabular-nums; color: var(--tinta); white-space: nowrap; font-size: 1.05rem; font-weight: 700; }
-.esq-mov__k small { color: var(--tenue); font-size: 0.72rem; font-weight: 400; }
+.esq-mov__k { font-variant-numeric: tabular-nums; color: var(--tinta); white-space: nowrap; text-align: right; line-height: 1.15; font-size: 1.05rem; font-weight: 700; }
+.esq-mov__k small { color: var(--tenue); font-size: 0.72rem; font-weight: 400; display: block; }
 .barras-mov { gap: 0.55rem; display: grid; }
 .barra-mov { grid-template-columns: 1.6rem 1fr; align-items: center; gap: 0.6rem; display: grid; }
 .barra-mov__n { font-family: var(--f-display); color: var(--violeta-osc); font-weight: 800; }
