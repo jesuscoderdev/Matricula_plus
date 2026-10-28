@@ -34,7 +34,7 @@ export interface Guion {
   comparacionPresupuesto: Comparacion
   cambios30: Cambio
   cambiosPresupuesto: Cambio
-  /** las esquinas de «¿Cuáles 3 arreglarías tú?» (las primeras de «contar solo 2024») */
+  /** las esquinas de «¿Cuáles 3 esquinas arreglarías tú?» (las primeras de «contar solo 2024») */
   tabla: number[]
   /** de las 30 de contar solo 2024, cuántas bajaron en 2025 */
   bajaron: number
