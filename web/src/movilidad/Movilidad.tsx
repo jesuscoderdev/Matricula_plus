@@ -257,7 +257,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       case 'falla':
         // Las que no se ven mirando solo un año: llevan años con riesgo
         return { croquis: true, capa: 'k24', interactivo, tocadas: tusEsquinas(datos, tocadas), etiqueta: puesto,
-          resaltar: [{ indices: g.entranPresupuesto, color: 'verde', hueco: true, texto: `${g.entranPresupuesto.length} esquinas con riesgo de varios años` }] }
+          resaltar: [{ indices: g.entranPresupuesto, color: 'verde', hueco: true, texto: `Las ${g.entranPresupuesto.length} que quedan por fuera` }] }
       case 'ysi':
         return { ...lugar, capa: 'kappa', interactivo }
       case 'antes': {

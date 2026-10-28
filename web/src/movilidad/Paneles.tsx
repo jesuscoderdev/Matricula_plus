@@ -223,10 +223,10 @@ export function Falla({ datos, modo, ir, tocadas }: PropsMov) {
           </div>
         ))}
       </div>
-      <p className="nota-mov">Lo que no se ve mirando solo {a0}, en las {entero(esc.esquinas)} esquinas que alcanzan con {millones(esc.presupuesto_millones)}:</p>
+      <p className="nota-mov">Si con {millones(esc.presupuesto_millones)} se arreglan las <b>{entero(esc.esquinas)} esquinas con más siniestros graves en {a0}</b>:</p>
       <div className="cifras-mov">
-        <Cifra n={entero(cambio.entran.n)} tono="bueno">esquinas con riesgo de varios años que no entran a la lista: {entero(cambio.entran.k23)} siniestros graves en {a0 - 1}, pero solo {entero(cambio.entran.k24)} en {a0}</Cifra>
-        <Cifra n={entero(cambio.salen.n)} tono="contar">esquinas que sí entran por un solo año malo: {entero(cambio.salen.k24)} siniestros graves en {a0}, pero solo {entero(cambio.salen.k23)} en {a0 - 1}</Cifra>
+        <Cifra n={entero(cambio.salen.n)} tono="contar"><b>entran por un solo año malo:</b> {entero(cambio.salen.k24)} siniestros graves en {a0}, pero solo {entero(cambio.salen.k23)} en {a0 - 1}</Cifra>
+        <Cifra n={entero(cambio.entran.n)} tono="bueno"><b>quedan por fuera</b> aunque tuvieron {entero(cambio.entran.k23)} siniestros graves en {a0 - 1}: en {a0} solo tuvieron {entero(cambio.entran.k24)}</Cifra>
       </div>
       <Respuesta>Mirar un solo año deja información por fuera. Así, parte de la plata puede ir a esquinas donde el riesgo fue pasajero.</Respuesta>
       <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('ysi')}>¿Y si se usa toda la información? →</button></Pie>
@@ -388,7 +388,7 @@ export function Resultados({ datos, modo, ir }: PropsMov) {
   return (
     <div className="panel">
       <Cabeza c="resultados" titulo={<>Con <em>{millones(esc.escenarios.bajo.presupuesto_millones)}</em>…</>}>
-        <p className="lead">Alcanza para reductores de velocidad en <b>{entero(p.esquinas)} esquinas de barrio</b>. Un reductor baja ≈ {entero(esc.reduccion_supuesta_pct)} % los siniestros con heridos.</p>
+        <p className="lead">Alcanza para <b>{entero(p.esquinas)} esquinas de barrio</b>. Si en cada una se pone un reductor de velocidad, que baja ≈ {entero(esc.reduccion_supuesta_pct)} % los siniestros con heridos, se evitarían:</p>
       </Cabeza>
       <div className="cifras-mov">
         <Cifra n={<>≈ {entero(p.modelo.hubo * r)}</>} tono="bueno">siniestros graves evitados al año en las esquinas de {NOMBRE_MOVILIDAD}</Cifra>
@@ -398,8 +398,7 @@ export function Resultados({ datos, modo, ir }: PropsMov) {
                  frase={`siniestros graves evitados al año (${pct(masPct)})`}
                  nota={<>Porque la plata llega a las esquinas con más riesgo.</>} />
       <Respuesta>Mismo presupuesto, mejores esquinas: más siniestros evitados.</Respuesta>
-      <p className="nota">Estimación: los siniestros graves que hubo en {a1} en cada grupo de esquinas, por la efectividad de los reductores según estudios internacionales.
-        Antes de {a1}, {NOMBRE_MOVILIDAD} estimaba evitar ≈ {entero(p.modelo.espera * r)} al año: cerca de lo que habría pasado.</p>
+      <p className="nota">Calculado con los siniestros graves que hubo en {a1} en las esquinas que escoge cada forma.</p>
       <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('presupuesto')} data-proli="cap-presupuesto">¿Y con otro presupuesto? →</button></Pie>
     </div>
   )
@@ -464,7 +463,7 @@ export function Presupuesto({ datos, modo, ir, monto, setMonto }: PropsMov) {
       </div>
       <Veredicto etiqueta={<>Alcanza para {entero(e.esquinas)} esquinas de barrio</>}
                  cifra={`≈ ${entero(e.metodo_esperado)}`}
-                 frase="siniestros graves menos al año"
+                 frase="siniestros graves menos al año (estimado)"
                  nota={<>Más dinero alcanza más esquinas, pero cada peso rinde un poco menos: primero van las de más riesgo.</>} />
       <CurvaPresupuesto puntos={puntos} monto={e.presupuesto_millones} />
       <h2 className="subtitulo-mov">¿Barrio o avenidas?</h2>
