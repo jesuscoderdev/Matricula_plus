@@ -99,9 +99,12 @@ export interface Resumen {
   anio_validacion: number
   unidad: string
   fuentes: Record<string, string>
+  universo: { por_zona: Record<'local' | 'arterial', number> }
   validacion_2025: Record<'local' | 'arterial', { graves_por_anio: Record<string, number>; tendencia_2025_vs_promedio: number }>
   /** Presupuesto: la mejor combinación de esquinas (mochila con riesgo corregido) frente a una lista por conteo bruto */
   asignacion_presupuesto?: Record<string, Record<string, Record<'optimo_mochila_eb' | 'lista_por_conteo_bruto', ListaPresupuesto>>>
+  /** Grupos de esquinas parecidas: cuántas son y su promedio de siniestros graves en el periodo de estimación */
+  grupos_referencia: Record<string, { sitios: number; media_K: number; alpha: number }>
 }
 
 export interface ListaPresupuesto {

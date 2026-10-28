@@ -25,8 +25,7 @@ export function selectorDe(o: Orden): string | null {
     case 'matricula_reparto': return `[data-proli="reparto-${v('reparto')}"]`
     case 'matricula_nivel': return `[data-proli="nivel-${v('nivel').toLowerCase()}"]`
     case 'movilidad_presupuesto': return `[data-proli="presupuesto-${v('nivel')}"]`
-    case 'movilidad_tipo_via': return `[data-proli="zona-${v('zona')}"]`
-    case 'movilidad_anio_mapa': return `[data-proli="anio-${v('anio')}"]`
+    case 'movilidad_lista': return `[data-proli="lista-${v('lista')}"]`
     case 'abrir_demo': return `[data-proli="demo-${v('demo')}"]`
     case 'abrir_agenda': return `[data-proli~="cap-${v('demo') === 'movilidad' ? 'cierre' : 'reto'}"]`
     default: return null

@@ -29,6 +29,11 @@ export interface SitiosCompactos {
   kappa: number[]
   icInf: number[]
   icSup: number[]
+  /** peso de las esquinas parecidas en el riesgo corregido (Bayes empírico) */
+  alpha: number[]
+  /** posición en `grupos` (el grupo de esquinas parecidas, como en resumen.grupos_referencia) */
+  grupo: number[]
+  grupos: string[]
   /** esquinas elegidas por el escenario de barrio: bit 1 = bajo, 2 = medio, 4 = alto */
   sel: number[]
 }
@@ -40,9 +45,11 @@ export function compactar(geo: { features: { properties: Record<string, any>; ge
   const F = geo.features
   const localidades = [...new Set(F.map((f) => String(f.properties.localidad)))].sort((a, b) => a.localeCompare(b, 'es'))
   const posLoc = new Map(localidades.map((l, i) => [l, i]))
+  const grupos = [...new Set(F.map((f) => String(f.properties.grupo)))].sort()
+  const posGrupo = new Map(grupos.map((g, i) => [g, i]))
   const s: SitiosCompactos = {
     version, n: F.length, id: [], lon: [], lat: [], forma: [], local: [], loc: [], localidades,
-    k23: [], k24: [], k25: [], bruto: [], kappa: [], icInf: [], icSup: [], sel: [],
+    k23: [], k24: [], k25: [], bruto: [], kappa: [], icInf: [], icSup: [], alpha: [], grupo: [], grupos, sel: [],
   }
   // Forma media: promedio de los vértices relativos al centro (los hexágonos son regulares)
   const suma: [number, number][] = []
@@ -61,6 +68,7 @@ export function compactar(geo: { features: { properties: Record<string, any>; ge
     s.local.push(p.zona_vial === 'local' ? 1 : 0); s.loc.push(posLoc.get(String(p.localidad))!)
     s.k23.push(p.k_2023); s.k24.push(p.k_2024); s.k25.push(p.k_2025)
     s.bruto.push(r4(p.bruto_anual)); s.kappa.push(r4(p.kappa_anual)); s.icInf.push(r4(p.ic_inf_anual)); s.icSup.push(r4(p.ic_sup_anual))
+    s.alpha.push(r4(p.alpha)); s.grupo.push(posGrupo.get(String(p.grupo))!)
     s.sel.push((p.sel_barrio_bajo ? 1 : 0) | (p.sel_barrio_medio ? 2 : 0) | (p.sel_barrio_alto ? 4 : 0))
   }
   s.forma = suma.map(([x, y]) => [x / Math.max(1, nForma), y / Math.max(1, nForma)].map((v) => Math.round(v * 1e7) / 1e7) as [number, number])
