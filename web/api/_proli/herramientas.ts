@@ -28,9 +28,9 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ pantalla: { type: 'string', enum: ['portada', 'conozca_a_proli', 'elegir_demo'] } })),
   h('abrir_demo', 'Abre uno de los dos demos desde su inicio.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
-  h('abrir_agenda', 'Lleva al capítulo con el código QR para agendar una conversación con el equipo de Proliferante, en el demo indicado.',
+  h('abrir_agenda', 'Lleva al paso «Tu reto» del demo indicado y muestra el código QR para que el visitante envíe una solicitud de conversación al equipo de Proliferante. No reserva ninguna cita: el equipo confirma el horario después.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
-  h('agendar_con_reto', 'Cuando ya conoces el reto del visitante: guarda un resumen de su reto para que el mensaje de WhatsApp y el código QR de la cita ya lo lleven escrito, y lo lleva al capítulo de agenda del demo indicado. El resumen: una o dos frases (máximo unos 250 caracteres) con el tipo de entidad, la decisión que le cuesta tomar y la información que tienen. NUNCA incluyas nombres de personas, teléfonos, correos, documentos ni otros datos personales.',
+  h('agendar_con_reto', 'Cuando el visitante ya contó su reto y acepta hablar con el equipo: guarda un resumen para que el mensaje de WhatsApp y el código QR de la solicitud ya lo lleven escrito, y lo lleva al paso «Tu reto» del demo indicado (el más parecido a su reto). No reserva ninguna cita. El resumen (máximo unos 380 caracteres), en frases cortas: «Reto: …» (en sus palabras) «Resultado: …» «Responsable: …» «Información: …» «Siguiente paso: conversación de 30 minutos». Lo que no sepas, «por validar». Entidad y cargo solo si los dijo; NUNCA nombres de personas, teléfonos, correos, documentos ni información sensible.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] }, resumen: { type: 'string' } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---

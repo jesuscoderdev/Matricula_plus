@@ -74,9 +74,7 @@ function aplicarOrden(orden: Orden): Promise<string> {
   // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
     const demo = orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad'
-    return aplicarOrden(demo === 'movilidad'
-      ? { nombre: 'movilidad_capitulo', entrada: { capitulo: 'cierre' } }
-      : { nombre: 'matricula_capitulo', entrada: { capitulo: 'reto' } })
+    return aplicarOrden({ nombre: `${demo}_capitulo`, entrada: { capitulo: 'agenda' } })
   }
   const ambito = ambitoDe(orden.nombre)
   const manejador = manejadores.get(ambito)
@@ -108,7 +106,7 @@ export function usePantalla(): string {
 }
 
 // --- El reto del visitante: un resumen corto, sin datos personales, que va en el mensaje de la cita ---
-const MAX_RETO = 280
+const MAX_RETO = 400
 let reto = ''
 const oyentesReto = new Set<() => void>()
 export function fijarReto(texto: string) {

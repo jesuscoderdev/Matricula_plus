@@ -73,10 +73,9 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
     return () => window.removeEventListener('resize', alCambiar)
   }, [])
 
-  // Al cambiar de pantalla se cierran los detalles; el logo late
+  // El logo late cuando cambia la pantalla
   const primerPulso = useRef(true)
   useEffect(() => {
-    setHoja(null); setVerQr(false)
     if (primerPulso.current) { primerPulso.current = false; return }
     pulsoLogo()
   }, [vista])
@@ -87,10 +86,12 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   vistaRef.current = vista
   const reiniciar = useCallback(() => {
     pila.current = []
-    setVista('portada'); setLista('contar')
+    setVista('portada'); setLista('contar'); setHoja(null); setVerQr(false)
   }, [])
+  // Al cambiar de pantalla se cierran los detalles y el QR
   const ir = useCallback((v: VistaMov) => {
     if (v === 'portada') return reiniciar()
+    setHoja(null); setVerQr(false)
     if (v === 'antes') setLista('contar')
     if (vistaRef.current !== v) pila.current.push(vistaRef.current)
     setVista(v)
@@ -100,6 +101,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
     if (hoja) return setHoja(null)
     if (vista === 'portada') return alSalir?.()
     const i = ORDEN.indexOf(vista)
+    setVerQr(false)
     setVista(pila.current.pop() ?? (i > 0 ? ORDEN[i - 1] : 'portada'))
   }, [vista, hoja, alSalir])
   const refAtras = useRef(atras)
@@ -127,6 +129,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       switch (o.nombre) {
         case 'movilidad_capitulo': {
           if (e.capitulo === 'metodologia') { refIr.current('como'); setHoja('metodologia'); return `Listo: ${NOMBRE_MOVILIDAD} muestra la metodología.` }
+          if (e.capitulo === 'agenda') { refIr.current('reto'); setVerQr(true); return 'Listo: el visitante ve el código QR para enviar su solicitud al equipo (todavía no es una cita).' }
           const v = String(e.capitulo) as VistaMov
           if (!ORDEN.includes(v)) return 'Capítulo no reconocido.'
           refIr.current(v)

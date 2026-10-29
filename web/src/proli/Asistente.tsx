@@ -100,7 +100,7 @@ function esPropuesta(texto: string) {
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
     texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
-    sinConexion: '¡Cuéntanos! Proliferante lo resuelve con los datos y las reglas de tu entidad. Agenda una reunión con el equipo: con el código QR o con el botón de la pantalla.',
+    sinConexion: 'Ahora no puedo conversar, pero el equipo sí. Escanea el código o toca «Agendar conversación» para enviar tu solicitud: te confirmarán un horario.',
   })
   if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
     { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },
@@ -418,7 +418,7 @@ export default function Asistente() {
             </header>
             <div className="proli-panel__lista" ref={refLista} aria-live="polite">
               {lineas.length === 0 && (
-                <p className="proli-panel__linea proli-panel__linea--proli">¿En qué te ayudo? Puedo explicarte lo que ves, mostrarte algo en la pantalla o llevarte a un demo.</p>
+                <p className="proli-panel__linea proli-panel__linea--proli">Hola, soy Proli, el asistente virtual de Proliferante. Aquí mostramos lo que pasa cuando los datos se convierten en decisiones. ¿Quieres ver un ejemplo o tienes algún reto en mente?</p>
               )}
               {lineas.filter((l) => l.texto).map((l, i) => (
                 <p key={i} className={`proli-panel__linea proli-panel__linea--${l.quien}`}>{l.quien === 'accion' ? `↳ ${l.texto}` : l.texto}</p>

@@ -75,7 +75,6 @@ export default function Matricula({ alSalir, alInactivo, alTerminarVuelta, alPor
 
   // Al cambiar de pantalla se cierran los detalles; el logo late cuando algo cambia
   const primerPulso = useRef(true)
-  useEffect(() => { setHoja(null); setVerQr(false) }, [vista])
   useEffect(() => {
     if (primerPulso.current) { primerPulso.current = false; return }
     pulsoLogo()
@@ -87,10 +86,12 @@ export default function Matricula({ alSalir, alInactivo, alTerminarVuelta, alPor
   vistaRef.current = vista
   const reiniciar = useCallback(() => {
     pila.current = []
-    setVista('portada'); setLocalidad(null); setReparto('hoy')
+    setVista('portada'); setLocalidad(null); setReparto('hoy'); setHoja(null); setVerQr(false)
   }, [])
+  // Al cambiar de pantalla se cierran los detalles y el QR
   const ir = useCallback((v: VistaMat) => {
     if (v === 'portada') return reiniciar()
+    setHoja(null); setVerQr(false)
     if (v === 'antes' && vistaRef.current !== 'antes') setReparto('hoy')
     if (v === 'resultados' && vistaRef.current !== 'resultados') setLocalidad(null)
     if (vistaRef.current !== v) pila.current.push(vistaRef.current)
@@ -102,6 +103,7 @@ export default function Matricula({ alSalir, alInactivo, alTerminarVuelta, alPor
     if (vista === 'portada') return alSalir?.()
     if (vista === 'resultados' && localidad) return setLocalidad(null)
     const i = ORDEN.indexOf(vista)
+    setVerQr(false)
     setVista(pila.current.pop() ?? (i > 0 ? ORDEN[i - 1] : 'portada'))
   }, [vista, hoja, localidad, alSalir])
   const refAtras = useRef(atras)
@@ -130,6 +132,7 @@ export default function Matricula({ alSalir, alInactivo, alTerminarVuelta, alPor
         case 'matricula_capitulo': {
           const h = String(e.capitulo) as HojaMat
           if (HOJAS.includes(h)) { refIr.current(PASO_DE_HOJA[h]); setHoja(h); return `Listo: ${APP_NAME} muestra el detalle «${h}».` }
+          if (e.capitulo === 'agenda') { refIr.current('reto'); setVerQr(true); return 'Listo: el visitante ve el código QR para enviar su solicitud al equipo (todavía no es una cita).' }
           const v = String(e.capitulo) as VistaMat
           if (!ORDEN.includes(v)) return 'Capítulo no reconocido.'
           refIr.current(v)
