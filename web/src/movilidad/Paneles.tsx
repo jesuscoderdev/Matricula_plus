@@ -312,7 +312,9 @@ export function HojaDosAnios({ datos }: { datos: DatosMovilidad }) {
         <li>La diferencia está en cuánto se espera. Mirando los dos años, se esperaría que en {a1} se repitiera su promedio:
           {' '}{entero(p.contar2.espera)} siniestros graves en esas zonas, y hubo {entero(p.contar2.hubo)}. {NOMBRE_MOVILIDAD}, que suma los lugares
           parecidos, esperaba ≈ {entero(p.modelo.espera)} y hubo {entero(p.modelo.hubo)}.</li>
-        <li>Muchas zonas empatan con el mismo número de siniestros. Los empates se rompen por el año más reciente y luego por el código de la zona, como en el modelo.</li>
+        <li>Muchas zonas empatan en el corte. En la selección basada en {a0}, los empates se rompen por los siniestros de {a0 - 1} y luego por el
+          código de la zona; en {NOMBRE_MOVILIDAD}, por el código de la zona. Con otras reglas de desempate cambia cuántas zonas entran y salen, pero
+          en todas las pruebas las de {NOMBRE_MOVILIDAD} registran más siniestros graves en {a1}.</li>
       </ul>
     </>
   )
