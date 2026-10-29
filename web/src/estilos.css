@@ -989,17 +989,20 @@ h1, h2, h3, p { margin: 0; }
 :root[data-modo='stand'] .proli-intro__chip { padding: 0.65rem 1rem; font-size: 0.95rem; }
 /* PC: Proli y el saludo a la izquierda; ayudas y pedidos a la derecha */
 :root[data-modo='escritorio'] .proli-intro__contenido {
-  max-width: 76rem; padding: 2.2rem 3rem; display: grid; align-content: center; column-gap: 3rem; row-gap: 1.3rem;
+  max-width: 64rem; padding: 2.2rem 3rem; display: grid; align-content: center; column-gap: 3rem; row-gap: 1.3rem;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: 'marca marca' 'heroe ayudas' 'globo ayudas' 'globo pedidos' 'globo accion';
+  grid-template-areas: 'marca marca' 'heroe presenta' 'heroe accion';
 }
 :root[data-modo='escritorio'] .proli-intro__marca { grid-area: marca; }
 :root[data-modo='escritorio'] .proli-intro__heroe { grid-area: heroe; margin-top: 0; }
-:root[data-modo='escritorio'] .proli-intro__globo { grid-area: globo; align-self: start; }
-:root[data-modo='escritorio'] .proli-intro__ayudas { grid-area: ayudas; align-self: end; }
-:root[data-modo='escritorio'] .proli-intro__pedidos { grid-area: pedidos; }
-:root[data-modo='escritorio'] .proli-intro__accion { grid-area: accion; margin-bottom: 0; }
+:root[data-modo='escritorio'] .proli-intro__presenta { grid-area: presenta; align-self: end; }
+:root[data-modo='escritorio'] .proli-intro__accion { grid-area: accion; margin-bottom: 0; justify-content: flex-start; align-self: start; }
 :root[data-modo='escritorio'] .proli-intro__accion .boton--ancho { width: auto; padding-inline: 2.2rem; }
+:root[data-modo='escritorio'] .inicio__tarjetas { flex: none; grid-auto-rows: auto; }
+/* Celular: como en el tótem, la ilustración a un lado para que las dos tarjetas quepan sin scroll */
+:root[data-modo='celular'] .proyecto { display: grid; grid-template-columns: 5rem 1fr; }
+:root[data-modo='celular'] .proyecto__arte { height: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--linea); }
+:root[data-modo='celular'] .proyecto__texto { padding: 0.9rem 1rem; gap: 0.35rem; }
 /* Celular: Proli un poco más chico para que quepa el nombre al lado */
 :root[data-modo='celular'] .proli-intro__figura { width: 8rem; }
 :root[data-modo='celular'] .proli-intro__img { height: 7.2rem; }
@@ -1859,3 +1862,44 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 .etapas:has(small) .etapas__modulo small { font-size: 0.72rem; }
 :root:not([data-modo='escritorio']) .app--pp:not(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: 4rem; }
 :root[data-modo='stand'] .pp__boton { font-size: 1.02rem; }
+
+/* =========================================================
+   Pantallas generales en vertical (documento de Paola, 29 oct)
+   ========================================================= */
+/* P0 · Atracción: titular protagonista arriba; Proli pequeño y el botón único abajo */
+.portada-stand__cabeza { margin-top: 1.6rem; gap: 1.1rem; }
+.portada-stand__pregunta { font-size: 3rem; line-height: 1.04; }
+.portada-stand .display em, :root[data-tema='oscuro'] .portada-stand .display em { color: #a598ff; }
+.portada-stand__bajada { font-size: 1.25rem; }
+.portada-stand__proli { margin-top: auto; display: flex; justify-content: center; }
+.portada-stand__accion { margin-bottom: 0.4rem; }
+.portada-stand__boton { max-width: 30rem; min-height: 3.6rem; font-size: 1.2rem; }
+:root[data-modo='escritorio'] .portada-stand__pregunta { font-size: 3.6rem; }
+
+/* P1 · Conoce a Proli: Proli arriba con su globo; debajo, el texto y el botón */
+.proli-intro__heroe { flex-direction: column; align-items: center; margin-top: 1rem; gap: 0.6rem; }
+.proli-intro__figura { width: 14rem; }
+.proli-intro__img { height: 13rem; }
+.proli-intro__heroe .proli-intro__globo { align-self: stretch; text-align: center; font-size: 1.15rem; }
+.proli-intro__presenta { margin-top: auto; gap: 0.8rem; }
+.proli-intro__texto { font-size: 1.2rem; color: var(--suave); }
+.proli-intro__accion { margin-bottom: 0; display: flex; justify-content: center; }
+.proli-intro__boton { max-width: 30rem; min-height: 3.6rem; font-size: 1.15rem; }
+
+/* P2 · Elige un reto: dos tarjetas grandes, una debajo de la otra, con la pregunta primero */
+.inicio__tarjetas { flex: 1; min-height: 0; grid-auto-rows: 1fr; }
+.proyecto__pregunta { font-family: var(--f-display); font-size: 1.55rem; font-weight: 700; line-height: 1.12; }
+.proyecto__bajada { font-size: 1rem; color: var(--suave); }
+.proyecto__nombre { font-size: 1.15rem; opacity: 0.85; }
+.proyecto__entrar { align-self: flex-start; margin-top: auto; background: var(--violeta); color: #fff; border-radius: 99rem; padding: 0.6rem 1.6rem; font-weight: 600; }
+:root[data-modo='escritorio'] .inicio__tarjetas { grid-auto-rows: auto; }
+:root:is([data-modo='stand'], [data-modo='auto']) .proyecto { grid-template-columns: 6.5rem 1fr; }
+:root:is([data-modo='stand'], [data-modo='auto'], [data-modo='celular']) .proyecto__pregunta { font-size: 1.4rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .pie-empresa { padding-block: 0.6rem; }
+/* Elige un reto: Proli no se repite sobre las tarjetas (ya se presentó en la pantalla anterior) */
+:root:not([data-modo='escritorio']):has(.inicio) .proli-flotante { display: none; }
+:root:is([data-modo='stand'], [data-modo='auto']) .portada-stand__cabeza { margin-top: 3rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .portada-stand__pregunta { font-size: 3.5rem; }
+:root[data-modo='celular'] .proyecto__pregunta { font-size: 1.22rem; }
+:root[data-modo='celular'] .proyecto__bajada { font-size: 0.9rem; }
+:root[data-modo='celular'] .pie-empresa__marca span, :root[data-modo='celular'] .pie-empresa__datos { display: none; }

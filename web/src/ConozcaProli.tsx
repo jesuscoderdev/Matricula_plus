@@ -1,15 +1,14 @@
 /**
- * Conoce a Proli: la segunda pantalla. Presenta a Proli como el guía del stand y deja claro que
- * el visitante puede apoyarse en él. Los «pedidos» son accesos reales: entran directo a un demo
- * (o a elegir proyecto). Cuando Proli converse con IA, esa zona será la entrada a la conversación.
+ * Conoce a Proli: la segunda pantalla (documento de Paola, 29-oct). Proli arriba, con su saludo
+ * escrito letra por letra; debajo, una frase y el botón a los retos. Nada más.
  *
- * Sigue el tema de la app (claro u oscuro), como la página de elegir proyecto: tras la portada
- * navy, el cambio de fondo marca que el visitante ya entró. Textos en config.ts (PROLI_INTRO).
+ * Sigue el tema de la app (claro u oscuro): tras la portada navy, el cambio de fondo marca que el
+ * visitante ya entró. Textos en config.ts (PROLI_INTRO).
  */
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { PROLI_INTRO, SEGUNDOS_PROLI_AUTO, type IdProyecto } from './config'
-import type { Modo } from './modo'
+import { PROLI_INTRO, SEGUNDOS_PROLI_AUTO } from './config'
+import { esTotem, type Modo } from './modo'
 import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua } from './componentes/Marca'
 import ProliAnimado from './componentes/ProliAnimado'
 
@@ -27,23 +26,10 @@ function useEscribiendo(texto: string, activo: boolean) {
   return texto.slice(0, n)
 }
 
-function Icono({ tipo }: { tipo: string }) {
-  const comun = { fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="proli-intro__icono">
-      {tipo === 'guia' && <path {...comun} d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 1 1 13 0c0 5.4-6.5 11-6.5 11ZM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />}
-      {tipo === 'cifra' && <path {...comun} d="M4 20V10M10 20V4M16 20v-7M22 20H2" />}
-      {tipo === 'equipo' && <path {...comun} d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 11a3 3 0 1 0 0-6M2 20c0-3 3-5 6-5s6 2 6 5M16 15c3 0 6 2 6 5" />}
-    </svg>
-  )
-}
-
-export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: {
+export default function ConozcaProli({ modo, alContinuar, alVolver }: {
   modo: Modo
   /** a elegir proyecto */
   alContinuar: () => void
-  /** entrar directo a un demo */
-  alElegir: (p: IdProyecto) => void
   /** volver a la portada */
   alVolver: () => void
 }) {
@@ -67,7 +53,7 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
         <motion.header className="proli-intro__marca" {...entrar} transition={{ delay: 0.05 }}>
           {!auto && <BotonInicio alInicio={alVolver} etiqueta="Volver a la portada" />}
           <LogoEmpresa alTocar={auto ? undefined : alVolver} />
-          {!auto && <BotonTema />}
+          {!esTotem(modo) && <BotonTema />}
         </motion.header>
 
         <div className="proli-intro__heroe">
@@ -79,42 +65,20 @@ export default function ConozcaProli({ modo, alContinuar, alElegir, alVolver }: 
               <ProliAnimado hablando={!escrito} saludar={!escrito} seguir />
             </span>
           </motion.div>
-          <div className="proli-intro__presenta">
-            <motion.span className="kicker" {...entrar} transition={{ delay: 0.25 }}>{p.kicker}</motion.span>
-            <motion.h1 className="display display--xl proli-intro__nombre" {...entrar} transition={{ delay: 0.32 }}>
-              Conoce a <em>{p.nombre}</em>
-            </motion.h1>
-            <motion.p className="acento" {...entrar} transition={{ delay: 0.4 }}>{p.esencia}</motion.p>
-          </div>
+          <motion.div className="proli-intro__globo" {...entrar} transition={{ delay: 0.5 }} aria-label={p.saludo}>
+            <span aria-hidden>«{saludo}{escrito ? '»' : <i className="proli-intro__cursor" />}</span>
+          </motion.div>
         </div>
 
-        <motion.div className="proli-intro__globo" {...entrar} transition={{ delay: 0.5 }} aria-label={p.saludo}>
-          <span aria-hidden>{saludo}{!escrito && <i className="proli-intro__cursor" />}</span>
-        </motion.div>
-
-        <ul className="proli-intro__ayudas">
-          {p.ayudas.map((a, i) => (
-            <motion.li key={a.titulo} className="proli-intro__ayuda" {...entrar} transition={{ delay: 0.7 + i * 0.12 }}>
-              <span className="proli-intro__icono-caja"><Icono tipo={a.icono} /></span>
-              <span><b>{a.titulo}</b><small>{a.texto}</small></span>
-            </motion.li>
-          ))}
-        </ul>
-
-        {p.pedidos.length > 0 && <motion.div className="proli-intro__pedidos" {...entrar} transition={{ delay: 1.1 }}>
-          <span className="etiqueta">{p.pedidosTitulo}</span>
-          <div className="proli-intro__chips">
-            {p.pedidos.map((x) => (
-              <button key={x.texto} type="button" className="proli-intro__chip" disabled={auto}
-                      onClick={() => (x.proyecto ? alElegir(x.proyecto) : alContinuar())}>
-                {x.texto}
-              </button>
-            ))}
-          </div>
-        </motion.div>}
+        <div className="proli-intro__presenta">
+          <motion.h1 className="display display--xl proli-intro__nombre" {...entrar} transition={{ delay: 0.32 }}>
+            Hola, soy <em>{p.nombre}</em>
+          </motion.h1>
+          <motion.p className="lead proli-intro__texto" {...entrar} transition={{ delay: 0.4 }}>{p.texto}</motion.p>
+        </div>
 
         <motion.div className="proli-intro__accion" {...entrar} transition={{ delay: 1.25 }}>
-          {!auto && <button type="button" className="boton boton--violeta boton--ancho" onClick={alContinuar}>{p.boton}</button>}
+          {!auto && <button type="button" className="boton boton--violeta boton--ancho proli-intro__boton" onClick={alContinuar}>{p.boton}</button>}
         </motion.div>
       </div>
     </div>

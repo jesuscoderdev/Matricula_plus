@@ -62,15 +62,13 @@ export const DURACION_PASOS = { portada: 6, problema: 14, accion: 21, resultado:
 // retadora (señala el problema), Proli es cercano y el eslogan es el cierre del manual de marca.
 export const PORTADA_STAND = {
   evento: 'GovTech Summit 2026 · Bogotá · 3 y 4 de noviembre',
-  kicker: 'Retos públicos, resueltos con datos',
-  // La parte entre corchetes va resaltada (segunda voz del titular). Titular aprobado en la reunión del 23-oct.
-  pregunta: 'Mira en un minuto cómo Proliferante convierte un reto público en [una decisión que genera resultados]',
-  bajada: 'Datos abiertos, modelos matemáticos y simulación, aplicados a dos retos reales de Bogotá.',
-  eslogan: 'Hacemos simple lo complejo',
-  acento: 'Inyectamos capacidades que multiplican posibilidades',
-  proli: '¡Hola! Soy Proli. Toca la pantalla y te muestro cómo lo resolvemos.',
+  // La parte entre corchetes va resaltada en morado. Textos del documento de Paola (29-oct): sin
+  // explicaciones de IA, tecnología ni modelos, y sin resultados numéricos anticipados.
+  pregunta: '¿[Cuánto más] podría lograr tu entidad con los datos que ya tiene?',
+  bajada: 'Descúbrelo con dos retos reales de Bogotá.',
+  proli: 'Toca la pantalla. Quiero mostrarte algo.',
   tocar: 'Toca la pantalla para empezar',
-  boton: 'Empezar →',
+  boton: 'Descubrir',
 }
 // Modo automático: segundos en la portada antes de pasar a conocer a Proli
 export const SEGUNDOS_PORTADA_AUTO = 7
@@ -81,20 +79,11 @@ export const SEGUNDOS_PORTADA_AUTO = 7
 // Los «pedidos» son acciones reales (entran a un demo); cuando Proli converse con IA, esta misma
 // zona será la entrada a la conversación. No prometer aquí nada que la app todavía no haga.
 export const PROLI_INTRO = {
-  kicker: 'Tu guía en este recorrido',
   nombre: 'Proli',
-  saludo: '¡Hola! Soy Proli, tu guía en esta visita. Te muestro cómo Proliferante resolvió dos retos reales de Bogotá, paso a paso y con las fuentes a la vista.',
-  esencia: 'Siempre hay otra posibilidad por descubrir',
-  ayudas: [
-    { icono: 'guia', titulo: 'Te guío paso a paso', texto: 'Del problema a la decisión, en un minuto.' },
-    { icono: 'cifra', titulo: 'Te explico cada cifra', texto: 'Qué significa y de dónde sale.' },
-    { icono: 'equipo', titulo: 'Te conecto con el equipo', texto: 'Para hablar del reto de tu entidad.' },
-  ],
-  // Atajos a cada demo (vacío = no se muestran). Se quitaron en la reunión del 23-oct: sugerían que
-  // Proli entiende voz o texto libre en esta pantalla y competían con el botón principal.
-  pedidosTitulo: '',
-  pedidos: [] as { texto: string; proyecto: IdProyecto | null }[],
-  boton: 'Ver los retos →',
+  // Lo que Proli «escribe» en su globo, y el texto debajo (documento de Paola, 29-oct: sin más contenido)
+  saludo: 'Exploremos dos retos. Al final quiero conocer el tuyo.',
+  texto: 'Te voy a mostrar cómo cambian las decisiones cuando ponemos los datos a trabajar.',
+  boton: 'Ver los retos',
 }
 // Modo automático: segundos con Proli antes de pasar a elegir proyecto
 export const SEGUNDOS_PROLI_AUTO = 9
@@ -120,29 +109,18 @@ export const PROYECTOS: {
   variante: 'tinta' | 'violeta'
   pregunta: string        // el reto, en una pregunta
   bajada: string          // qué vas a hacer en el demo
-  gancho: string          // lo que dice Proli en la tarjeta (voz retadora: una pregunta)
-  cta: string             // llamado a la acción de la tarjeta: verbo + beneficio
+  cta: string             // llamado a la acción de la tarjeta
   proximamente?: boolean
 }[] = [
   { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta',
     pregunta: '¿Cómo lograr que más niños estudien cerca de casa?',
     bajada: 'Los mismos colegios. Los mismos cupos.',
-    gancho: '¿Cuántos niños estudian lejos de casa? Míralo en un minuto.', cta: 'Explorar el reto →' },
+    cta: 'Explorar' },
   { id: 'movilidad', area: 'Presupuesto · Seguridad vial', nombre: NOMBRE_MOVILIDAD, letra: 'P', variante: 'violeta',
     pregunta: '¿Cómo decidir dónde invertir primero?',
     bajada: 'El mismo presupuesto. Una priorización diferente.',
-    gancho: '¿Dónde invertirías primero?', cta: 'Explorar el reto →' },
+    cta: 'Explorar' },
 ]
-
-// Llamado a la acción del inicio (para quien decide en una entidad pública). Voz del manual:
-// retadora al señalar el problema, cercana al acompañar, rigurosa al entregar.
-export const LLAMADO_INICIO = {
-  kicker: 'Para entidades públicas',
-  titulo: '¿Tienes un reto en tu entidad?',
-  texto: 'Estos demos usan solo datos abiertos. Cuéntale tu reto a Proli: te hace un par de preguntas y te ayuda a agendar con el equipo.',
-  botonProli: 'Cuéntale tu reto a Proli →',
-  boton: 'O agenda directamente una reunión',
-}
 
 // Modo automático sin ?proyecto: segundos en la página de inicio antes de entrar al siguiente proyecto
 export const SEGUNDOS_INICIO_AUTO = 6
