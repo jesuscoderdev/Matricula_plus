@@ -23,7 +23,7 @@ export function guia(pantalla: string, _paso: number): Paso | null {
     pregunta: '¿Por cuál empezamos?',
     opciones: [
       { texto: 'Cupos escolares', ordenes: [o('abrir_demo', { demo: 'matricula' })], respuesta: 'Vamos a Matrícula+: cómo lograr que más niños tengan colegio cerca de casa.' },
-      { texto: 'Seguridad vial', ordenes: [o('abrir_demo', { demo: 'movilidad' })], respuesta: 'Vamos a Movilidad+: qué esquinas arreglar primero.' },
+      { texto: 'Seguridad vial', ordenes: [o('abrir_demo', { demo: 'movilidad' })], respuesta: 'Vamos a Presupuesto+: dónde invertir primero.' },
     ],
   }
 
@@ -87,43 +87,30 @@ export function guia(pantalla: string, _paso: number): Paso | null {
     const c = capituloDe(pantalla)
     const agenda: Opcion = { texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' }
     if (c === 'portada') return {
-      pregunta: '¿Escoges tú qué esquinas arreglar?',
-      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'problema')], respuesta: 'El presupuesto no alcanza para todas: hay que escoger.' }],
+      pregunta: '¿Te muestro dónde invertir primero?',
+      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'problema')], respuesta: 'Hay muchos más lugares que recursos: hay que escoger.' }],
     }
-    if (c === 'El presupuesto no alcanza') return {
-      pregunta: '¿Escoges tus 3 esquinas?',
-      opciones: [{ texto: 'Sí, escoger', ordenes: [cap('movilidad', 'escoge')], respuesta: 'Toca 3 de la lista o del mapa.' }],
+    if (c === 'El problema') return {
+      pregunta: '¿Vemos cómo se eligen?',
+      opciones: [{ texto: 'Sí, muéstrame', ordenes: [cap('movilidad', 'solucion')], respuesta: 'Un solo año no cuenta toda la historia.' }],
     }
-    if (c === '¿Cuáles 3 esquinas arreglarías tú?') return null
-    if (c === 'Escogiste mirando un solo año') return {
-      pregunta: '¿Te muestro qué pasa si se usa toda la información?',
-      opciones: [{ texto: 'Sí, muéstrame', ordenes: [cap('movilidad', 'ysi')], respuesta: 'La historia de cada esquina y la de sus esquinas parecidas, juntas.' }],
-    }
-    if (c === '¿Y si se usa toda la información?') return {
-      pregunta: '¿Vemos el antes y el después?',
-      opciones: [{ texto: 'Sí, antes y después', ordenes: [cap('movilidad', 'antes')], respuesta: 'Qué esquinas se escogen de cada forma y qué pasó en ellas al año siguiente.' }],
+    if (c === 'La solución') return {
+      pregunta: '¿Vemos qué cambia con el mismo presupuesto?',
+      opciones: [{ texto: 'Sí, antes y después', ordenes: [cap('movilidad', 'antes')], respuesta: 'Toca «Ver Presupuesto+» y mira qué lugares cambian.' }],
     }
     if (c === 'Antes y después') return {
-      pregunta: '¿Qué esquinas quieres ver en el mapa?',
+      pregunta: '¿Qué quieres ver en el mapa?',
       opciones: [
-        { texto: 'Mirando un solo año', ordenes: [o('movilidad_lista', { lista: 'contar' })], respuesta: 'En naranja, las que solo se escogen mirando un solo año.' },
-        { texto: 'Las del modelo', ordenes: [o('movilidad_lista', { lista: 'modelo' })], respuesta: 'En verde, las que solo escoge el modelo.' },
-        { texto: 'Ver los resultados', ordenes: [cap('movilidad', 'resultados')], respuesta: 'Con $1.000 millones: cuántos siniestros graves se evitan con cada forma.' },
+        { texto: 'La selección basada en 2024', ordenes: [o('movilidad_lista', { lista: 'contar' })], respuesta: 'En morado, los lugares que se escogen mirando solo 2024.' },
+        { texto: 'Qué cambia con Presupuesto+', ordenes: [o('movilidad_lista', { lista: 'modelo' })], respuesta: 'En verde, los lugares que entran con Presupuesto+.' },
+        { texto: 'Ver los resultados', ordenes: [cap('movilidad', 'resultados')], respuesta: 'Qué pasó en 2025 en los lugares de cada selección.' },
       ],
     }
     if (c === 'Resultados') return {
-      pregunta: '¿Probamos con otro presupuesto?',
-      opciones: [{ texto: 'Sí, otro presupuesto', ordenes: [o('movilidad_presupuesto', { nivel: 'medio' })], respuesta: 'Mueve el monto y mira cuántos siniestros graves se evitarían.' }],
+      pregunta: '¿Te cuento cómo lo hicimos?',
+      opciones: [{ texto: 'Sí, cuéntame', ordenes: [cap('movilidad', 'como')], respuesta: 'Datos conectados, riesgo estimado y decisiones mejor informadas.' }],
     }
-    if (c === 'Presupuesto') return {
-      pregunta: '¿Cuánto presupuesto probamos?',
-      opciones: [
-        { texto: '$1.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'bajo' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
-        { texto: '$5.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'medio' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
-        { texto: '$20.000 millones', ordenes: [o('movilidad_presupuesto', { nivel: 'alto' })], respuesta: 'Arriba ves cuántos siniestros graves se esperaría evitar.' },
-      ],
-    }
-    if (c === 'Cómo se hizo' || c === 'Fuentes' || c === 'Tu reto') return { pregunta: '¿Hablamos del reto de tu entidad?', opciones: [agenda] }
+    if (c === 'Cómo lo hicimos' || c === 'Tu reto') return { pregunta: '¿Hablamos del reto de tu entidad?', opciones: [agenda] }
   }
   return null
 }

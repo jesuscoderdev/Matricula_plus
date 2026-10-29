@@ -34,12 +34,10 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] }, resumen: { type: 'string' } })),
 
   // --- Movilidad+ (abre el demo si no está abierto) ---
-  h('movilidad_capitulo', 'Presupuesto+ (antes Movilidad+): va a una pantalla. problema = El presupuesto no alcanza; escoge = ¿Cuáles 3 esquinas arreglarías tú?; falla = Escogiste mirando un solo año (la información que queda por fuera); ysi = ¿Y si se usa toda la información? (Bayes empírico: historia y esquinas parecidas); antes = Antes y después (qué esquinas se escogen mirando solo 2024 y con el modelo, y qué pasó en 2025); resultados = con $1.000 millones, cuántos siniestros graves se evitan con cada forma; presupuesto = cuánto se evita con cada presupuesto, y barrio o avenidas; como = Cómo se hizo; fuentes; cierre = Tu reto (QR).',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'escoge', 'falla', 'ysi', 'antes', 'resultados', 'presupuesto', 'como', 'fuentes', 'cierre'] } })),
-  h('movilidad_lista', 'Presupuesto+: en Antes y después, resalta en el mapa las esquinas que se escogen mirando solo 2024 o las que escoge el modelo.',
+  h('movilidad_capitulo', 'Presupuesto+ (antes Movilidad+): va a un paso. problema = 3.285 lugares para intervenir, recursos para 166; solucion = mirar un solo período oculta patrones (las 46 zonas que salen y las 46 que entran, en 2023 y 2024); antes = Antes y después (con el mismo presupuesto cambian 46 decisiones); resultados = qué pasó en 2025 en cada selección (análisis retrospectivo); como = Cómo lo hicimos; metodologia = abre la metodología (fuentes, supuestos y limitaciones); reto = Tu reto (Proli y agenda).',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'solucion', 'antes', 'resultados', 'como', 'metodologia', 'reto'] } })),
+  h('movilidad_lista', 'Presupuesto+: en Antes y después, muestra en el mapa la selección basada en 2024 (contar) o qué cambia con Presupuesto+ (modelo).',
     objeto({ lista: { type: 'string', enum: ['contar', 'modelo'] } })),
-  h('movilidad_presupuesto', 'Presupuesto+: muestra el capítulo Presupuesto con uno de los tres montos: bajo = $1.000 millones, medio = $5.000 millones, alto = $20.000 millones.',
-    objeto({ nivel: { type: 'string', enum: ['bajo', 'medio', 'alto'] } })),
 
   // --- Matrícula+ (abre el demo si no está abierto) ---
   h('matricula_capitulo', 'Matrícula+: va a una pantalla. problema = El problema; solucion = La solución; prioridad = ¿Quién es quién? (grupos con prioridad y por qué); antes = Antes y después; localidad = Mira tu localidad; resultados; faltan = ¿Dónde faltan cupos? (por nivel); como = Cómo se hizo; fuentes; reto = Tu reto (QR para agendar).',

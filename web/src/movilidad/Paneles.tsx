@@ -1,69 +1,68 @@
 /**
- * Las pantallas de Presupuesto+ (panel de texto junto al mapa), con la estructura de Matrícula+:
- * Problema → Solución → Antes y después → Resultados → Cómo se hizo → Tu reto.
+ * Las pantallas de Presupuesto+, en el formato vertical que pidió Paola (29 oct): una sola columna,
+ * sin scroll, con un titular, un visual (el mapa u otro), una conclusión y un solo botón principal.
+ * Cada pantalla devuelve esas piezas (`Pantalla`) y Movilidad.tsx las acomoda: en vertical, una debajo
+ * de otra; en horizontal, el texto a la izquierda y el visual a la derecha.
+ *
+ * Recorrido: Portada → 1 Problema → 2 Solución → 3 Antes y después → 4 Resultados → 5 Cómo lo hicimos
+ * → 6 Tu reto. Los detalles (metodología, dos años) se abren aparte, en una hoja.
  *
  * Ninguna cifra se escribe a mano: salen de los datos (experiencia.json, fuentes.json, resumen.json,
- * sitios.geojson), casi todas a través de guion.ts. El mensaje: el presupuesto rinde más cuando se
- * escoge con más información. Mirar un solo año deja información por fuera; el modelo suma la
- * historia de cada esquina y la de sus parecidas, y así la plata va a las esquinas con más riesgo.
- * La predicción es el cómo, no el fin. Un solo escenario: las esquinas que alcanzan con el primer
- * presupuesto. No se muestra que los siniestros «bajaron» (invita a pensar que una obra funcionó).
+ * sitios.geojson), casi todas a través de guion.ts. El mensaje: con el mismo presupuesto, analizar más
+ * información cambia 46 decisiones de inversión. No se presentan siniestros evitados como resultado:
+ * dependen de un supuesto de efectividad y solo van en la metodología, como escenario hipotético.
  */
 import { motion } from 'framer-motion'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import { BotonInicio, BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from '../componentes/Marca'
-import Proli, { ProliMarca } from '../componentes/Proli'
+import type { ReactNode } from 'react'
+import Proli from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
-import Veredicto from '../componentes/Veredicto'
-import { NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
-import { pedirAProli, useReto } from '../proli/ordenes'
+import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
+import { pedirAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
-import { entero, millones, nombreLocalidad, pct, pctFraccion, type DatosMovilidad, type Escenario, type Nivel, type PuntoCurva } from './datos'
-import { guionDe, type Forma } from './guion'
+import { entero, millones, pctFraccion, type DatosMovilidad } from './datos'
+import { guionDe } from './guion'
 
-export type CapituloMov = 'problema' | 'escoge' | 'falla' | 'ysi' | 'antes' | 'resultados' | 'presupuesto' | 'como' | 'fuentes' | 'cierre'
+export type CapituloMov = 'problema' | 'solucion' | 'antes' | 'resultados' | 'como' | 'reto'
 export type VistaMov = 'portada' | CapituloMov
-/** Seis secciones (lo que se ve en la navegación), de una a dos pantallas cada una */
-export const SECCIONES_MOV: { nombre: string; vistas: CapituloMov[] }[] = [
-  { nombre: 'Problema', vistas: ['problema', 'escoge'] },
-  { nombre: 'Solución', vistas: ['falla', 'ysi'] },
-  { nombre: 'Antes y después', vistas: ['antes'] },
-  { nombre: 'Resultados', vistas: ['resultados', 'presupuesto'] },
-  { nombre: 'Cómo se hizo', vistas: ['como', 'fuentes'] },
-  { nombre: 'Tu reto', vistas: ['cierre'] },
-]
-/** Cada pantalla, en orden (el nombre es el que oye Proli) */
+/** Cada paso, en orden (el nombre es el que oye Proli y el que se ve junto a «Paso N de 6») */
 export const CAPITULOS_MOV: { id: CapituloMov; nombre: string }[] = [
-  { id: 'problema', nombre: 'El presupuesto no alcanza' },
-  { id: 'escoge', nombre: '¿Cuáles 3 esquinas arreglarías tú?' },
-  { id: 'falla', nombre: 'Escogiste mirando un solo año' },
-  { id: 'ysi', nombre: '¿Y si se usa toda la información?' },
+  { id: 'problema', nombre: 'El problema' },
+  { id: 'solucion', nombre: 'La solución' },
   { id: 'antes', nombre: 'Antes y después' },
   { id: 'resultados', nombre: 'Resultados' },
-  { id: 'presupuesto', nombre: 'Presupuesto' },
-  { id: 'como', nombre: 'Cómo se hizo' },
-  { id: 'fuentes', nombre: 'Fuentes' },
-  { id: 'cierre', nombre: 'Tu reto' },
+  { id: 'como', nombre: 'Cómo lo hicimos' },
+  { id: 'reto', nombre: 'Tu reto' },
 ]
-export const seccionDe = (c: CapituloMov) => SECCIONES_MOV.findIndex((x) => x.vistas.includes(c))
-export const kicker = (c: CapituloMov) => `${seccionDe(c) + 1} de ${SECCIONES_MOV.length} · ${SECCIONES_MOV[seccionDe(c)].nombre}`
-export const ESQUINAS_A_ESCOGER = 3
+export const pasoDe = (c: CapituloMov) => CAPITULOS_MOV.findIndex((x) => x.id === c) + 1
+/** Detalles opcionales: se abren en una hoja encima de la pantalla */
+export type Hoja = 'metodologia' | 'dosAnios'
 
 export interface PropsMov {
   datos: DatosMovilidad
   modo: Modo
   ir: (v: VistaMov) => void
-  tocadas: number[]
-  setTocadas: (t: number[]) => void
-  /** presupuesto en millones de pesos */
-  monto: number
-  setMonto: (m: number) => void
-  /** Antes y después: qué lista se ve en el mapa (mirando solo 2024 o con el modelo) */
+  /** Antes y después: qué selección se ve (la basada en 2024 o la de Presupuesto+) */
   lista: 'contar' | 'modelo'
   setLista: (l: 'contar' | 'modelo') => void
+  /** Tu reto: el QR para agendar, en el tótem */
+  verQr: boolean
+  setVerQr: (v: boolean) => void
+  abrirHoja: (h: Hoja) => void
+  /** el reto que el visitante ya le contó a Proli (va en el enlace para agendar) */
+  reto: string
   alInicio?: () => void
-  /** el logo de Proliferante lleva a la portada del stand */
-  alPortada?: () => void
+}
+
+/** Las piezas de una pantalla. Sin `visual`, en su lugar va el mapa. */
+export interface Pantalla {
+  titular: ReactNode
+  visual?: ReactNode
+  /** encima del mapa (p. ej. el selector de Antes y después) */
+  sobreMapa?: ReactNode
+  conclusion?: ReactNode
+  accion?: ReactNode
+  /** botones de texto, discretos, debajo del principal */
+  secundarias?: ReactNode
 }
 
 // --- Datos derivados (todo sale de los archivos) ---
@@ -71,508 +70,344 @@ export const anioBase = (d: DatosMovilidad) => d.experiencia.pantalla_1_usted_de
 export const anioVal = (d: DatosMovilidad) => d.resumen.anio_validacion
 /** "115 m", leído de la unidad del modelo */
 export const tamanoHex = (d: DatosMovilidad) => d.resumen.unidad.match(/[\d.,]+\s*m\b/)?.[0] ?? ''
-/** Fracción de siniestros que evita una obra en barrio (40 % → 0,4) */
-const reduccion = (d: DatosMovilidad) => d.experiencia.pantalla_presupuesto_barrio.reduccion_supuesta_pct / 100
-export const nombreForma = (d: DatosMovilidad, f: Forma) =>
-  f === 'contar1' ? `Mirando solo ${anioBase(d)}` : f === 'contar2' ? `Mirando ${anioBase(d) - 1} y ${anioBase(d)}` : NOMBRE_MOVILIDAD
-const loc = (d: DatosMovilidad, i: number) => nombreLocalidad(d.sitios.localidades[d.sitios.loc[i]])
-/** Ancho de una barra: proporcional, dejando sitio para el número al lado */
-const ancho = (fraccion: number, rem = 3.4) => `calc((100% - ${rem}rem) * ${Math.max(0, Math.min(1, fraccion))})`
-const entrar = { initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 } }
-/** Las esquinas que escogió el visitante (o, si no escogió, las tres primeras de la lista) */
-export const tusEsquinas = (d: DatosMovilidad, tocadas: number[]) => (tocadas.length ? tocadas : guionDe(d).tablaDesordenada.slice(0, ESQUINAS_A_ESCOGER))
+const escenario = (d: DatosMovilidad) => d.experiencia.pantalla_presupuesto_barrio.escenarios.bajo
+const costo = (d: DatosMovilidad) => d.experiencia.pantalla_presupuesto_barrio.costo_por_esquina_millones
+export const etiquetasMapa = (d: DatosMovilidad) => ({
+  fondo: `Zonas de ${tamanoHex(d)} con siniestros graves — ${anioBase(d)}`,
+  seleccion: `Selección basada en ${anioBase(d)}`,
+  ambas: 'En las dos selecciones',
+  salen: `Solo selección ${anioBase(d)}`,
+  entran: `Solo ${NOMBRE_MOVILIDAD}`,
+})
 
-export function Cabeza({ c, titulo, children }: { c: CapituloMov; titulo: ReactNode; children?: ReactNode }) {
-  return (
-    <header className="panel__cabeza">
-      <span className="kicker">{kicker(c)}</span>
-      <h1 className="display">{titulo}</h1>
-      {children}
-    </header>
-  )
-}
-function Cifra({ n, children, tono }: { n: ReactNode; children: ReactNode; tono?: 'acento' | 'bueno' | 'contar' }) {
-  return <div className={`cifra-mov ${tono ? `cifra-mov--${tono}` : ''}`}><b>{n}</b><span>{children}</span></div>
-}
-const Respuesta = ({ children }: { children: ReactNode }) => <p className="respuesta-mov">{children}</p>
-function Pie({ modo, children }: { modo: Modo; children: ReactNode }) {
-  return <div className="panel__pie">{modo !== 'auto' && children}</div>
-}
+const entrar = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 + 0.12 * k, duration: 0.35 } })
+const Boton = ({ children, onClick, proli }: { children: ReactNode; onClick: () => void; proli?: string }) => (
+  <button className="boton boton--violeta boton--ancho pp__boton" onClick={onClick} data-proli={proli}>{children}</button>
+)
 
 // ---------------------------------------------------------------- portada
-export function PortadaMov({ datos, modo, ir, alInicio, alPortada }: PropsMov) {
-  const c = datos.experiencia.contexto_ciudad
+export function portada({ modo, ir }: PropsMov): Pantalla {
+  return {
+    titular: (
+      <>
+        <motion.h1 className="display pp__titulo pp__titulo--xl" {...entrar(0)}>
+          Mismo presupuesto. Más información. <em>Decisiones diferentes.</em>
+        </motion.h1>
+        <motion.p className="pp__bajada" {...entrar(1)}>¿Dónde invertirías primero para mejorar la seguridad vial de Bogotá?</motion.p>
+      </>
+    ),
+    conclusion: (
+      <motion.div className="pp__proli" {...entrar(2)}>
+        <Proli tamano={4.2} globo={<>Te voy a mostrar lo que cambia cuando miramos más allá de los datos del último año.</>} />
+      </motion.div>
+    ),
+    accion: modo !== 'auto' && <Boton onClick={() => ir('problema')} proli="cap-problema">Descubrir →</Boton>,
+    secundarias: esTotem(modo) && <span className="toca">{modo === 'auto' ? 'Recorrido automático' : `Toca para empezar · ${NOMBRE_MOVILIDAD}`}</span>,
+  }
+}
+
+// ---------------------------------------------------------------- 1. El problema
+export function problema({ datos, modo, ir }: PropsMov): Pantalla {
+  const g = guionDe(datos)
+  const esc = escenario(datos)
+  return {
+    titular: (
+      <>
+        <h1 className="pp__cifras">
+          <motion.span {...entrar(0)}><b>{entero(g.conGraves)}</b> lugares para intervenir.</motion.span>
+          <motion.span {...entrar(1)}>Recursos para <b className="pp__morado">{entero(esc.esquinas)}</b>.</motion.span>
+        </h1>
+        <motion.span className="pp__etiqueta" {...entrar(2)}>Escenario ilustrativo; costo supuesto de {millones(costo(datos))} por intervención</motion.span>
+      </>
+    ),
+    conclusion: (
+      <>
+        <p className="pp__texto">En nuestro escenario de Bogotá, un presupuesto de {millones(esc.presupuesto_millones)} permite intervenir aproximadamente {entero(esc.esquinas)} zonas de barrio.</p>
+        <p className="pp__remate">La pregunta no es solo cuánto invertir. Es dónde hacerlo primero.</p>
+      </>
+    ),
+    accion: modo !== 'auto' && <Boton onClick={() => ir('solucion')} proli="cap-solucion">Descubrir cómo se eligen →</Boton>,
+  }
+}
+
+// ---------------------------------------------------------------- 2. La solución
+/** Dos grupos de barras: los siniestros graves de cada año en las 46 que salen y en las 46 que entran */
+function DosPeriodos({ datos }: { datos: DatosMovilidad }) {
+  const c = guionDe(datos).cambiosPresupuesto
+  const a0 = anioBase(datos)
+  const max = Math.max(c.salen.k23, c.salen.k24, c.entran.k23, c.entran.k24, 1)
+  const grupos = [
+    { clave: 'salen', titulo: <><b>{entero(c.salen.n)} zonas</b> seleccionadas únicamente por {a0}</>, v: [c.salen.k23, c.salen.k24] },
+    { clave: 'entran', titulo: <><b>{entero(c.entran.n)} zonas</b> incorporadas por {NOMBRE_MOVILIDAD}</>, v: [c.entran.k23, c.entran.k24] },
+  ]
+  return (
+    <div className="periodos">
+      <div className="periodos__grupos">
+        {grupos.map((gr, k) => (
+          <figure key={gr.clave} className={`periodos__grupo periodos__grupo--${gr.clave}`}>
+            <div className="periodos__barras">
+              {gr.v.map((v, j) => (
+                <div key={j} className="periodos__col">
+                  <motion.b className="periodos__valor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 + 0.5 * j + 0.15 * k }}>{entero(v)}</motion.b>
+                  <motion.i className={`periodos__barra periodos__barra--${j}`} style={{ height: `calc((100% - 2.2em) * ${v / max})` }}
+                            initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: 0.3 + 0.5 * j + 0.15 * k, duration: 0.6, ease: 'easeOut' }} />
+                </div>
+              ))}
+            </div>
+            <div className="periodos__anios">{gr.v.map((_, j) => <span key={j}>{a0 - 1 + j}</span>)}</div>
+            <figcaption>{gr.titulo}</figcaption>
+          </figure>
+        ))}
+      </div>
+      <p className="periodos__unidad">Siniestros graves por año</p>
+      <p className="periodos__nota">Estos números corresponden a los grupos que difieren entre selecciones, no a las {entero(escenario(datos).esquinas)} zonas completas.</p>
+    </div>
+  )
+}
+
+export function solucion({ datos, modo, ir }: PropsMov): Pantalla {
+  const [e0, e1] = datos.resumen.periodo_estimacion
+  return {
+    titular: (
+      <>
+        <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
+          ¿Y si las esquinas más peligrosas no fueran simplemente las que tuvieron más accidentes <em>el último año</em>?
+        </motion.h1>
+        <motion.p className="pp__bajada" {...entrar(1)}>Mirar un solo período puede ocultar patrones importantes.</motion.p>
+      </>
+    ),
+    visual: <DosPeriodos datos={datos} />,
+    conclusion: (
+      <>
+        <p className="pp__remate">Una sola cifra no cuenta toda la historia.</p>
+        <p className="pp__texto">{NOMBRE_MOVILIDAD} analiza los registros de {e0} y {e1} y compara lugares con comportamientos similares para estimar su riesgo.</p>
+      </>
+    ),
+    accion: modo !== 'auto' && <Boton onClick={() => ir('antes')} proli="cap-antes">Ver qué cambia →</Boton>,
+  }
+}
+
+// ---------------------------------------------------------------- 3. Antes y después
+export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla {
+  const g = guionDe(datos)
+  const n = g.comparacionPresupuesto.esquinas
+  const visto = lista === 'modelo'
+  const a0 = anioBase(datos)
+  return {
+    titular: (
+      <motion.h1 className="display pp__titulo" {...entrar(0)}>
+        Con el mismo presupuesto, cambian <em>{entero(g.entranPresupuesto.length)}</em> decisiones de inversión.
+      </motion.h1>
+    ),
+    sobreMapa: (
+      <>
+        {modo !== 'auto' && (
+          <div className="segmentos pp__segmentos" role="group" aria-label="Qué selección se ve en el mapa">
+            <button className={`segmento ${!visto ? 'segmento--activo' : ''}`} onClick={() => setLista('contar')} data-proli="lista-contar">Selección {a0}</button>
+            <button className={`segmento ${visto ? 'segmento--activo' : ''}`} onClick={() => setLista('modelo')} data-proli="lista-modelo">Ver {NOMBRE_MOVILIDAD}</button>
+          </div>
+        )}
+      </>
+    ),
+    conclusion: (
+      <>
+      {visto && (
+        <motion.div key="msg" className="pp__mensaje" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.4, duration: 0.4 }}>
+          {entero(g.entranPresupuesto.length)} decisiones diferentes
+        </motion.div>
+      )}
+      <div className="pp__conteo">
+        <div><b>{entero(n)}</b><span>intervenciones posibles con ambos métodos</span></div>
+        <div className={visto ? '' : 'pp__oculto'}><b>{entero(g.comunesPresupuesto.length)}</b><span>lugares coinciden</span></div>
+        <div className={`pp__conteo--salen ${visto ? '' : 'pp__oculto'}`}><b>{entero(g.salenPresupuesto.length)}</b><span>salen de la selección</span></div>
+        <div className={`pp__conteo--entran ${visto ? '' : 'pp__oculto'}`}><b>{entero(g.entranPresupuesto.length)}</b><span>lugares diferentes entran con {NOMBRE_MOVILIDAD}</span></div>
+      </div>
+      </>
+    ),
+    accion: modo !== 'auto' && (visto
+      ? <Boton onClick={() => ir('resultados')} proli="cap-resultados">¿Qué revelan los resultados? →</Boton>
+      : <Boton onClick={() => setLista('modelo')}>Ver {NOMBRE_MOVILIDAD}</Boton>),
+  }
+}
+
+// ---------------------------------------------------------------- 4. Resultados
+export function resultados({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
+  const p = guionDe(datos).comparacionPresupuesto
+  const [e0, e1] = datos.resumen.periodo_estimacion
+  const a0 = anioBase(datos), a1 = anioVal(datos)
+  return {
+    titular: (
+      <>
+        <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>¿Qué pasó después en los lugares seleccionados?</motion.h1>
+        <motion.p className="pp__bajada" {...entrar(1)}>Usamos los datos de {e0} y {e1} para definir las selecciones y observamos qué ocurrió en {a1}.</motion.p>
+      </>
+    ),
+    sobreMapa: <span className="pp__etiqueta pp__etiqueta--mapa">Análisis retrospectivo</span>,
+    conclusion: (
+      <>
+        <div className="pp__dos">
+          <div className="pp__dos-uno">
+            <span>Selección basada en {a0}</span>
+            <b>{entero(p.contar1.hubo)}</b>
+            <small>siniestros graves registrados en {a1}</small>
+          </div>
+          <div className="pp__dos-uno pp__dos-uno--destacado">
+            <span>Selección con {NOMBRE_MOVILIDAD}</span>
+            <b>{entero(p.modelo.hubo)}</b>
+            <small>siniestros graves registrados en {a1}</small>
+          </div>
+        </div>
+        <p className="pp__remate">Identificamos lugares con mayor siniestralidad posterior.</p>
+        <p className="pp__texto"><b>¿Qué significa?</b> En esta comparación retrospectiva, {NOMBRE_MOVILIDAD} identificó un conjunto de lugares donde posteriormente se
+          registraron más siniestros graves. Eso es relevante para priorizar el análisis del riesgo.</p>
+      </>
+    ),
+    accion: modo !== 'auto' && <Boton onClick={() => ir('como')} proli="cap-como">Descubrir cómo lo hicimos →</Boton>,
+    secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('dosAnios')}>¿Y si se miran dos años?</button>,
+  }
+}
+
+// ---------------------------------------------------------------- 5. Cómo lo hicimos
+const ICONOS: Record<string, ReactNode> = {
+  datos: <><ellipse cx="12" cy="5.5" rx="7" ry="2.6" /><path d="M5 5.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6M5 11.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6" /></>,
+  riesgo: <><path d="M4 19V5M4 19h16" /><path d="M7 15l4-4 3 3 5-6" /><circle cx="19" cy="8" r="1.3" /></>,
+  decision: <><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><path d="M9.3 10.6l2 2 3.5-3.6" /></>,
+}
+function Etapas() {
+  const etapas = [['datos', 'Datos conectados'], ['riesgo', 'Riesgo estimado'], ['decision', 'Decisiones mejor informadas']]
+  return (
+    <div className="etapas" aria-label="Datos conectados, luego riesgo estimado, luego decisiones mejor informadas">
+      {etapas.map(([icono, titulo], k) => (
+        <motion.div key={icono} className="etapas__paso" {...entrar(k * 2)}>
+          {k > 0 && <span className="etapas__flecha" aria-hidden>↓</span>}
+          <div className="etapas__modulo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{ICONOS[icono]}</svg>
+            <b>{titulo}</b>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+export function como({ modo, ir, abrirHoja }: PropsMov): Pantalla {
+  return {
+    titular: (
+      <>
+        <motion.h1 className="display pp__titulo" {...entrar(0)}>Los datos estaban ahí. <em>Había que ponerlos a trabajar.</em></motion.h1>
+        <motion.p className="pp__bajada" {...entrar(1)}>Conectamos información histórica, características de las vías y patrones de lugares similares.</motion.p>
+      </>
+    ),
+    visual: <Etapas />,
+    conclusion: <p className="pp__texto">Construimos un modelo matemático que permite estimar el riesgo y apoyar la priorización del presupuesto.</p>,
+    accion: modo !== 'auto' && <Boton onClick={() => ir('reto')} proli="cap-reto">¿Y en tu entidad? →</Boton>,
+    secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('metodologia')} data-proli="cap-metodologia">Consultar metodología</button>,
+  }
+}
+
+// ---------------------------------------------------------------- 6. Tu reto
+export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: PropsMov): Pantalla {
   const totem = esTotem(modo)
+  const agendar = () => (totem || !URL_CITA ? setVerQr(!verQr) : window.open(urlCitaCon(suReto), '_blank', 'noopener'))
+  return {
+    titular: (
+      <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
+        ¿Qué decisiones de tu entidad podrían mejorar si pusieras <em>todos tus datos a trabajar</em>?
+      </motion.h1>
+    ),
+    visual: (
+      <div className="pp__reto">
+        {verQr ? <QrCita /> : (
+          <Proli tamano={9} globo={<>Ya viste lo que encontramos con datos públicos. Imagina qué podríamos descubrir con <b>la información de tu entidad</b>.</>} />
+        )}
+      </div>
+    ),
+    conclusion: <p className="pp__marca"><b>{EMPRESA}</b> — Convertimos datos en inteligencia que actúa.</p>,
+    accion: modo !== 'auto' && <Boton onClick={() => pedirAProli('Tengo un reto en mi entidad')}>Contarle mi reto a Proli →</Boton>,
+    secundarias: modo !== 'auto' && (
+      <>
+        <button className="boton boton--claro boton--ancho pp__boton-2" onClick={agendar} data-proli="cap-reto">{verQr ? 'Volver a Proli' : 'Agendar una conversación →'}</button>
+        <div className="fila pp__fila">
+          <button className="boton-texto" onClick={() => ir('portada')}>Ver de nuevo</button>
+          {alInicio && <button className="boton-texto" onClick={alInicio}>Ver otros proyectos</button>}
+        </div>
+      </>
+    ),
+  }
+}
+
+export const PANTALLAS: Record<VistaMov, (p: PropsMov) => Pantalla> = { portada, problema, solucion, antes, resultados, como, reto }
+
+// ---------------------------------------------------------------- hojas (detalles opcionales)
+export function HojaDosAnios({ datos }: { datos: DatosMovilidad }) {
+  const p = guionDe(datos).comparacionPresupuesto
+  const a0 = anioBase(datos), a1 = anioVal(datos)
   return (
     <>
-      <div className="portada__contenido">
-        <MarcaDeAgua className="marca-agua--portada" />
-        <motion.div className="portada__marca" {...entrar} transition={{ delay: 0.05 }}>
-          <div className="portada__logos">
-            {alInicio && modo !== 'auto' && <BotonInicio alInicio={alInicio} />}
-            <LogoEmpresa alTocar={alPortada} />
-            <span className="portada__sep" aria-hidden />
-            <span className="marca-bloque"><ProliMarca /><NombreApp nombre={NOMBRE_MOVILIDAD} /></span>
-          </div>
-          <span className="etiqueta">GovTech · 3–4 nov 2026</span>
-          <BotonTema />
-        </motion.div>
-        <motion.span className="kicker" {...entrar} transition={{ delay: 0.15 }}>Presupuesto para seguridad vial · Bogotá</motion.span>
-        <motion.p className="portada-mov__contexto" {...entrar} transition={{ delay: 0.2 }}>
-          En {anioVal(datos)}, <b>{entero(c.fallecidos_2025)} personas murieron</b> en las vías de Bogotá y <b>{entero(c.lesionados_2025)}</b> resultaron heridas.
-          El presupuesto para arreglar esquinas no alcanza para todas.
-        </motion.p>
-        <motion.h1 className="display portada-mov__titulo" {...entrar} transition={{ delay: 0.28 }}>
-          <span>Mismo presupuesto. Más información.</span>
-          <span className="portada-mov__l2">Mejores esquinas.</span>
-        </motion.h1>
-        <motion.p className="portada-mov__l3" {...entrar} transition={{ delay: 0.36 }}>
-          {NOMBRE_MOVILIDAD} mira la historia de cada esquina y la de miles de esquinas parecidas para decidir dónde invertir primero.
-        </motion.p>
-      </div>
-      <div className="portada__pie">
-        {modo !== 'auto' && (
-          <motion.div className="fila" {...entrar} transition={{ delay: 0.5 }}>
-            <button className="boton boton--violeta boton--latir" onClick={() => ir('problema')}>Ver cómo →</button>
-          </motion.div>
-        )}
-        {totem && (
-          <div className="fila fila--entre">
-            <span className="toca">{modo === 'auto' ? 'Recorrido automático' : 'Toca para empezar'}</span>
-            {modo === 'auto' && <Proli tamano={6} lado="derecha" globo={<>Hola, soy <b>Proli</b>. ¿Qué esquinas arreglarías tú primero?</>} />}
-          </div>
-        )}
-      </div>
+      <h2 className="display display--m">¿Y si se miran dos años?</h2>
+      <ul className="pruebas-mov">
+        <li>Mirando {a0 - 1} y {a0} se escogen casi las mismas zonas que con {NOMBRE_MOVILIDAD} ({entero(p.contar2.comun)} de {entero(p.esquinas)}), y en {a1} tuvieron
+          {' '}{entero(p.contar2.hubo)} siniestros graves. Mirar más de un año ya es sumar información.</li>
+        <li>La diferencia está en cuánto se espera. Mirando los dos años, se esperaría que en {a1} se repitiera su promedio:
+          {' '}{entero(p.contar2.espera)} siniestros graves en esas zonas, y hubo {entero(p.contar2.hubo)}. {NOMBRE_MOVILIDAD}, que suma los lugares
+          parecidos, esperaba ≈ {entero(p.modelo.espera)} y hubo {entero(p.modelo.hubo)}.</li>
+        <li>Muchas zonas empatan con el mismo número de siniestros. Los empates se rompen por el año más reciente y luego por el código de la zona, como en el modelo.</li>
+      </ul>
     </>
   )
 }
 
-// ---------------------------------------------------------------- 1. Problema
-export function Problema({ datos, modo, ir }: PropsMov) {
-  const g = guionDe(datos)
-  const p = datos.experiencia.pantalla_presupuesto_barrio
-  return (
-    <div className="panel">
-      <Cabeza c="problema" titulo={<>El presupuesto no alcanza para <em>todas</em> las esquinas</>}>
-        <p className="lead">En {anioBase(datos)}:</p>
-      </Cabeza>
-      <div className="cifras-mov">
-        <Cifra n={entero(g.conGraves)} tono="acento">esquinas de barrio con siniestros graves</Cifra>
-        <Cifra n={entero(p.escenarios.bajo.esquinas)}>esquinas que alcanzan con {millones(p.escenarios.bajo.presupuesto_millones)} (≈ {entero(p.costo_por_esquina_millones)} millones cada una)</Cifra>
-      </div>
-      <Respuesta>¿Cuáles escoger para que la plata rinda más?</Respuesta>
-      <p className="nota">Siniestro grave: con al menos un herido o un muerto. Cada esquina es una zona de {tamanoHex(datos)}. Fuente: Secretaría Distrital de Movilidad.</p>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('escoge')}>¿Cuáles escogerías tú? →</button></Pie>
-    </div>
-  )
-}
-
-export function Escoge({ datos, modo, ir, tocadas, setTocadas }: PropsMov) {
-  const g = guionDe(datos)
-  const s = datos.sitios
-  const listo = tocadas.length >= ESQUINAS_A_ESCOGER
-  const tocar = (i: number) => setTocadas(tocadas.includes(i) ? tocadas.filter((x) => x !== i) : [...tocadas, i].slice(-ESQUINAS_A_ESCOGER))
-  return (
-    <div className="panel">
-      <Cabeza c="escoge" titulo={<>¿Cuáles <em>{ESQUINAS_A_ESCOGER} esquinas</em> arreglarías tú?</>}>
-        <p className="lead">Estas fueron las {g.tabla.length} esquinas de barrio con más siniestros graves en {anioBase(datos)}.</p>
-      </Cabeza>
-      <div className="lista-mov">
-        {g.tablaDesordenada.map((i, k) => (
-          <button key={i} className="esq-mov" aria-pressed={tocadas.includes(i)} disabled={modo === 'auto'} onClick={() => tocar(i)} data-proli={`esquina-${k + 1}`}>
-            <span className="esq-mov__n">{k + 1}</span>
-            <span className="esq-mov__donde"><b>{loc(datos, i)}</b><small>esquina de barrio · zona de {tamanoHex(datos)}</small></span>
-            <span className="esq-mov__k">{entero(s.k24[i])} <small>siniestros graves en {anioBase(datos)}</small></span>
-          </button>
-        ))}
-      </div>
-      <p className="nota">También puedes tocarlas en el mapa.</p>
-      <Pie modo={modo}>
-        <button className={`boton boton--ancho ${listo ? 'boton--violeta boton--latir' : ''}`} disabled={!listo} onClick={() => ir('falla')}>
-          {listo ? 'Listo, seguir →' : `Escoge ${ESQUINAS_A_ESCOGER - tocadas.length} más`}
-        </button>
-      </Pie>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------- 2. Solución
-export function Falla({ datos, modo, ir, tocadas }: PropsMov) {
-  const g = guionDe(datos)
-  const s = datos.sitios
-  const mias = tusEsquinas(datos, tocadas)
-  const a0 = anioBase(datos)
-  const max = Math.max(1, ...mias.flatMap((i) => [s.k23[i], s.k24[i]]))
-  const suma = (v: number[]) => mias.reduce((t, i) => t + v[i], 0)
-  const cambio = g.cambiosPresupuesto
-  const esc = datos.experiencia.pantalla_presupuesto_barrio.escenarios.bajo
-  return (
-    <div className="panel">
-      <Cabeza c="falla" titulo={<>Escogiste mirando <em>un solo año</em></>}>
-        <p className="lead">{tocadas.length ? 'Tus' : 'Las'} {mias.length} esquinas tuvieron <b>{entero(suma(s.k24))} siniestros graves</b> en {a0}.
-          Es una buena pista, pero un solo año no cuenta toda la historia.</p>
-      </Cabeza>
-      <div className="barras-mov">
-        {mias.map((i) => (
-          <div key={i} className="barra-mov">
-            <span className="barra-mov__n">{g.tablaDesordenada.indexOf(i) + 1 || '·'}</span>
-            <div className="barra-mov__pistas">
-              <span className="pista-mov"><i className="pista-mov__antes" style={{ width: `${(s.k23[i] / max) * 75}%` }} />{a0 - 1}: <b>{entero(s.k23[i])}</b></span>
-              <span className="pista-mov"><i className="pista-mov__despues" style={{ width: `${(s.k24[i] / max) * 75}%` }} />{a0}: <b>{entero(s.k24[i])}</b></span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="nota-mov">Si con {millones(esc.presupuesto_millones)} se arreglan las <b>{entero(esc.esquinas)} esquinas con más siniestros graves en {a0}</b>:</p>
-      <div className="cifras-mov">
-        <Cifra n={entero(cambio.salen.n)} tono="contar"><b>entran por un solo año malo:</b> {entero(cambio.salen.k24)} siniestros graves en {a0}, pero solo {entero(cambio.salen.k23)} en {a0 - 1}</Cifra>
-        <Cifra n={entero(cambio.entran.n)} tono="bueno"><b>quedan por fuera</b> aunque tuvieron {entero(cambio.entran.k23)} siniestros graves en {a0 - 1}: en {a0} solo tuvieron {entero(cambio.entran.k24)}</Cifra>
-      </div>
-      <Respuesta>Mirar un solo año deja información por fuera. Así, parte de la plata puede ir a esquinas donde el riesgo fue pasajero.</Respuesta>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('ysi')}>¿Y si se usa toda la información? →</button></Pie>
-    </div>
-  )
-}
-
-/** Cómo cruza la información el modelo, en general (sin una esquina en particular): aparece por pasos */
-function Cruce({ datos }: { datos: DatosMovilidad }) {
+export function HojaMetodologia({ datos, modo }: { datos: DatosMovilidad; modo: Modo }) {
   const r = datos.resumen
-  const [e0, e1] = r.periodo_estimacion
-  const paso = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.3 + k * 0.9, duration: 0.45 } })
-  return (
-    <div className="cruce-mov" aria-label="Historia de la esquina más esquinas parecidas da el riesgo estimado de cada esquina">
-      <motion.div className="cruce-mov__caja" {...paso(0)}>
-        <b>Su historia</b>
-        <span>Los siniestros graves de cada esquina en {e0} y en {e1}, no solo del último año.</span>
-      </motion.div>
-      <motion.span className="cruce-mov__signo" aria-hidden {...paso(0.5)}>+</motion.span>
-      <motion.div className="cruce-mov__caja" {...paso(1)}>
-        <b>Sus esquinas parecidas</b>
-        <span>Del mismo tipo de vía y con una cantidad de calle parecida, entre {entero(r.universo.por_zona.local)} esquinas de barrio.</span>
-      </motion.div>
-      <motion.span className="cruce-mov__signo" aria-hidden {...paso(1.5)}>↓</motion.span>
-      <motion.div className="cruce-mov__caja cruce-mov__caja--fin" {...paso(2)}>
-        <b>Riesgo estimado de cada esquina</b>
-        <span>Cuántos siniestros graves se esperan al año. Si un año se sale de lo normal, las parecidas lo equilibran.</span>
-      </motion.div>
-    </div>
-  )
-}
-
-export function Ysi({ datos, modo, ir }: PropsMov) {
-  const [vuelta, setVuelta] = useState(0)
-  const a0 = anioBase(datos)
-  return (
-    <div className="panel">
-      <Cabeza c="ysi" titulo={<>¿Y si se usa <em>toda</em> la información?</>}>
-        <p className="lead">{NOMBRE_MOVILIDAD} aplica <b>Bayes empírico</b>, un método estadístico que cruza más información para estimar el riesgo de cada esquina.</p>
-      </Cabeza>
-      <Cruce key={vuelta} datos={datos} />
-      {modo !== 'auto' && <button className="boton-texto" onClick={() => setVuelta((x) => x + 1)}>↻ Ver de nuevo</button>}
-      <div className="dos-mov">
-        <div className="dos-mov__contar">
-          <b>Mirando solo {a0}</b>
-          <span>Escoge las esquinas que tuvieron un año malo, aunque haya sido pasajero.</span>
-        </div>
-        <div className="dos-mov__proli">
-          <b>{NOMBRE_MOVILIDAD}</b>
-          <span>Escoge las esquinas que llevan años con riesgo.</span>
-        </div>
-      </div>
-      <details className="como-calculamos">
-        <summary className="boton-texto">¿Qué es cada cosa? ▾</summary>
-        <ul className="pruebas-mov">
-          <li><b>Siniestro grave:</b> con heridos o muertos (criterio de 30 días).</li>
-          <li><b>Esquina:</b> una zona de {tamanoHex(datos)}. Calles de barrio y avenidas se separan con la red vial de OpenStreetMap.</li>
-          <li><b>Riesgo estimado:</b> cuántos siniestros graves se esperan al año en la esquina. Es una estimación, no una certeza.</li>
-          <li><b>Bayes empírico</b> (Hauer, 1997): mezcla la historia de la esquina con la de sus parecidas. Es un método reconocido en seguridad vial.</li>
-        </ul>
-        <p className="nota">No se sabe con exactitud cómo escoge hoy cada entidad sus esquinas. Aquí se compara con escoger por los siniestros del último año, que es el método
-          básico de la guía nacional del Ministerio de Transporte. La misma guía recomienda combinarlo con modelos estadísticos, como este.</p>
-      </details>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('antes')}>Ver el antes y el después →</button></Pie>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------- 3. Antes y después
-/** El modelo «piensa» antes de mostrar el antes y el después: tres pasos que se encienden uno a uno */
-function Piensa({ pasos, alTerminar }: { pasos: ReactNode[]; alTerminar: () => void }) {
-  const [hechos, setHechos] = useState(0)
-  useEffect(() => {
-    const t = 650
-    const relojes = pasos.map((_, i) => setTimeout(() => setHechos(i + 1), t * (i + 0.3)))
-    relojes.push(setTimeout(alTerminar, t * (pasos.length + 0.6)))
-    return () => relojes.forEach(clearTimeout)
-  }, [pasos.length, alTerminar])
-  return (
-    <div className="piensa-mov" role="status">
-      {pasos.map((p, i) => <p key={i} className={i < hechos ? 'listo' : ''}>{p}</p>)}
-    </div>
-  )
-}
-
-export function Antes({ datos, modo, ir, tocadas, lista, setLista }: PropsMov) {
-  const G = guionDe(datos)
-  const p = G.comparacionPresupuesto
-  const esc = datos.experiencia.pantalla_presupuesto_barrio.escenarios.bajo
-  const a0 = anioBase(datos), a1 = anioVal(datos)
-  const enModelo = new Set(p.modelo.lista)
-  const tuyas = tocadas.filter((i) => enModelo.has(i)).length
-  const quieto = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const [listo, setListo] = useState(quieto)
-  const terminar = useCallback(() => setListo(true), [])
-  const cabeza = (
-    <Cabeza c="antes" titulo={<>Mirando solo {a0} se escogen unas esquinas. <em>Con {NOMBRE_MOVILIDAD}, otras.</em></>}>
-      <p className="lead">Con {millones(esc.presupuesto_millones)} alcanza para <b>{entero(p.esquinas)} esquinas de barrio</b>. De una forma a la otra
-        cambian <b>{entero(G.cambiosPresupuesto.entran.n)}</b>: salen las de un solo año malo y entran las que llevan años con riesgo.</p>
-    </Cabeza>
-  )
-  if (!listo) return (
-    <div className="panel">
-      {cabeza}
-      <Piensa alTerminar={terminar} pasos={[
-        <>Conectando 3 años de siniestros graves ({a0 - 1}, {a0} y {a1})…</>,
-        <>Comparando cada esquina con miles de esquinas parecidas…</>,
-        <>Calculando el riesgo de cada esquina de barrio…</>,
-      ]} />
-    </div>
-  )
-  return (
-    <motion.div className="panel" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-      {cabeza}
-      {modo !== 'auto' && (
-        <div className="segmentos" role="group" aria-label="Qué esquinas se ven en el mapa">
-          <button className={`segmento ${lista === 'contar' ? 'segmento--activo' : ''}`} onClick={() => setLista('contar')} data-proli="lista-contar">Mirando solo {a0}</button>
-          <button className={`segmento ${lista === 'modelo' ? 'segmento--activo' : ''}`} onClick={() => setLista('modelo')} data-proli="lista-modelo">Con {NOMBRE_MOVILIDAD}</button>
-        </div>
-      )}
-      {tocadas.length > 0 && (
-        <div className="tarjeta tarjeta--violeta">
-          <span className="etiqueta">Tus {tocadas.length} esquinas</span>
-          <p>{tuyas === tocadas.length ? `${NOMBRE_MOVILIDAD} también las escoge todas.` : tuyas === 0 ? `${NOMBRE_MOVILIDAD} no escoge ninguna de ellas.`
-            : `${NOMBRE_MOVILIDAD} también escoge ${tuyas} de ellas.`}</p>
-        </div>
-      )}
-      <h2 className="subtitulo-mov">¿Qué pasó en {a1}?</h2>
-      <div className="cifras-mov">
-        <Cifra n={entero(p.modelo.hubo)} tono="bueno">siniestros graves tuvieron en {a1} las esquinas de {NOMBRE_MOVILIDAD}. Las escogidas mirando solo {a0}: {entero(p.contar1.hubo)}</Cifra>
-        <Cifra n={<>≈ {entero(p.modelo.espera)}</>} tono="acento">siniestros graves esperaba {NOMBRE_MOVILIDAD} en sus esquinas para {a1}. Hubo {entero(p.modelo.hubo)}: su estimación se acerca a lo que pasó</Cifra>
-      </div>
-      <Respuesta>Con más información, la plata va a las esquinas donde hay más riesgo. Ahí es donde una obra puede evitar más siniestros.</Respuesta>
-      <p className="nota">{a1} es un año que el modelo no vio: se estimó solo con {a0 - 1} y {a0}.</p>
-      <details className="como-calculamos">
-        <summary className="boton-texto">¿Y si se miran dos años? ▾</summary>
-        <ul className="pruebas-mov">
-          <li>Mirando {a0 - 1} y {a0} se escogen casi las mismas esquinas que con {NOMBRE_MOVILIDAD} ({entero(p.contar2.comun)} de {entero(p.esquinas)}), y en {a1} tuvieron
-            {' '}{entero(p.contar2.hubo)} siniestros graves. Mirar más de un año ya es sumar información.</li>
-          <li>La diferencia está en cuánto se espera. Mirando los dos años, se esperaría que en {a1} se repitiera su promedio:
-            {' '}{entero(p.contar2.espera)} siniestros graves en esas esquinas, y hubo {entero(p.contar2.hubo)}. {NOMBRE_MOVILIDAD}, que suma las esquinas
-            parecidas, esperaba ≈ {entero(p.modelo.espera)} y hubo {entero(p.modelo.hubo)}.</li>
-          <li>Muchas esquinas empatan con el mismo número de siniestros. Los empates se rompen por el año más reciente y luego por el código de la zona, como en el modelo.</li>
-        </ul>
-      </details>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('resultados')}>¿Y cuánto se evita? →</button></Pie>
-    </motion.div>
-  )
-}
-
-// ---------------------------------------------------------------- 4. Resultados
-export function Resultados({ datos, modo, ir }: PropsMov) {
-  const G = guionDe(datos)
-  const p = G.comparacionPresupuesto
-  const r = reduccion(datos)
-  const esc = datos.experiencia.pantalla_presupuesto_barrio
-  const a0 = anioBase(datos), a1 = anioVal(datos)
-  const mas = Math.round((p.modelo.hubo - p.contar1.hubo) * r)
-  const masPct = Math.round((100 * (p.modelo.hubo - p.contar1.hubo)) / Math.max(1, p.contar1.hubo))
-  return (
-    <div className="panel">
-      <Cabeza c="resultados" titulo={<>Con <em>{millones(esc.escenarios.bajo.presupuesto_millones)}</em>…</>}>
-        <p className="lead">Alcanza para <b>{entero(p.esquinas)} esquinas de barrio</b>. Si en cada una se pone un reductor de velocidad, que baja ≈ {entero(esc.reduccion_supuesta_pct)} % los siniestros con heridos, se evitarían:</p>
-      </Cabeza>
-      <div className="cifras-mov">
-        <Cifra n={<>≈ {entero(p.modelo.hubo * r)}</>} tono="bueno">siniestros graves evitados al año en las esquinas de {NOMBRE_MOVILIDAD}</Cifra>
-        <Cifra n={<>≈ {entero(p.contar1.hubo * r)}</>} tono="contar">siniestros graves evitados al año en las esquinas escogidas mirando solo {a0}</Cifra>
-      </div>
-      <Veredicto etiqueta="Con la misma plata" cifra={`${mas >= 0 ? '+' : '−'}${entero(Math.abs(mas))}`}
-                 frase={`siniestros graves evitados al año (${pct(masPct)})`}
-                 nota={<>Porque la plata llega a las esquinas con más riesgo.</>} />
-      <Respuesta>Mismo presupuesto, mejores esquinas: más siniestros evitados.</Respuesta>
-      <p className="nota">Calculado con los siniestros graves que hubo en {a1} en las esquinas que escoge cada forma.</p>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('presupuesto')} data-proli="cap-presupuesto">¿Y con otro presupuesto? →</button></Pie>
-    </div>
-  )
-}
-
-/** La curva: siniestros graves evitados al año según el monto, con las esquinas del modelo. */
-function CurvaPresupuesto({ puntos, monto }: { puntos: PuntoCurva[]; monto: number }) {
-  const W = 320, H = 150, m = { izq: 6, der: 6, arr: 10, aba: 20 }
-  const xMax = puntos[puntos.length - 1].presupuesto_millones
-  const yMax = Math.max(...puntos.map((p) => p.metodo_esperado))
-  const x = (v: number) => m.izq + (W - m.izq - m.der) * (v / xMax)
-  const y = (v: number) => H - m.aba - (H - m.arr - m.aba) * (v / yMax)
-  const linea = `M${x(0)},${y(0)} ` + puntos.map((p) => `L${x(p.presupuesto_millones).toFixed(1)},${y(p.metodo_esperado).toFixed(1)}`).join(' ')
-  const p = puntos.find((q) => q.presupuesto_millones === monto) ?? puntos[0]
-  const derecha = x(monto) > W * 0.75
-  return (
-    <figure className="curva">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Con ${millones(p.presupuesto_millones)} se evitarían ≈ ${entero(p.metodo_esperado)} siniestros graves al año.`}>
-        <line x1={x(0)} x2={x(xMax)} y1={y(0)} y2={y(0)} className="curva__base" />
-        <path d={linea} className="curva__metodo" />
-        <line x1={x(monto)} x2={x(monto)} y1={m.arr} y2={y(0)} className="curva__guia" />
-        <circle cx={x(monto)} cy={y(p.metodo_esperado)} r="4.2" className="curva__punto" />
-        <text x={x(monto) + (derecha ? -7 : 7)} y={y(p.metodo_esperado) + 13} textAnchor={derecha ? 'end' : 'start'} className="curva__valor">≈ {entero(p.metodo_esperado)}</text>
-        <text x={x(0)} y={H - 5} className="curva__eje">$0</text>
-        <text x={x(xMax)} y={H - 5} textAnchor="end" className="curva__eje">{millones(xMax)}</text>
-      </svg>
-      <figcaption className="curva__leyenda">
-        <span><i className="curva__clave curva__clave--metodo" />Siniestros graves evitados al año, según el presupuesto</span>
-      </figcaption>
-    </figure>
-  )
-}
-
-export function Presupuesto({ datos, modo, ir, monto, setMonto }: PropsMov) {
-  const p = datos.experiencia.pantalla_presupuesto_barrio
-  const puntos = datos.experiencia.presupuesto_curva.puntos
-  const i = Math.max(0, puntos.findIndex((q) => q.presupuesto_millones >= monto))
-  const e = puntos[i]
-  // Atajos: los tres montos de referencia (los mismos que usa Proli)
-  const atajos = Object.entries(p.escenarios) as [Nivel, Escenario][]
-  const r = datos.experiencia.presupuesto_reparto
-  const fila = r.filas.reduce((a, b) => (Math.abs(b.presupuesto_millones - monto) < Math.abs(a.presupuesto_millones - monto) ? b : a))
-  const maxR = Math.max(fila.todo_en_barrio, fila.todo_en_avenidas, fila.mejor_combinacion.esperado)
-  const mejor = fila.mejor_combinacion
-  return (
-    <div className="panel">
-      <Cabeza c="presupuesto" titulo={<>¿Qué logras con <em>{millones(e.presupuesto_millones)}</em>?</>}>
-        <p className="lead">Elige cuánto invertir en reductores de velocidad (≈ {entero(p.costo_por_esquina_millones)} millones por esquina). {NOMBRE_MOVILIDAD} los pone primero en las
-          esquinas de más riesgo y estima cuántos siniestros graves se evitarían.</p>
-      </Cabeza>
-      <div className="deslizador deslizador--monto">
-        <label htmlFor="monto-mov">Presupuesto</label>
-        <output>{millones(e.presupuesto_millones)}</output>
-        <input id="monto-mov" type="range" min={0} max={puntos.length - 1} step={1} value={i} disabled={modo === 'auto'}
-               onChange={(ev) => setMonto(puntos[+ev.target.value].presupuesto_millones)} />
-      </div>
-      <div className="chips">
-        {atajos.map(([n, esc]) => (
-          <button key={n} data-proli={`presupuesto-${n}`} disabled={modo === 'auto'} onClick={() => setMonto(esc.presupuesto_millones)}
-                  className={`chip ${esc.presupuesto_millones === e.presupuesto_millones ? 'chip--activo' : ''}`}>{millones(esc.presupuesto_millones)}</button>
-        ))}
-      </div>
-      <Veredicto etiqueta={<>Alcanza para {entero(e.esquinas)} esquinas de barrio</>}
-                 cifra={`≈ ${entero(e.metodo_esperado)}`}
-                 frase="siniestros graves menos al año (estimado)"
-                 nota={<>Más dinero alcanza más esquinas, pero cada peso rinde un poco menos: primero van las de más riesgo.</>} />
-      <CurvaPresupuesto puntos={puntos} monto={e.presupuesto_millones} />
-      <h2 className="subtitulo-mov">¿Barrio o avenidas?</h2>
-      <div className="reparto-red">
-        <div className="reparto-red__fila">
-          <span>Todo en calles de barrio</span>
-          <span className="promesa__pista"><i className="promesa__barra promesa__barra--metodo" style={{ width: ancho(fila.todo_en_barrio / maxR) }} /><b>≈ {entero(fila.todo_en_barrio)}</b></span>
-        </div>
-        <div className="reparto-red__fila">
-          <span>Todo en avenidas</span>
-          <span className="promesa__pista"><i className="promesa__barra promesa__barra--metodo" style={{ width: ancho(fila.todo_en_avenidas / maxR) }} /><b>≈ {entero(fila.todo_en_avenidas)}</b></span>
-        </div>
-        <div className="reparto-red__fila reparto-red__fila--mejor">
-          <span>La mejor combinación<small>{entero(mejor.esquinas_barrio)} esquinas de barrio{mejor.intersecciones_avenida > 0 ? ` y ${entero(mejor.intersecciones_avenida)} intersecciones` : ' y ninguna avenida'}</small></span>
-          <span className="promesa__pista"><i className="promesa__barra promesa__barra--ocurrio" style={{ width: ancho(mejor.esperado / maxR) }} /><b>≈ {entero(mejor.esperado)}</b></span>
-        </div>
-      </div>
-      <p className="nota">Siniestros graves menos al año con {millones(fila.presupuesto_millones)}, según {NOMBRE_MOVILIDAD}. Un reductor cuesta ≈ {entero(r.costos_millones.local)} millones; un semáforo
-        con paso peatonal anticipado, hasta ≈ {entero(r.costos_millones.arterial)} millones. Si en avenidas solo hay que reprogramar el semáforo (menos de ≈ {entero(fila.avenidas_compiten_si_cuestan_menos_de_millones)} millones), conviene sumarlas.</p>
-      <details className="como-calculamos">
-        <summary className="boton-texto">Cómo se calcula esto ▾</summary>
-        <p className="nota">Obra en barrio: {p.intervencion}, a ≈ {entero(p.costo_por_esquina_millones)} millones cada una; se supone que reduce un {entero(p.reduccion_supuesta_pct)} % los
-          siniestros con heridos. En avenidas: {r.intervenciones.arterial.toLowerCase()}, −{entero(r.reducciones_pct.arterial)} %. La mejor combinación se calcula con
-          un modelo de optimización (problema de la mochila) sobre el riesgo de cada esquina.</p>
-        <div className="aviso-mov" role="note"><b>Ojo:</b> {datos.fuentes.advertencia}</div>
-      </details>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('como')}>¿Cómo se hizo? →</button></Pie>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------- 5. Cómo se hizo
-export function Como({ datos, modo, ir }: PropsMov) {
-  const r = datos.resumen
-  const [e0, e1] = r.periodo_estimacion
-  return (
-    <div className="panel">
-      <Cabeza c="como" titulo={<>Se unieron datos que estaban <em>sueltos</em></>} />
-      <div className="cajitas-mov">
-        <div className="cajita-mov"><b>{entero(datos.fuentes.fuentes.length)} fuentes públicas</b><span>Siniestros graves {e0}–{r.anio_validacion}, red vial, efectividad y costo de las obras.</span></div>
-        <div className="cajita-mov"><b>Bogotá en zonas de {tamanoHex(datos)}</b><span>{entero(r.universo.por_zona.local)} de barrio y {entero(r.universo.por_zona.arterial)} de avenida.</span></div>
-        <div className="cajita-mov"><b>Riesgo estimado de cada esquina</b><span>Su historia y la de sus esquinas parecidas (Bayes empírico, Hauer 1997).</span></div>
-        <div className="cajita-mov"><b>Probado con un año que no vio</b><span>Se estimó con {e0} y {e1} y se comparó con {r.anio_validacion}.</span></div>
-      </div>
-      <p className="acento">Y puede seguir aprendiendo: con datos de obras, tráfico y velocidad, diría qué obra funciona y dónde.</p>
-      <ul className="fuentes-lista-mov">
-        {datos.fuentes.fuentes.map((f) => <li key={f.dato}>{f.fuente} · {f.dato}</li>)}
-      </ul>
-      <p className="nota">No se muestran siniestros individuales ni datos de personas (Ley 1581 de 2012).</p>
-      <Pie modo={modo}>
-        <button className="boton boton--ancho boton--violeta" onClick={() => ir('cierre')}>Tu reto →</button>
-        <button className="boton-texto" onClick={() => ir('fuentes')}>De dónde salen los datos</button>
-      </Pie>
-    </div>
-  )
-}
-
-export function Fuentes({ datos, modo, ir }: PropsMov) {
   const f = datos.fuentes
+  const [e0, e1] = r.periodo_estimacion
+  const a1 = anioVal(datos)
+  const esc = escenario(datos)
+  const pb = datos.experiencia.pantalla_presupuesto_barrio
+  const p = guionDe(datos).comparacionPresupuesto
+  const red = pb.reduccion_supuesta_pct / 100
   const totem = esTotem(modo)
+  // Solo las fuentes que usa el recorrido: siniestros, red vial y lo de los reductores (costo y efectividad)
+  const usadas = f.fuentes.filter((x) => !/semaf|peatonal/i.test(x.dato))
   return (
-    <div className="panel">
-      <Cabeza c="fuentes" titulo={f.titulo_sugerido} />
-      <ul className="fuentes-mov">
-        {f.fuentes.map((x) => (
-          <li key={x.dato}>
-            <b>{x.dato}</b>
-            <span>{x.fuente} · {x.anio}</span>
-            {!totem && <a href={x.url} target="_blank" rel="noopener noreferrer">{x.url.replace(/^https?:\/\//, '').split('/')[0]}</a>}
-          </li>
-        ))}
-      </ul>
-      <p className="nota mov-sec">{f.cruces}</p>
-      <p className="nota mov-sec">{f.metodo_validacion}</p>
-      <p className="nota mov-sec">Nombres técnicos: que un año muy malo suela venir seguido de uno más tranquilo se llama <b>regresión a la media</b>.
-        El método es el de <b>Bayes empírico</b> (Hauer, 1997), reconocido en seguridad vial. Su pequeño error se explica por la caída de toda la ciudad
-        en {anioVal(datos)} ({pctFraccion(datos.resumen.validacion_2025.local.tendencia_2025_vs_promedio)} en calles de barrio), que ningún cálculo podía anticipar.</p>
-      <div className="aviso-mov" role="note">{f.advertencia}</div>
+    <>
+      <h2 className="display display--m">Metodología</h2>
+      <dl className="metodo-mov">
+        <dt>Períodos y fuentes</dt>
+        <dd>Las selecciones se calcularon con {e0} y {e1}. {a1} se usó solo para comparar después: no entró en el cálculo del riesgo ni en la selección.
+          <ul className="fuentes-mov">
+            {usadas.map((x) => (
+              <li key={x.dato}><b>{x.dato}</b><span>{x.fuente} · {x.anio}</span>
+                {!totem && <a href={x.url} target="_blank" rel="noopener noreferrer">{x.url.replace(/^https?:\/\//, '').split('/')[0]}</a>}</li>
+            ))}
+          </ul>
+        </dd>
+        <dt>Zonas geográficas</dt>
+        <dd>Bogotá se dividió en zonas de {tamanoHex(datos)}: {entero(r.universo.por_zona.local)} de barrio y {entero(r.universo.por_zona.arterial)} de avenida. {f.cruces}</dd>
+        <dt>Bayes empírico</dt>
+        <dd>El riesgo de cada zona mezcla su propia historia con la de las zonas parecidas (Hauer, 1997). Si un año se sale de lo normal, las parecidas lo equilibran.</dd>
+        <dt>Variables de comparación</dt>
+        <dd>Las zonas parecidas son del mismo tipo de vía y con una cantidad de calle similar.</dd>
+        <dt>Restricción presupuestal</dt>
+        <dd>Las dos selecciones usan el mismo presupuesto ({millones(esc.presupuesto_millones)}), el mismo costo por intervención ({millones(pb.costo_por_esquina_millones)}) y el mismo
+          número de zonas ({entero(esc.esquinas)}), todas en calles de barrio.</dd>
+        <dt>Validación retrospectiva</dt>
+        <dd>{f.metodo_validacion}</dd>
+        <dt>Supuestos y limitaciones</dt>
+        <dd>
+          <ul className="pruebas-mov">
+            <li>El presupuesto y el costo son de referencia para el ejercicio, no una partida oficial.</li>
+            <li>No se tienen en cuenta obras hechas en {e1} o {a1} que pudieran cambiar los siniestros de {a1}.</li>
+            <li>En {a1} los siniestros graves cambiaron en toda la ciudad ({pctFraccion(r.validacion_2025.local.tendencia_2025_vs_promedio)} en calles de barrio frente al promedio de {e0} y {e1}).</li>
+            <li><b>Escenario hipotético:</b> si cada intervención redujera un {entero(pb.reduccion_supuesta_pct)} % los siniestros con heridos (CMF Clearinghouse, ID 132), con los
+              siniestros de {a1} se habrían evitado ≈ {entero(p.modelo.hubo * red)} al año en la selección de {NOMBRE_MOVILIDAD} y ≈ {entero(p.contar1.hubo * red)} en la basada
+              en {anioBase(datos)}. Depende de ese supuesto: no es un resultado comprobado.</li>
+            <li>{f.advertencia}</li>
+            <li>No se muestran siniestros individuales ni datos de personas (Ley 1581 de 2012).</li>
+          </ul>
+        </dd>
+      </dl>
       <p className="etiqueta">Modelo {datos.experiencia.version_modelo}</p>
-      <Pie modo={modo}><button className="boton boton--ancho boton--violeta" onClick={() => ir('cierre')}>Tu reto →</button></Pie>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------- 6. Tu reto
-export function Reto({ modo, ir, alInicio }: PropsMov) {
-  const totem = esTotem(modo)
-  const reto = useReto()
-  return (
-    <div className="panel">
-      <Cabeza c="cierre" titulo={<>¿Tienes un reto así en tu <em>entidad</em>?</>}>
-        <p className="lead">Lo que hicimos aquí con las vías lo podemos hacer con tus datos: conectarlos, estimar el riesgo y decidir dónde invertir primero <b>para que el presupuesto rinda más</b>.</p>
-      </Cabeza>
-      <div className="cierre">
-        <Proli tamano={5.5} globo={<>Cuéntame tu reto: lo resolvemos con <b>los datos de tu entidad</b>.</>} />
-        <QrCita />
-      </div>
-      <div className="panel__pie">
-        {modo !== 'auto' && <button className="boton boton--violeta boton--ancho" onClick={() => pedirAProli('Tengo un reto en mi entidad')}>Cuéntaselo a Proli</button>}
-        {!totem && URL_CITA && <button className="boton boton--claro boton--ancho" onClick={() => window.open(urlCitaCon(reto), '_blank', 'noopener')}>Agenda una cita</button>}
-        {modo !== 'auto' && (
-          <div className="fila">
-            <button className="boton-texto" onClick={() => ir('portada')}>Ver de nuevo</button>
-            <button className="boton-texto" onClick={() => ir('fuentes')}>De dónde salen los datos</button>
-            {alInicio && <button className="boton-texto" onClick={alInicio}>Ver otros proyectos</button>}
-          </div>
-        )}
-      </div>
-    </div>
+    </>
   )
 }

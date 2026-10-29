@@ -103,8 +103,8 @@ export const SEGUNDOS_PROLI_AUTO = 9
 // Nombre y pregunta de la sección de movilidad (se cambian aquí). Se llamaba Movilidad+: el nombre
 // nuevo dice el objetivo (asignar mejor el presupuesto), no una reducción de siniestros que no se demuestra.
 export const NOMBRE_MOVILIDAD = 'Presupuesto+'
-export const TITULO_MOVILIDAD = 'El presupuesto no alcanza para todo. ¿Qué esquinas arreglarías primero?'
-export const LEMA_MOVILIDAD = 'Mismo presupuesto, más información, mejores esquinas.'
+export const TITULO_MOVILIDAD = '¿Cómo decidir dónde invertir primero?'
+export const LEMA_MOVILIDAD = 'Mismo presupuesto. Más información. Decisiones diferentes.'
 
 export type IdProyecto = 'educacion' | 'movilidad'
 /**
@@ -129,9 +129,9 @@ export const PROYECTOS: {
     bajada: 'Mismos colegios, mismos cupos: mira qué cambia si se reparten con datos y no por orden de llegada.',
     gancho: '¿Cuántos niños estudian lejos de casa? Míralo en un minuto.', cta: 'Explorar el reto →' },
   { id: 'movilidad', area: 'Presupuesto · Seguridad vial', nombre: NOMBRE_MOVILIDAD, letra: 'P', variante: 'violeta',
-    pregunta: '¿Dónde invertir primero para que el presupuesto rinda más?',
-    bajada: 'Mira cómo más información lleva la plata a las esquinas con más riesgo.',
-    gancho: '¿Qué esquina arreglarías tú primero?', cta: 'Explorar el reto →' },
+    pregunta: '¿Cómo decidir dónde invertir primero?',
+    bajada: 'El mismo presupuesto. Una priorización diferente.',
+    gancho: '¿Dónde invertirías primero?', cta: 'Explorar el reto →' },
 ]
 
 // Llamado a la acción del inicio (para quien decide en una entidad pública). Voz del manual:
@@ -155,7 +155,7 @@ export const DURACION_PASOS_MATRICULA = {
   portada: 6, problema: 9, solucion: 9, prioridad: 8, antes: 9, localidad: 9, resultados: 9, faltan: 12, como: 7, fuentes: 4, reto: 5,
 }
 
-// Movilidad+: duración de cada capítulo en modo automático (segundos): ~60 s por vuelta
+// Presupuesto+: duración de cada paso en modo automático (segundos): ~60 s por vuelta
 export const DURACION_PASOS_MOVILIDAD = {
-  portada: 6, problema: 6, escoge: 9, falla: 8, ysi: 9, antes: 12, resultados: 9, presupuesto: 11, como: 6, fuentes: 4, cierre: 5,
+  portada: 6, problema: 8, solucion: 10, antes: 12, resultados: 11, como: 7, reto: 6,
 }

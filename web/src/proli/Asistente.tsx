@@ -104,10 +104,10 @@ function sugerencias(pantalla: string): Sugerencia[] {
   })
   if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
     { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },
-    { texto: '¿Por qué no basta un solo año?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'falla' } }],
-      sinConexion: 'Un año malo puede ser pasajero. Si solo se mira ese año, parte de la plata puede ir a esquinas donde el riesgo ya iba a bajar, y quedan por fuera esquinas que llevan años con riesgo.' },
+    { texto: '¿Por qué no basta un solo año?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'solucion' } }],
+      sinConexion: 'Mirar un solo período puede ocultar patrones importantes: una sola cifra no cuenta toda la historia.' },
     { texto: 'Muéstrame los resultados', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'resultados' } }],
-      sinConexion: 'Aquí están. Con estos supuestos, escoger con más información lleva la misma plata a esquinas con más riesgo, y así se evitan más siniestros graves al año.' },
+      sinConexion: 'Aquí están: qué pasó en 2025 en los lugares de cada selección, en un análisis retrospectivo.' },
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [

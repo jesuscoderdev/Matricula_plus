@@ -1,6 +1,6 @@
 /**
  * Canal entre Proli y la interfaz. Proli (la IA) pide acciones con nombre y entrada
- * (p. ej. movilidad_presupuesto {nivel: 'medio'}); aquí se reparten al componente que las sabe hacer:
+ * (p. ej. movilidad_lista {lista: 'modelo'}); aquí se reparten al componente que las sabe hacer:
  *  · «inicio»    → Inicio.tsx (portada, conozca a Proli, elegir demo, abrir un demo)
  *  · «movilidad» → movilidad/Movilidad.tsx
  *  · «matricula» → matricula/Matricula.tsx (Matrícula+)
