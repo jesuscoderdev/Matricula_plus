@@ -366,8 +366,9 @@ export function Antes({ datos, modo, ir, tocadas, lista, setLista }: PropsMov) {
         <ul className="pruebas-mov">
           <li>Mirando {a0 - 1} y {a0} se escogen casi las mismas esquinas que con {NOMBRE_MOVILIDAD} ({entero(p.contar2.comun)} de {entero(p.esquinas)}), y en {a1} tuvieron
             {' '}{entero(p.contar2.hubo)} siniestros graves. Mirar más de un año ya es sumar información.</li>
-          <li>{NOMBRE_MOVILIDAD} además suma las esquinas parecidas, y por eso estima cuántos siniestros esperar: ≈ {entero(p.modelo.espera)} en sus esquinas.
-            Mirando los dos años se esperarían {entero(p.contar2.espera)}.</li>
+          <li>La diferencia está en cuánto se espera. Mirando los dos años, se esperaría que en {a1} se repitiera su promedio:
+            {' '}{entero(p.contar2.espera)} siniestros graves en esas esquinas, y hubo {entero(p.contar2.hubo)}. {NOMBRE_MOVILIDAD}, que suma las esquinas
+            parecidas, esperaba ≈ {entero(p.modelo.espera)} y hubo {entero(p.modelo.hubo)}.</li>
           <li>Muchas esquinas empatan con el mismo número de siniestros. Los empates se rompen por el año más reciente y luego por el código de la zona, como en el modelo.</li>
         </ul>
       </details>
