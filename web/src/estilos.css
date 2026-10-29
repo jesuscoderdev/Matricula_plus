@@ -1903,3 +1903,29 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='celular'] .proyecto__pregunta { font-size: 1.22rem; }
 :root[data-modo='celular'] .proyecto__bajada { font-size: 0.9rem; }
 :root[data-modo='celular'] .pie-empresa__marca span, :root[data-modo='celular'] .pie-empresa__datos { display: none; }
+
+/* =========================================================
+   Celular (revisión del 29 oct en un teléfono real de 360×670): el tamaño base se ajusta al alto
+   disponible (pantallas bajas o con la barra del navegador), y si aun así no cabe, la pantalla se
+   desplaza: nada se corta.
+   ========================================================= */
+:root[data-modo='celular'] { font-size: clamp(12.5px, min(4.1vw, 1.95dvh), 16px); }
+:root[data-modo='celular'] .pp { overflow-y: auto; overscroll-behavior: contain; grid-template-rows: auto minmax(13rem, 1fr) auto auto; }
+:root:not([data-modo='escritorio']) .inicio__tarjetas { flex: 1 0 auto; grid-auto-rows: minmax(min-content, 1fr); }
+:root[data-modo='celular'] .portada-stand__marca { flex-wrap: nowrap; }
+:root[data-modo='celular'] .portada-stand__marca .selector-tema { display: none; }
+:root[data-modo='celular'] .portada-stand__evento { font-size: 0.6rem; text-align: right; }
+:root[data-modo='celular'] .portada-stand__pregunta { font-size: 2.5rem; }
+:root[data-modo='celular'] .proli-intro__figura { width: 11rem; }
+:root[data-modo='celular'] .proli-intro__img { height: 10rem; }
+/* El selector sobre el mapa no pisa el botón de centrar (arriba a la derecha) */
+.pp__segmentos { left: 0.6rem; translate: none; width: min(22rem, calc(100% - 4rem)); }
+/* Celular: Proli más pequeño junto al botón, y un poco menos de aire arriba */
+:root[data-modo='celular']:has(.app--pp) .proli-flotante .proli-animado { height: 3rem !important; }
+:root[data-modo='celular'] .app--pp:not(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: 3.6rem; }
+:root[data-modo='celular'] .pp__boton { font-size: 0.92rem; padding-inline: 1rem; }
+:root[data-modo='celular']:has(.app--pp) .proli-flotante { bottom: 2.1rem; right: 0.3rem; }
+:root[data-modo='celular'] .pp__titular { padding-top: 0.75rem; padding-bottom: 0.65rem; }
+:root[data-modo='celular'] .pp__conclusion { padding-top: 0.65rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .inicio__contenido { gap: 1.1rem; padding-bottom: 1rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .proyecto__texto { padding: 0.95rem 1.1rem 1rem; gap: 0.4rem; }
