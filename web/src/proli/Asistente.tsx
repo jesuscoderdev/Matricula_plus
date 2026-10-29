@@ -111,11 +111,11 @@ function sugerencias(pantalla: string): Sugerencia[] {
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: hoy el cupo escolar se reparte por orden de llegada y muchos niños quedan lejos de casa. Aquí ves qué pasa si se reparte con datos, con los mismos colegios y cupos, y con niños recreados a partir de datos abiertos.' },
-    { texto: 'Muéstrame el antes y el después', ordenes: [{ nombre: 'matricula_reparto', entrada: { reparto: 'despues' } }],
-      sinConexion: 'Aquí está: en verde, los niños que estaban lejos y con Matrícula+ quedan cerca.' },
-    { texto: '¿Dónde faltan cupos?', ordenes: [{ nombre: 'matricula_capitulo', entrada: { capitulo: 'faltan' } }],
-      sinConexion: 'Repartir mejor no crea cupos: el mapa muestra dónde siguen niños lejos y de qué nivel faltan cupos.' },
+    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: una simulación con datos abiertos que compara el reparto por orden de llegada (escenario de referencia) con otra forma de asignar los mismos cupos, por cercanía y prioridad.' },
+    { texto: 'Muéstrame el cambio', ordenes: [{ nombre: 'matricula_reparto', entrada: { reparto: 'despues' } }],
+      sinConexion: 'Aquí está: en verde, los estudiantes que estaban lejos y con Matrícula+ quedan cerca.' },
+    { texto: '¿Dónde faltan cupos?', ordenes: [{ nombre: 'matricula_capitulo', entrada: { capitulo: 'resultados' } }],
+      sinConexion: 'Repartir mejor no crea cupos: el mapa muestra dónde siguen estudiantes lejos.' },
     agenda('matricula'),
   ]
   return [

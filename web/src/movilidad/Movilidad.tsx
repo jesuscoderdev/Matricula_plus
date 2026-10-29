@@ -9,11 +9,10 @@
  * logo reinicia; teclado en escritorio; recorrido solo en ?modo=auto. Los detalles se abren en una hoja.
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
 import { DURACION_PASOS_MOVILIDAD, EMPRESA, LEMA_MOVILIDAD, NOMBRE_MOVILIDAD, SEGUNDOS_INACTIVIDAD, URL_EMPRESA } from '../config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from '../modo'
-import { BotonInicio, BotonTema, LogoEmpresa, LogoReinicio, NombreApp, pulsoLogo } from '../componentes/Marca'
-import { ProliMarca } from '../componentes/Proli'
+import { pulsoLogo } from '../componentes/Marca'
+import { CabeceraRecorrido, EscenaRecorrido, HojaRecorrido } from '../componentes/Recorrido'
 import Intro from '../componentes/Intro'
 import Esqueleto from '../componentes/Esqueleto'
 import { cargarMovilidad, type DatosMovilidad } from './datos'
@@ -251,74 +250,18 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
   const p = PANTALLAS[vista](props)
   const paso = vista === 'portada' ? 0 : pasoDe(vista as CapituloMov)
   const r = datos.resumen
+  const leyenda = propsMapa.tituloLeyenda ? [
+    { clase: 'k-pp--fondo', texto: propsMapa.tituloLeyenda },
+    ...(propsMapa.resaltar ?? []).map((x) => ({ clase: `k-pp--${x.color} ${x.tenue ? 'k-pp--tenue' : ''}`, texto: x.texto ?? '' })),
+  ] : undefined
 
   return (
     <div className={`app app--movilidad app--pp app--pp-${vista}`}>
-      <header className="cabecera pp-cabecera">
-        {vista === 'portada' ? (
-          <div className="pp-cabecera__logos">
-            {alSalir && modo !== 'auto' && <BotonInicio alInicio={alSalir} />}
-            <LogoEmpresa alTocar={alPortada} />
-            <span className="portada__sep" aria-hidden />
-            <span className="marca-bloque"><ProliMarca /><NombreApp nombre={NOMBRE_MOVILIDAD} /></span>
-          </div>
-        ) : (
-          <>
-            {modo !== 'auto' && (
-              <button type="button" className="boton-tema boton-atras" onClick={atras} title="Atrás" aria-label="Atrás">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M19 12H5M11 6l-6 6 6 6" />
-                </svg>
-              </button>
-            )}
-            <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} nombre={NOMBRE_MOVILIDAD} />
-            <div className="pasos" aria-label={`Paso ${paso} de ${CAPITULOS_MOV.length}`}>
-              <span className="pasos__texto">Paso {paso} de {CAPITULOS_MOV.length}</span>
-              <span className="pasos__puntos" aria-hidden>
-                {CAPITULOS_MOV.map((c, i) => <i key={c.id} className={i + 1 === paso ? 'actual' : i + 1 < paso ? 'hecho' : ''} />)}
-              </span>
-            </div>
-          </>
-        )}
-        {modo === 'escritorio' && <BotonTema />}
-      </header>
-
-      <main className={`pp pp--${vista} ${p.visual ? 'pp--visual-propio' : ''}`}
-            onClick={vista === 'portada' && modo === 'stand' ? () => ir('problema') : undefined}>
-        <AnimatePresence mode="wait">
-          <motion.div key={vista} className="pp__titular" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            {p.titular}
-          </motion.div>
-        </AnimatePresence>
-        <div className="pp__visual">
-          <div className="pp__mapa">
-            <MapaMovilidad datos={datos} {...propsMapa}>{!p.visual && p.sobreMapa}</MapaMovilidad>
-          </div>
-          {!p.visual && propsMapa.tituloLeyenda && (
-            <div className="pp__leyenda">
-              <span><i className="k-pp k-pp--fondo" />{propsMapa.tituloLeyenda}</span>
-              {propsMapa.resaltar?.map((x) => <span key={x.texto}><i className={`k-pp k-pp--${x.color} ${x.tenue ? 'k-pp--tenue' : ''}`} />{x.texto}</span>)}
-            </div>
-          )}
-          <AnimatePresence>
-            {p.visual && (
-              <motion.div key={vista} className="pp__visual-propio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                {p.visual}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <AnimatePresence mode="wait">
-          <motion.div key={vista} className="pp__conclusion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                      transition={{ duration: 0.25, delay: 0.1 }}>
-            {p.conclusion}
-          </motion.div>
-        </AnimatePresence>
-        <div className="pp__accion">
-          {p.accion}
-          {p.secundarias}
-        </div>
-      </main>
+      <CabeceraRecorrido paso={paso} total={CAPITULOS_MOV.length} modo={modo} nombre={NOMBRE_MOVILIDAD} atras={atras} reiniciar={reiniciar}
+                         alSalir={alSalir} alPortada={alPortada} />
+      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda}
+                       alTocar={vista === 'portada' && modo === 'stand' ? () => ir('problema') : undefined}
+                       mapa={<MapaMovilidad datos={datos} {...propsMapa}>{!p.visual && p.sobreMapa}</MapaMovilidad>} />
 
       <footer className="pie">
         <span className="pie__marca">{esTotem(modo) ? EMPRESA : <a href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">{EMPRESA} ↗</a>} · GovTech 2026</span>
@@ -327,17 +270,9 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
         {modo === 'escritorio' && <span className="atajos"><kbd>←</kbd> <kbd>→</kbd> pasos · <kbd>F</kbd> pantalla completa</span>}
       </footer>
 
-      <AnimatePresence>
-        {hoja && (
-          <motion.div className="hoja" role="dialog" aria-modal="true" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="hoja__fondo" onClick={() => setHoja(null)} />
-            <motion.section className="hoja__panel" initial={{ y: 40 }} animate={{ y: 0 }} exit={{ y: 40 }} transition={{ duration: 0.25 }}>
-              <button className="hoja__cerrar" onClick={() => setHoja(null)} aria-label="Cerrar">✕</button>
-              {hoja === 'metodologia' ? <HojaMetodologia datos={datos} modo={modo} /> : <HojaDosAnios datos={datos} />}
-            </motion.section>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <HojaRecorrido abierta={hoja != null} cerrar={() => setHoja(null)}>
+        {hoja === 'metodologia' ? <HojaMetodologia datos={datos} modo={modo} /> : <HojaDosAnios datos={datos} />}
+      </HojaRecorrido>
       {entrada}
     </div>
   )

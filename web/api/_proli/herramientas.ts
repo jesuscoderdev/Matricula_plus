@@ -40,12 +40,10 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ lista: { type: 'string', enum: ['contar', 'modelo'] } })),
 
   // --- Matrícula+ (abre el demo si no está abierto) ---
-  h('matricula_capitulo', 'Matrícula+: va a una pantalla. problema = El problema; solucion = La solución; prioridad = ¿Quién es quién? (grupos con prioridad y por qué); antes = Antes y después; localidad = Mira tu localidad; resultados; faltan = ¿Dónde faltan cupos? (por nivel); como = Cómo se hizo; fuentes; reto = Tu reto (QR para agendar).',
-    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'solucion', 'prioridad', 'antes', 'localidad', 'resultados', 'faltan', 'como', 'fuentes', 'reto'] } })),
-  h('matricula_localidad', 'Matrícula+: muestra en «Mira tu localidad» cuántos niños quedan lejos hoy y con Matrícula+ en esa localidad, y qué nivel le falta (TODA_BOGOTA suelta la localidad).',
+  h('matricula_capitulo', 'Matrícula+: va a un paso o abre un detalle. problema = El problema (estudiantes lejos en el escenario de referencia); solucion = La solución (cómo los datos se convierten en una asignación); antes = La gran revelación (escenario de referencia frente a Matrícula+); resultados = La segunda revelación (grupos prioritarios, hermanos y dónde faltan cupos); como = Cómo lo hicimos; reto = Tu reto (Proli y agenda). Detalles: escenario = cómo se definió el escenario de referencia; criterios = criterios del modelo (prioridades y por qué); datos = tabla por localidad y nivel; metodologia = fuentes, supuestos y limitaciones.',
+    objeto({ capitulo: { type: 'string', enum: ['portada', 'problema', 'solucion', 'antes', 'resultados', 'como', 'reto', 'escenario', 'criterios', 'datos', 'metodologia'] } })),
+  h('matricula_localidad', 'Matrícula+: en La segunda revelación, acerca el mapa a una localidad y muestra cuántos estudiantes quedan lejos en el escenario de referencia y con Matrícula+, y qué nivel le falta (TODA_BOGOTA suelta la localidad).',
     objeto({ localidad: { type: 'string', enum: [...LOCALIDADES_MATRICULA, 'TODA_BOGOTA'] } })),
-  h('matricula_reparto', 'Matrícula+: en Antes y después, muestra en el mapa los niños lejos con el reparto de hoy (orden de llegada) o con Matrícula+.',
+  h('matricula_reparto', 'Matrícula+: en La gran revelación, muestra en el mapa los estudiantes lejos en el escenario de referencia (hoy = orden de llegada simulado) o con Matrícula+ (despues).',
     objeto({ reparto: { type: 'string', enum: ['hoy', 'despues'] } })),
-  h('matricula_nivel', 'Matrícula+: en ¿Dónde faltan cupos?, colorea el mapa con los niños de un nivel que siguen lejos (TODOS = todos los niveles).',
-    objeto({ nivel: { type: 'string', enum: ['TODOS', 'Preescolar', 'Primaria', 'Secundaria', 'Media'] } })),
 ]

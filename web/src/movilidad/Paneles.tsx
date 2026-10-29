@@ -13,8 +13,8 @@
  * dependen de un supuesto de efectividad y solo van en la metodología, como escenario hipotético.
  */
 import { motion } from 'framer-motion'
-import type { ReactNode } from 'react'
 import Proli from '../componentes/Proli'
+import { Boton, Etapas, entrar, type Pantalla } from '../componentes/Recorrido'
 import QrCita from '../componentes/QrCita'
 import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
 import { pedirAProli } from '../proli/ordenes'
@@ -53,18 +53,6 @@ export interface PropsMov {
   alInicio?: () => void
 }
 
-/** Las piezas de una pantalla. Sin `visual`, en su lugar va el mapa. */
-export interface Pantalla {
-  titular: ReactNode
-  visual?: ReactNode
-  /** encima del mapa (p. ej. el selector de Antes y después) */
-  sobreMapa?: ReactNode
-  conclusion?: ReactNode
-  accion?: ReactNode
-  /** botones de texto, discretos, debajo del principal */
-  secundarias?: ReactNode
-}
-
 // --- Datos derivados (todo sale de los archivos) ---
 export const anioBase = (d: DatosMovilidad) => d.experiencia.pantalla_1_usted_decide.anio_mostrado
 export const anioVal = (d: DatosMovilidad) => d.resumen.anio_validacion
@@ -79,11 +67,6 @@ export const etiquetasMapa = (d: DatosMovilidad) => ({
   salen: `Solo selección ${anioBase(d)}`,
   entran: `Solo ${NOMBRE_MOVILIDAD}`,
 })
-
-const entrar = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 + 0.12 * k, duration: 0.35 } })
-const Boton = ({ children, onClick, proli }: { children: ReactNode; onClick: () => void; proli?: string }) => (
-  <button className="boton boton--violeta boton--ancho pp__boton" onClick={onClick} data-proli={proli}>{children}</button>
-)
 
 // ---------------------------------------------------------------- portada
 export function portada({ modo, ir }: PropsMov): Pantalla {
@@ -268,28 +251,6 @@ export function resultados({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
 }
 
 // ---------------------------------------------------------------- 5. Cómo lo hicimos
-const ICONOS: Record<string, ReactNode> = {
-  datos: <><ellipse cx="12" cy="5.5" rx="7" ry="2.6" /><path d="M5 5.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6M5 11.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6" /></>,
-  riesgo: <><path d="M4 19V5M4 19h16" /><path d="M7 15l4-4 3 3 5-6" /><circle cx="19" cy="8" r="1.3" /></>,
-  decision: <><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><path d="M9.3 10.6l2 2 3.5-3.6" /></>,
-}
-function Etapas() {
-  const etapas = [['datos', 'Datos conectados'], ['riesgo', 'Riesgo estimado'], ['decision', 'Decisiones mejor informadas']]
-  return (
-    <div className="etapas" aria-label="Datos conectados, luego riesgo estimado, luego decisiones mejor informadas">
-      {etapas.map(([icono, titulo], k) => (
-        <motion.div key={icono} className="etapas__paso" {...entrar(k * 2)}>
-          {k > 0 && <span className="etapas__flecha" aria-hidden>↓</span>}
-          <div className="etapas__modulo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{ICONOS[icono]}</svg>
-            <b>{titulo}</b>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  )
-}
-
 export function como({ modo, ir, abrirHoja }: PropsMov): Pantalla {
   return {
     titular: (
@@ -298,7 +259,7 @@ export function como({ modo, ir, abrirHoja }: PropsMov): Pantalla {
         <motion.p className="pp__bajada" {...entrar(1)}>Conectamos información histórica, características de las vías y patrones de lugares similares.</motion.p>
       </>
     ),
-    visual: <Etapas />,
+    visual: <Etapas etapas={[{ icono: 'datos', titulo: 'Datos conectados' }, { icono: 'riesgo', titulo: 'Riesgo estimado' }, { icono: 'decision', titulo: 'Decisiones mejor informadas' }]} />,
     conclusion: <p className="pp__texto">Construimos un modelo matemático que permite estimar el riesgo y apoyar la priorización del presupuesto.</p>,
     accion: modo !== 'auto' && <Boton onClick={() => ir('reto')} proli="cap-reto">¿Y en tu entidad? →</Boton>,
     secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('metodologia')} data-proli="cap-metodologia">Consultar metodología</button>,

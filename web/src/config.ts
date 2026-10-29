@@ -126,7 +126,7 @@ export const PROYECTOS: {
 }[] = [
   { id: 'educacion', area: 'Educación', nombre: APP_NAME, letra: 'M', variante: 'tinta',
     pregunta: '¿Cómo lograr que más niños estudien cerca de casa?',
-    bajada: 'Mismos colegios, mismos cupos: mira qué cambia si se reparten con datos y no por orden de llegada.',
+    bajada: 'Los mismos colegios. Los mismos cupos.',
     gancho: '¿Cuántos niños estudian lejos de casa? Míralo en un minuto.', cta: 'Explorar el reto →' },
   { id: 'movilidad', area: 'Presupuesto · Seguridad vial', nombre: NOMBRE_MOVILIDAD, letra: 'P', variante: 'violeta',
     pregunta: '¿Cómo decidir dónde invertir primero?',
@@ -150,9 +150,9 @@ export const SEGUNDOS_INICIO_AUTO = 6
 // Matrícula+: lema de la portada y de la entrada, y localidad de ejemplo del stand (acordada el 27-oct)
 export const LEMA_MATRICULA = 'Mismos colegios, mismos cupos. Solo cambia la forma de repartirlos.'
 export const LOCALIDAD_EJEMPLO_MATRICULA = 'Bosa'
-// Matrícula+: duración de cada pantalla en modo automático (segundos): ~85 s por vuelta
+// Matrícula+: duración de cada paso en modo automático (segundos): ~60 s por vuelta
 export const DURACION_PASOS_MATRICULA = {
-  portada: 6, problema: 9, solucion: 9, prioridad: 8, antes: 9, localidad: 9, resultados: 9, faltan: 12, como: 7, fuentes: 4, reto: 5,
+  portada: 6, problema: 8, solucion: 9, antes: 11, resultados: 12, como: 7, reto: 6,
 }
 
 // Presupuesto+: duración de cada paso en modo automático (segundos): ~60 s por vuelta

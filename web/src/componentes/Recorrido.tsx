@@ -1,0 +1,159 @@
+/**
+ * El formato vertical de los demos (revisión de Paola, 29 oct): una sola columna, sin scroll. Cada
+ * pantalla trae titular, visual (el mapa u otro), conclusión y un botón principal; en horizontal, el
+ * texto va a la izquierda y el visual a la derecha. Arriba, la marca, atrás y «Paso N de 6». Los
+ * detalles (metodología, tablas) se abren en una hoja aparte. Lo usan Matrícula+ y Presupuesto+.
+ */
+import { AnimatePresence, motion } from 'framer-motion'
+import type { ReactNode } from 'react'
+import { BotonInicio, BotonTema, LogoEmpresa, LogoReinicio, NombreApp } from './Marca'
+import { ProliMarca } from './Proli'
+import type { Modo } from '../modo'
+
+/** Las piezas de una pantalla. Sin `visual`, en su lugar va el mapa. */
+export interface Pantalla {
+  titular: ReactNode
+  visual?: ReactNode
+  /** encima del mapa (p. ej. un selector o una etiqueta) */
+  sobreMapa?: ReactNode
+  conclusion?: ReactNode
+  accion?: ReactNode
+  /** botones de texto, discretos, debajo del principal */
+  secundarias?: ReactNode
+}
+/** Una línea de la leyenda del mapa: `clase` pinta la muestra (k-pp--…) */
+export interface ItemLeyenda { clase: string; texto: string }
+
+export const entrar = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 + 0.12 * k, duration: 0.35 } })
+
+export const Boton = ({ children, onClick, proli }: { children: ReactNode; onClick: () => void; proli?: string }) => (
+  <button className="boton boton--violeta boton--ancho pp__boton" onClick={onClick} data-proli={proli}>{children}</button>
+)
+
+export function CabeceraRecorrido({ paso, total, modo, nombre, atras, reiniciar, alSalir, alPortada }: {
+  /** 0 = portada (logos en lugar de los pasos) */
+  paso: number
+  total: number
+  modo: Modo
+  nombre: string
+  atras: () => void
+  reiniciar: () => void
+  alSalir?: () => void
+  alPortada?: () => void
+}) {
+  return (
+    <header className="cabecera pp-cabecera">
+      {paso === 0 ? (
+        <div className="pp-cabecera__logos">
+          {alSalir && modo !== 'auto' && <BotonInicio alInicio={alSalir} />}
+          <LogoEmpresa alTocar={alPortada} />
+          <span className="portada__sep" aria-hidden />
+          <span className="marca-bloque"><ProliMarca /><NombreApp nombre={nombre} /></span>
+        </div>
+      ) : (
+        <>
+          {modo !== 'auto' && (
+            <button type="button" className="boton-tema boton-atras" onClick={atras} title="Atrás" aria-label="Atrás">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 12H5M11 6l-6 6 6 6" />
+              </svg>
+            </button>
+          )}
+          <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} nombre={nombre} />
+          <div className="pasos" aria-label={`Paso ${paso} de ${total}`}>
+            <span className="pasos__texto">Paso {paso} de {total}</span>
+            <span className="pasos__puntos" aria-hidden>
+              {Array.from({ length: total }, (_, i) => <i key={i} className={i + 1 === paso ? 'actual' : i + 1 < paso ? 'hecho' : ''} />)}
+            </span>
+          </div>
+        </>
+      )}
+      {modo === 'escritorio' && <BotonTema />}
+    </header>
+  )
+}
+
+/** Titular, visual (el mapa, con su leyenda debajo, u otro), conclusión y acción */
+export function EscenaRecorrido({ vista, p, mapa, leyenda, alTocar }: {
+  vista: string
+  p: Pantalla
+  mapa: ReactNode
+  leyenda?: ItemLeyenda[]
+  /** tocar cualquier parte (la portada del stand) */
+  alTocar?: () => void
+}) {
+  return (
+    <main className={`pp pp--${vista} ${p.visual ? 'pp--visual-propio' : ''}`} onClick={alTocar}>
+      <AnimatePresence mode="wait">
+        <motion.div key={vista} className="pp__titular" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+          {p.titular}
+        </motion.div>
+      </AnimatePresence>
+      <div className="pp__visual">
+        <div className="pp__mapa">{mapa}</div>
+        {!p.visual && leyenda && leyenda.length > 0 && (
+          <div className="pp__leyenda">
+            {leyenda.map((x) => <span key={x.texto}><i className={`k-pp ${x.clase}`} />{x.texto}</span>)}
+          </div>
+        )}
+        <AnimatePresence>
+          {p.visual && (
+            <motion.div key={vista} className="pp__visual-propio" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+              {p.visual}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.div key={vista} className="pp__conclusion" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, delay: 0.1 }}>
+          {p.conclusion}
+        </motion.div>
+      </AnimatePresence>
+      <div className="pp__accion">
+        {p.accion}
+        {p.secundarias}
+      </div>
+    </main>
+  )
+}
+
+/** Un detalle opcional: sube desde abajo y aquí sí hay scroll */
+export function HojaRecorrido({ abierta, cerrar, children }: { abierta: boolean; cerrar: () => void; children: ReactNode }) {
+  return (
+    <AnimatePresence>
+      {abierta && (
+        <motion.div className="hoja" role="dialog" aria-modal="true" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <div className="hoja__fondo" onClick={cerrar} />
+          <motion.section className="hoja__panel" initial={{ y: 40 }} animate={{ y: 0 }} exit={{ y: 40 }} transition={{ duration: 0.25 }}>
+            <button className="hoja__cerrar" onClick={cerrar} aria-label="Cerrar">✕</button>
+            {children}
+          </motion.section>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
+const ICONOS = {
+  datos: <><ellipse cx="12" cy="5.5" rx="7" ry="2.6" /><path d="M5 5.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6M5 11.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6" /></>,
+  riesgo: <><path d="M4 19V5M4 19h16" /><path d="M7 15l4-4 3 3 5-6" /><circle cx="19" cy="8" r="1.3" /></>,
+  modelo: <><circle cx="6" cy="6" r="2.2" /><circle cx="18" cy="6" r="2.2" /><circle cx="12" cy="18" r="2.2" /><path d="M8 7l2.6 9M16 7l-2.6 9M8.2 6h7.6" /></>,
+  decision: <><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><path d="M9.3 10.6l2 2 3.5-3.6" /></>,
+}
+/** Etapas conectadas con flechas, una debajo de otra (la última, destacada) */
+export function Etapas({ etapas }: { etapas: { icono: keyof typeof ICONOS; titulo: string; detalle?: ReactNode }[] }) {
+  return (
+    <div className="etapas" aria-label={etapas.map((x) => x.titulo).join(', luego ')}>
+      {etapas.map((x, k) => (
+        <motion.div key={x.titulo} className="etapas__paso" {...entrar(k * 2)}>
+          {k > 0 && <span className="etapas__flecha" aria-hidden>↓</span>}
+          <div className="etapas__modulo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{ICONOS[x.icono]}</svg>
+            <span><b>{x.titulo}</b>{x.detalle && <small>{x.detalle}</small>}</span>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}

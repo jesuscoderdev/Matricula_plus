@@ -32,51 +32,38 @@ export function guia(pantalla: string, _paso: number): Paso | null {
     const conLocalidad = pantalla.includes(', localidad ')
     const reto: Opcion = { texto: 'Tengo un reto en mi entidad', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: 'Agenda una reunión con el equipo, con el código o el botón.' }
     if (c === 'portada') return {
-      pregunta: '¿Vemos por qué tantos niños estudian lejos de casa?',
-      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('matricula', 'problema')], respuesta: 'Hoy, quien se inscribe primero elige primero.' }],
+      pregunta: '¿Vemos por qué tantos estudiantes quedan lejos de casa?',
+      opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('matricula', 'problema')], respuesta: 'Tener un cupo no siempre significa estudiar cerca.' }],
     }
     if (c === 'El problema') return {
-      pregunta: '¿Y si el cupo se repartiera distinto?',
-      opciones: [{ texto: 'Sí, muéstrame', ordenes: [cap('matricula', 'solucion')], respuesta: 'Primero entra quien más lo necesita.' }],
+      pregunta: '¿Y si cambiamos la decisión?',
+      opciones: [{ texto: 'Sí, muéstrame', ordenes: [cap('matricula', 'solucion')], respuesta: 'Los mismos cupos, con más información para decidir.' }],
     }
     if (c === 'La solución') return {
-      pregunta: '¿Quieres saber quién es quién?',
+      pregunta: '¿Vemos qué cambió?',
       opciones: [
-        { texto: 'Sí, los grupos', ordenes: [cap('matricula', 'prioridad')], respuesta: 'Estos son los grupos con prioridad y por qué.' },
-        { texto: 'Ver el antes y el después', ordenes: [cap('matricula', 'antes')], respuesta: 'Mismos colegios, mismos cupos.' },
+        { texto: 'Ver qué cambió', ordenes: [cap('matricula', 'antes')], respuesta: 'Toca «Ver Matrícula+» y mira el mapa.' },
+        { texto: 'Los criterios del modelo', ordenes: [cap('matricula', 'criterios')], respuesta: 'Quién tiene prioridad y por qué.' },
       ],
     }
-    if (c === '¿Quién es quién?') return {
-      pregunta: '¿Vemos qué cambia?',
-      opciones: [{ texto: 'Ver el antes y el después', ordenes: [cap('matricula', 'antes')], respuesta: 'Mismos colegios, mismos cupos.' }],
-    }
-    if (c === 'Antes y después') return {
+    if (c === 'La gran revelación') return {
       pregunta: '¿Qué quieres ver en el mapa?',
       opciones: [
-        { texto: 'Cómo es hoy', ordenes: [o('matricula_reparto', { reparto: 'hoy' })], respuesta: 'Así quedan hoy, por orden de llegada.' },
+        { texto: 'El escenario de referencia', ordenes: [o('matricula_reparto', { reparto: 'hoy' })], respuesta: 'Así quedan con el orden de llegada simulado.' },
         { texto: 'Con Matrícula+', ordenes: [o('matricula_reparto', { reparto: 'despues' })], respuesta: 'En verde, los que estaban lejos y ahora quedan cerca.' },
-        { texto: 'Mi localidad', ordenes: [cap('matricula', 'localidad')], respuesta: 'Elige tu localidad.' },
+        { texto: '¿Qué más encontramos?', ordenes: [cap('matricula', 'resultados')], respuesta: 'Dónde siguen haciendo falta cupos.' },
       ],
     }
-    if (c === 'Mira tu localidad' && !conLocalidad) return {
+    if (c === 'La segunda revelación' && !conLocalidad) return {
       pregunta: '¿Qué localidad quieres ver?',
       opciones: ['Bosa', 'Kennedy', 'Suba', 'Ciudad Bolívar'].map((l) => ({
         texto: l, ordenes: [o('matricula_localidad', { localidad: l })], respuesta: `Así cambia ${l}.` })),
     }
-    if (c === 'Mira tu localidad' || c === 'Resultados') return {
-      pregunta: c === 'Resultados' ? '¿Vemos dónde faltan cupos?' : '¿Vemos los resultados de toda Bogotá?',
-      opciones: [c === 'Resultados'
-        ? { texto: '¿Dónde faltan cupos?', ordenes: [cap('matricula', 'faltan')], respuesta: 'Repartir mejor no crea cupos: aquí hacen falta.' }
-        : { texto: 'Ver los resultados', ordenes: [cap('matricula', 'resultados')], respuesta: 'Esto es lo que cambia en Bogotá.' }],
+    if (c === 'La segunda revelación') return {
+      pregunta: '¿Te cuento cómo lo hicimos?',
+      opciones: [{ texto: 'Sí, cuéntame', ordenes: [cap('matricula', 'como')], respuesta: 'Datos, modelo y decisión.' }],
     }
-    if (c === '¿Dónde faltan cupos?') return {
-      pregunta: '¿Qué nivel quieres ver?',
-      opciones: [
-        ...['Preescolar', 'Secundaria', 'Media'].map((n) => ({ texto: n, ordenes: [o('matricula_nivel', { nivel: n })], respuesta: `Donde faltan cupos de ${n.toLowerCase()}.` })),
-        { texto: '¿Cómo se hizo?', ordenes: [cap('matricula', 'como')], respuesta: 'Con datos abiertos, paso a paso.' },
-      ],
-    }
-    if (c === 'Cómo se hizo' || c === 'Fuentes') return {
+    if (c === 'Cómo lo hicimos') return {
       pregunta: '¿Hablamos del reto de tu entidad?',
       opciones: [reto],
     }
