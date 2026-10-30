@@ -140,26 +140,3 @@ export function HojaRecorrido({ abierta, cerrar, children }: { abierta: boolean;
     </AnimatePresence>
   )
 }
-
-const ICONOS = {
-  datos: <><ellipse cx="12" cy="5.5" rx="7" ry="2.6" /><path d="M5 5.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6M5 11.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6" /></>,
-  riesgo: <><path d="M4 19V5M4 19h16" /><path d="M7 15l4-4 3 3 5-6" /><circle cx="19" cy="8" r="1.3" /></>,
-  modelo: <><circle cx="6" cy="6" r="2.2" /><circle cx="18" cy="6" r="2.2" /><circle cx="12" cy="18" r="2.2" /><path d="M8 7l2.6 9M16 7l-2.6 9M8.2 6h7.6" /></>,
-  decision: <><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><path d="M9.3 10.6l2 2 3.5-3.6" /></>,
-}
-/** Etapas conectadas con flechas, una debajo de otra (la última, destacada) */
-export function Etapas({ etapas }: { etapas: { icono: keyof typeof ICONOS; titulo: string; detalle?: ReactNode }[] }) {
-  return (
-    <div className="etapas" aria-label={etapas.map((x) => x.titulo).join(', luego ')}>
-      {etapas.map((x, k) => (
-        <motion.div key={x.titulo} className="etapas__paso" {...entrar(k * 2)}>
-          {k > 0 && <span className="etapas__flecha" aria-hidden>↓</span>}
-          <div className="etapas__modulo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{ICONOS[x.icono]}</svg>
-            <span><b>{x.titulo}</b>{x.detalle && <small>{x.detalle}</small>}</span>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  )
-}

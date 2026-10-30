@@ -15,7 +15,8 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 import Proli from '../componentes/Proli'
-import { Boton, Etapas, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import { Boton, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import AnimacionSistema from './AnimacionSistema'
 import QrCita from '../componentes/QrCita'
 import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
 import { pedirAProli } from '../proli/ordenes'
@@ -268,7 +269,7 @@ export function como({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
         <motion.p className="pp__bajada" {...entrar(1)}>Conectamos información histórica, características de las vías y patrones de lugares similares.</motion.p>
       </>
     ),
-    visual: <Etapas etapas={[{ icono: 'datos', titulo: 'Datos conectados' }, { icono: 'riesgo', titulo: 'Riesgo estimado: Bayes empírico' }, { icono: 'decision', titulo: 'Decisiones mejor informadas' }]} />,
+    visual: <AnimacionSistema datos={datos} auto={modo === 'auto'} />,
     conclusion: (
       <>
         <p className="pp__dato"><b>Más de {masDe(datos.fuentes.registros_analizados.total, 50_000)}</b> registros analizados, entendidos y llevados a una solución</p>
