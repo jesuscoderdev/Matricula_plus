@@ -122,15 +122,15 @@ export default function MarcaDeAguaViva() {
         const armado = (total - VUELO_MS - 500) / APARECE_MS        // 0 → 1 mientras aparece el logo
         if (armado >= 1) { vuelos.splice(i, 1); continue }
         if (armado >= 0 && v.destino.nace === 0) { v.destino.nace = ahora; logos.push(v.destino) }
-        const r = Math.max(1, v.destino.t / 58)
+        const r = Math.max(0.55, v.destino.t / 120)
         for (const p of v.puntos) {
           const u = suave(Math.max(0, Math.min(1, (total - p.demora) / VUELO_MS)))
           const x = (1 - u) * (1 - u) * p.x0 + 2 * (1 - u) * u * p.cx + u * u * p.dx
           const y = (1 - u) * (1 - u) * p.y0 + 2 * (1 - u) * u * p.cy + u * u * p.dy
-          // Más visibles en el viaje; al llegar, quietos sobre la silueta; luego se apagan bajo el logo
-          ctx.globalAlpha = (u < 1 ? 0.18 + 0.32 * Math.sin(Math.PI * Math.min(1, u * 1.1)) + 0.12 * u : 0.42) * (armado > 0 ? 1 - armado : 1)
+          // Discretos en el viaje (que no distraigan); al llegar, algo más marcados sobre la silueta; luego se apagan bajo el logo
+          ctx.globalAlpha = (u < 1 ? 0.06 + 0.1 * Math.sin(Math.PI * Math.min(1, u * 1.1)) + 0.14 * u : 0.3) * (armado > 0 ? 1 - armado : 1)
           ctx.fillStyle = p.color
-          ctx.beginPath(); ctx.arc(x, y, u < 1 ? r * 1.25 : r, 0, Math.PI * 2); ctx.fill()
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
         }
       }
       ctx.globalAlpha = 1
