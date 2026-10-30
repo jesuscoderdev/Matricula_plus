@@ -2110,3 +2110,8 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='celular'] .pp__respuesta { font-size: 1.22rem; }
 :root[data-modo='escritorio'] .pp__pregunta { font-size: 2.85rem; }
 :root[data-modo='escritorio'] .pp__respuesta { font-size: 1.6rem; padding: 1.1rem 1.3rem; }
+
+/* Presupuesto+ paso 2 en vertical: la respuesta va justo debajo de la pregunta, encima de la escena */
+:root:not([data-modo='escritorio']) .pp:has(.pp__respuesta) { grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: 'titular' 'conclusion' 'visual' 'accion'; }
+:root[data-modo='celular'] .pp:has(.pp__respuesta) { grid-template-rows: auto auto minmax(13rem, 1fr) auto; }
+:root:not([data-modo='escritorio']) .pp:has(.pp__respuesta) .pp__conclusion { padding-top: 0; padding-bottom: 0.9rem; }
