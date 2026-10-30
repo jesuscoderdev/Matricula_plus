@@ -2028,3 +2028,8 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 .sistema__onda--2 { border-color: var(--violeta); background: rgb(90 68 221 / 0.18); }
 .sistema__chispa { width: 0.7rem; height: 0.7rem; }
 .sistema__leyenda { z-index: 2; background: linear-gradient(transparent, var(--papel) 35%); padding-top: 0.6rem; }
+/* Proli sale en el centro de Bogotá y crece poco a poco mientras saluda; la leyenda, legible a distancia */
+.sistema__proli { right: auto; bottom: auto; left: 50%; top: 46%; height: 52cqh; width: max-content; translate: -50% -50%; display: block; }
+.sistema__proli .proli-animado { height: 100% !important; }
+.sistema__leyenda { font-size: 1.2rem; font-weight: 500; color: var(--tinta); }
+:root[data-modo='celular'] .sistema__leyenda { font-size: 1.05rem; }

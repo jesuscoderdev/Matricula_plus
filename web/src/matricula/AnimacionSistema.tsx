@@ -12,7 +12,8 @@ import { SALUDO_S } from '../componentes/proliGeometria'
 import { entero, millonesDe, type DatosMatricula } from './datos'
 
 type Fase = 'datos' | 'modelo' | 'mapa' | 'proli'
-const TIEMPOS: [Fase, number][] = [['modelo', 3.2], ['mapa', 4.1], ['proli', 5.6]]
+// El mapa sale justo con la explosión; dos segundos después, Proli en el centro de Bogotá
+const TIEMPOS: [Fase, number][] = [['modelo', 3.2], ['mapa', 4.2], ['proli', 5.2]]
 const ANCHO = 100
 
 /** Un fragmento por cada ángulo alrededor del centro: entra desde el borde y se apaga al llegar */
@@ -108,17 +109,17 @@ export default function AnimacionSistema({ datos, auto }: { datos: DatosMatricul
         )}
       </AnimatePresence>
       {/* 3 · Decisión: el mapa con los estudiantes */}
-      {(fase === 'mapa' || fase === 'proli') && (
-        <motion.div className="sistema__mapa-caja" key={`mapa-${vuelta}`} initial={{ scale: 0.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 120, damping: 14 }}>
+      {fase !== 'datos' && (
+        <motion.div className="sistema__mapa-caja" key={`mapa-${vuelta}`} initial={{ scale: 0.15, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 110, damping: 13 }}>
           <MapaBogota datos={datos} />
         </motion.div>
       )}
       {/* 4 · Proli saluda */}
       <AnimatePresence>
         {fase === 'proli' && (
-          <motion.span className="sistema__proli" key={`proli-${vuelta}`} initial={{ y: 40, opacity: 0, scale: 0.6 }} animate={{ y: 0, opacity: 1, scale: 1 }}
-                       transition={{ type: 'spring', stiffness: 180, damping: 12 }}>
-            <ProliAnimado tamano={5.2} saludar={saluda} />
+          <motion.span className="sistema__proli" key={`proli-${vuelta}`} initial={{ opacity: 0, scale: 0.12 }} animate={{ opacity: 1, scale: 1 }}
+                       transition={{ opacity: { duration: 0.4 }, scale: { duration: 3.2, ease: [0.25, 0.1, 0.25, 1] } }}>
+            <ProliAnimado saludar={saluda} />
           </motion.span>
         )}
       </AnimatePresence>
