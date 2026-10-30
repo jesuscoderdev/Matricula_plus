@@ -12,7 +12,8 @@ import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
-import { Boton, Etapas, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import { Boton, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import AnimacionSistema from './AnimacionSistema'
 import { APP_NAME, EMPRESA, URL_CITA, urlCitaCon } from '../config'
 import { pedirAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
@@ -233,8 +234,7 @@ function DetalleLocalidad({ nombre, c }: { nombre: string; c: CifraLocalidad }) 
 
 // ---------------------------------------------------------------- 5. Cómo lo hicimos
 export function como({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
-  const f = datos.r.fuentes.datos, s = datos.r.simulacion
-  const ejemplos = ['Oferta de cupos', 'Manzanas', 'Población'].map((x) => f.find((d) => d.dato.startsWith(x))?.dato).filter(Boolean)
+  const s = datos.r.simulacion
   return {
     titular: (
       <>
@@ -242,13 +242,7 @@ export function como({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
         <motion.p className="pp__bajada" {...entrar(1)}>Conectamos distintas fuentes públicas, incorporamos criterios, construimos un modelo matemático y comparamos alternativas.</motion.p>
       </>
     ),
-    visual: (
-      <Etapas etapas={[
-        { icono: 'datos', titulo: 'Datos', detalle: ejemplos.join(' · ') },
-        { icono: 'modelo', titulo: 'Modelo: programación lineal', detalle: 'Cercanía, estrato, edad y hermanos, y los cupos de cada nivel' },
-        { icono: 'decision', titulo: 'Decisión', detalle: `${ESCENARIO_REFERENCIA} frente a ${APP_NAME}` },
-      ]} />
-    ),
+    visual: <AnimacionSistema datos={datos} auto={modo === 'auto'} />,
     conclusion: (
       <>
         <p className="pp__dato"><b>Más de {masDe(s.registros_publicos, 5_000)}</b> registros públicos analizados y <b>{millonesDe(s.distancias_calculadas)}</b> de distancias calculadas</p>
