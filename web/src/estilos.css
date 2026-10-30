@@ -2065,3 +2065,23 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='escritorio'] .pp--visual-propio .pp__mapa { visibility: hidden; }
 :root[data-modo='escritorio'] .pp__visual-propio { background: transparent; }
 :root[data-modo='escritorio'] .sistema { background: radial-gradient(circle at 50% 46%, rgb(90 68 221 / 0.08), transparent 72%); }
+
+/* Presupuesto+ · Antes y después: las dos selecciones en barras del mismo tamaño */
+.compara { display: flex; flex-direction: column; gap: 0.45rem; }
+.compara__fila { display: grid; grid-template-columns: 8.5rem 1fr; align-items: center; gap: 0.6rem; }
+.compara__nombre { font-size: 0.85rem; font-weight: 600; color: var(--tinta); line-height: 1.2; }
+.compara__barra { display: flex; height: 1.9rem; border-radius: 0.45rem; overflow: hidden; gap: 2px; }
+.compara__seg { display: flex; align-items: center; justify-content: center; flex-basis: 0; min-width: 2.2rem; transition: background 0.5s; }
+.compara__seg b { font-family: var(--f-display); font-size: 1rem; color: #ffffff; }
+.compara__seg--comun { background: #505b7d; }
+.compara__seg--salen { background: var(--violeta); }
+.compara__seg--entran { background: #3e8e52; }
+.compara__clave { list-style: none; margin: 0.2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.compara__clave li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; line-height: 1.3; color: var(--suave); }
+.compara__clave b { color: var(--tinta); }
+.compara__muestra { flex: none; width: 0.85rem; height: 0.85rem; border-radius: 0.2rem; }
+.compara__muestra--comun { background: #505b7d; }
+.compara__muestra--salen { background: var(--violeta); }
+.compara__muestra--entran { background: #3e8e52; }
+.compara__pista { font-size: 0.85rem; line-height: 1.35; color: var(--suave); }
+:root[data-modo='celular'] .compara__fila { grid-template-columns: 6.8rem 1fr; }

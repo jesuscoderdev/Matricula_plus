@@ -186,6 +186,48 @@ export function solucion({ datos, modo, ir }: PropsMov): Pantalla {
 }
 
 // ---------------------------------------------------------------- 3. Antes y después
+/**
+ * Las dos selecciones, una barra cada una y del mismo tamaño (mismo presupuesto, mismos lugares): la
+ * parte gris es la misma en las dos (los lugares que coinciden) y la de color es lo que cambia: los que
+ * solo escoge «mirando solo un año» (salen) y los que solo escoge Presupuesto+ (entran).
+ */
+function ComparaSelecciones({ datos, visto }: { datos: DatosMovilidad; visto: boolean }) {
+  const g = guionDe(datos)
+  const a0 = anioBase(datos)
+  const comun = g.comunesPresupuesto.length, salen = g.salenPresupuesto.length, entran = g.entranPresupuesto.length
+  const Seg = ({ n, clase, cifra }: { n: number; clase: string; cifra: boolean }) => (
+    <i className={`compara__seg compara__seg--${clase}`} style={{ flexGrow: n }}>{cifra && <b>{entero(n)}</b>}</i>
+  )
+  return (
+    <div className="compara">
+      <div className="compara__fila">
+        <span className="compara__nombre">Mirando solo {a0}</span>
+        <div className="compara__barra">
+          {visto ? <><Seg n={comun} clase="comun" cifra /><Seg n={salen} clase="salen" cifra /></> : <Seg n={comun + salen} clase="salen" cifra={false} />}
+        </div>
+      </div>
+      {visto && (
+        <motion.div className="compara__fila" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+          <span className="compara__nombre">Con {NOMBRE_MOVILIDAD}</span>
+          <div className="compara__barra">
+            <Seg n={comun} clase="comun" cifra />
+            <Seg n={entran} clase="entran" cifra />
+          </div>
+        </motion.div>
+      )}
+      {visto ? (
+        <motion.ul className="compara__clave" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
+          <li><i className="compara__muestra compara__muestra--comun" /><span><b>{entero(comun)}</b> lugares los escogen las dos formas</span></li>
+          <li><i className="compara__muestra compara__muestra--salen" /><span><b>{entero(salen)}</b> solo los escoge mirando solo {a0}: <b>salen</b></span></li>
+          <li><i className="compara__muestra compara__muestra--entran" /><span><b>{entero(entran)}</b> solo los escoge {NOMBRE_MOVILIDAD}: <b>entran</b></span></li>
+        </motion.ul>
+      ) : (
+        <p className="compara__pista">Estos son los lugares que se escogen mirando solo {a0}. Toca «Ver {NOMBRE_MOVILIDAD}» para comparar.</p>
+      )}
+    </div>
+  )
+}
+
 export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla {
   const g = guionDe(datos)
   const visto = lista === 'modelo'
@@ -214,11 +256,7 @@ export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla 
           {entero(g.entranPresupuesto.length)} decisiones diferentes
         </motion.div>
       )}
-      <div className="pp__conteo">
-        <div className={visto ? '' : 'pp__oculto'}><b>{entero(g.comunesPresupuesto.length)}</b><span>lugares coinciden</span></div>
-        <div className={`pp__conteo--salen ${visto ? '' : 'pp__oculto'}`}><b>{entero(g.salenPresupuesto.length)}</b><span>salen de la selección</span></div>
-        <div className={`pp__conteo--entran ${visto ? '' : 'pp__oculto'}`}><b>{entero(g.entranPresupuesto.length)}</b><span>lugares diferentes entran con {NOMBRE_MOVILIDAD}</span></div>
-      </div>
+      <ComparaSelecciones datos={datos} visto={visto} />
       </>
     ),
     accion: modo !== 'auto' && (visto
