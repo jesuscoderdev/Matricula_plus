@@ -1,6 +1,6 @@
 /**
- * Entrada de la app: portada del stand → conozca a Proli → elegir proyecto (Matrícula+,
- * Movilidad+…) → proyecto.
+ * Entrada de la app (documento de Paola, 29-oct): atracción → conoce a Proli → elige un reto
+ * (Matrícula+ o Presupuesto+) → proyecto.
  *
  *  ?proyecto=educacion|movilidad → entra directo a uno, sin portada (útil para el tótem)
  *  ?matricula=anterior           → Matrícula+ en su versión anterior (simulador con reglas y supuestos)
@@ -11,16 +11,14 @@
  */
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { EMPRESA, LEMA_EMPRESA, LLAMADO_INICIO, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_CITA, URL_EMPRESA, urlCitaCon, type IdProyecto } from './config'
+import { EMPRESA, LEMA_EMPRESA, NOMBRE_MOVILIDAD, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_EMPRESA, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
-import Proli from './componentes/Proli'
 import Esqueleto from './componentes/Esqueleto'
-import Qr from './componentes/Qr'
 import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
-import { informarPantalla, pedirAProli, registrar, useReto } from './proli/ordenes'
+import { informarPantalla, registrar } from './proli/ordenes'
 import { recordado, recordar } from './recordar'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
@@ -105,7 +103,7 @@ export default function Inicio() {
       const demo = o.entrada.demo === 'matricula' ? 'educacion' : o.entrada.demo === 'movilidad' ? 'movilidad' : null
       if (!demo) return 'Demo no reconocido.'
       aProyecto(demo)
-      return `Listo: se abrió ${demo === 'movilidad' ? 'Movilidad+' : 'Matrícula+'}.`
+      return `Listo: se abrió ${demo === 'movilidad' ? NOMBRE_MOVILIDAD : 'Matrícula+'}.`
     }
     return 'Acción no reconocida.'
   }), [aProyecto])
@@ -133,7 +131,7 @@ export default function Inicio() {
     )
   }
   if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aProli} />
-  if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alElegir={aProyecto} alVolver={aPortada} />
+  if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alVolver={aPortada} />
   return <Hub modo={modo} entrar={setProyecto} alPortada={aPortada} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }
 
@@ -141,7 +139,6 @@ const entrar = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 } }
 
 function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; entrar: (p: IdProyecto) => void; alPortada: () => void; siguiente: IdProyecto | null }) {
   const reducir = useReducedMotion()
-  const reto = useReto()
   return (
     <div className="app inicio">
       <MarcaDeAgua className="marca-agua--inicio" />
@@ -149,17 +146,12 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
         <motion.header className="inicio__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa alTocar={modo === 'auto' ? undefined : alPortada} />
           <span className="etiqueta">GovTech · 3–4 nov 2026</span>
-          <BotonTema />
+          {!esTotem(modo) && <BotonTema />}
         </motion.header>
         <div className="inicio__cabeza">
-          <motion.span className="kicker" {...entrar} transition={{ delay: 0.12 }}>Datos abiertos de Bogotá</motion.span>
           <motion.h1 className="display display--xl" {...entrar} transition={{ delay: 0.2 }}>
-            Elige un <em>reto</em>
+            Dos retos. <em>¿Cuál quieres explorar?</em>
           </motion.h1>
-          <motion.p className="lead" {...entrar} transition={{ delay: 0.28 }}>
-            Cada demo muestra un problema real, cómo lo analizamos y qué cambia en la decisión.{' '}
-            <span className="acento">{modo === 'auto' ? 'Recorrido automático.' : 'Toca uno para empezar.'}</span>
-          </motion.p>
         </div>
         <div className="inicio__tarjetas">
           {PROYECTOS.map((p, i) => (
@@ -178,14 +170,12 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             >
               <span className="proyecto__arte" aria-hidden>
                 {p.id === 'movilidad' ? <ArteHexagonos /> : <ArteFamilias />}
-                <Proli tamano={5} lado={p.id === 'movilidad' ? 'derecha' : 'izquierda'} className="proyecto__proli"
-                       globo={p.proximamente ? undefined : p.gancho} />
               </span>
               <span className="proyecto__texto">
-                <span className="kicker">{p.area}</span>
-                <NombreApp nombre={p.nombre} className="proyecto__nombre" />
+                {/* Primero la pregunta; el nombre del producto, discreto */}
                 <span className="proyecto__pregunta">{p.pregunta}</span>
                 <span className="proyecto__bajada">{p.bajada}</span>
+                <NombreApp nombre={p.nombre} className="proyecto__nombre" />
                 {(p.proximamente || siguiente === p.id || modo !== 'auto') && (
                   <span className="proyecto__entrar">{p.proximamente ? 'Próximamente' : siguiente === p.id ? 'Empieza en un momento' : p.cta}</span>
                 )}
@@ -194,22 +184,6 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             </motion.button>
           ))}
         </div>
-        <motion.aside className="llamado" {...entrar} transition={{ delay: 0.6 }}>
-          <div className="llamado__texto">
-            <span className="kicker">{LLAMADO_INICIO.kicker}</span>
-            <p className="llamado__titulo">{LLAMADO_INICIO.titulo}</p>
-            <p className="nota">{LLAMADO_INICIO.texto}</p>
-          </div>
-          {modo !== 'auto' && (
-            <div className="llamado__acciones">
-              {/* Paola: el llamado abre a Proli, que pregunta por el reto y lleva a agendar */}
-              <button type="button" className="boton boton--violeta" onClick={() => pedirAProli('Tengo un reto en mi entidad')}>{LLAMADO_INICIO.botonProli}</button>
-              {URL_CITA && (esTotem(modo)
-                ? <Qr texto={urlCitaCon(reto)} etiqueta={<>O escanea para<br /><b>agendar una reunión</b></>} />
-                : <a className="boton-texto" href={urlCitaCon(reto)} target="_blank" rel="noopener noreferrer">{LLAMADO_INICIO.boton}</a>)}
-            </div>
-          )}
-        </motion.aside>
       </div>
       <PieEmpresa modo={modo} />
     </div>
@@ -218,7 +192,7 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
 
 /**
  * Footer del inicio: quién está detrás y cómo encontrarlo. En celular y PC, enlace a la web de
- * Proliferante (otra pestaña); en el tótem, un QR, porque un enlace sacaría a la gente de la app.
+ * Proliferante (otra pestaña); en el tótem, solo el dominio, en una línea.
  */
 function PieEmpresa({ modo }: { modo: Modo }) {
   const dominio = URL_EMPRESA.replace(/^https?:\/\//, '').replace(/\/$/, '')
@@ -228,10 +202,12 @@ function PieEmpresa({ modo }: { modo: Modo }) {
         <LogoEmpresa animado={false} />
         <span>{LEMA_EMPRESA}</span>
       </div>
-      <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos</span>
       {esTotem(modo)
-        ? <Qr texto={URL_EMPRESA} etiqueta={<>Conoce {EMPRESA}<br /><b>{dominio}</b></>} />
-        : <a className="pie-empresa__enlace" href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">Conoce {EMPRESA} · <b>{dominio}</b> ↗</a>}
+        ? <span className="pie-empresa__datos">{dominio}</span>
+        : <>
+          <span className="pie-empresa__datos">GovTech 2026 · Bogotá · datos abiertos</span>
+          <a className="pie-empresa__enlace" href={URL_EMPRESA} target="_blank" rel="noopener noreferrer">Conoce {EMPRESA} · <b>{dominio}</b> ↗</a>
+        </>}
     </footer>
   )
 }

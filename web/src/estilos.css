@@ -989,17 +989,20 @@ h1, h2, h3, p { margin: 0; }
 :root[data-modo='stand'] .proli-intro__chip { padding: 0.65rem 1rem; font-size: 0.95rem; }
 /* PC: Proli y el saludo a la izquierda; ayudas y pedidos a la derecha */
 :root[data-modo='escritorio'] .proli-intro__contenido {
-  max-width: 76rem; padding: 2.2rem 3rem; display: grid; align-content: center; column-gap: 3rem; row-gap: 1.3rem;
+  max-width: 64rem; padding: 2.2rem 3rem; display: grid; align-content: center; column-gap: 3rem; row-gap: 1.3rem;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  grid-template-areas: 'marca marca' 'heroe ayudas' 'globo ayudas' 'globo pedidos' 'globo accion';
+  grid-template-areas: 'marca marca' 'heroe presenta' 'heroe accion';
 }
 :root[data-modo='escritorio'] .proli-intro__marca { grid-area: marca; }
 :root[data-modo='escritorio'] .proli-intro__heroe { grid-area: heroe; margin-top: 0; }
-:root[data-modo='escritorio'] .proli-intro__globo { grid-area: globo; align-self: start; }
-:root[data-modo='escritorio'] .proli-intro__ayudas { grid-area: ayudas; align-self: end; }
-:root[data-modo='escritorio'] .proli-intro__pedidos { grid-area: pedidos; }
-:root[data-modo='escritorio'] .proli-intro__accion { grid-area: accion; margin-bottom: 0; }
+:root[data-modo='escritorio'] .proli-intro__presenta { grid-area: presenta; align-self: end; }
+:root[data-modo='escritorio'] .proli-intro__accion { grid-area: accion; margin-bottom: 0; justify-content: flex-start; align-self: start; }
 :root[data-modo='escritorio'] .proli-intro__accion .boton--ancho { width: auto; padding-inline: 2.2rem; }
+:root[data-modo='escritorio'] .inicio__tarjetas { flex: none; grid-auto-rows: auto; }
+/* Celular: como en el tótem, la ilustración a un lado para que las dos tarjetas quepan sin scroll */
+:root[data-modo='celular'] .proyecto { display: grid; grid-template-columns: 5rem 1fr; }
+:root[data-modo='celular'] .proyecto__arte { height: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--linea); }
+:root[data-modo='celular'] .proyecto__texto { padding: 0.9rem 1rem; gap: 0.35rem; }
 /* Celular: Proli un poco más chico para que quepa el nombre al lado */
 :root[data-modo='celular'] .proli-intro__figura { width: 8rem; }
 :root[data-modo='celular'] .proli-intro__img { height: 7.2rem; }
@@ -1522,6 +1525,12 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 .piensa-mov p { color: var(--tinta); opacity: 0.25; align-items: center; gap: 0.6rem; margin: 0; font-size: 0.92rem; transition: opacity 0.3s; display: flex; }
 .piensa-mov p.listo { opacity: 1; }
 .piensa-mov p:before { content: ""; background: var(--violeta); border-radius: 50%; flex: none; width: 0.6rem; height: 0.6rem; }
+.cruce-mov { gap: 0.35rem; display: grid; justify-items: center; }
+.cruce-mov__caja { background: var(--hundido); border-radius: var(--r); gap: 0.25rem; width: 100%; padding: 0.85rem 1rem; display: grid; }
+.cruce-mov__caja b { font-family: var(--f-display); color: var(--tinta); font-size: 1.05rem; }
+.cruce-mov__caja span { color: var(--texto); font-size: 0.9rem; line-height: 1.4; }
+.cruce-mov__caja--fin { background: var(--violeta-suave); border: 1.5px solid var(--violeta); }
+.cruce-mov__signo { font-family: var(--f-display); color: var(--violeta); font-size: 1.5rem; font-weight: 800; line-height: 1; }
 .subtitulo-mov { font-family: var(--f-display); color: var(--tinta); margin: 0.3rem 0 0; font-size: 1.2rem; font-weight: 700; }
 .cifras-mov { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.6rem; display: grid; }
 .cifra-mov { background: var(--hundido); border-radius: var(--r); align-content: start; gap: 0.15rem; padding: 0.8rem 0.9rem; display: grid; }
@@ -1602,3 +1611,321 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 @media (width<=26rem) { .cifras-mov, .dos-mov, .cajitas-mov { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .pista-mov i, .arrastre-mov g, .arrastre-mov__parecida { transition: none; } }
 .app--movilidad .promesa--bien { background: var(--verde-suave); border-color: var(--verde); }
+
+/* =========================================================
+   Presupuesto+ en vertical (revisión de Paola, 29 oct): una sola columna, sin scroll.
+   Titular → visual (mapa u otro) → conclusión → un botón. En horizontal: texto a la izquierda.
+   ========================================================= */
+.pp-cabecera { gap: 0.7rem; }
+.pp-cabecera__logos { display: flex; align-items: center; gap: 0.7rem; flex: 1; min-width: 0; }
+.pasos { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 0; }
+.pasos__texto { font-family: var(--f-mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--suave); }
+.pasos__puntos { display: flex; gap: 0.3rem; }
+.pasos__puntos i { width: 0.45rem; height: 0.45rem; border-radius: 99rem; background: var(--linea-2); transition: width 0.3s, background 0.3s; }
+.pasos__puntos i.hecho { background: var(--verde); }
+.pasos__puntos i.actual { width: 1.4rem; background: var(--violeta); }
+
+.pp {
+  flex: 1; min-height: 0; display: grid; overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: 'titular' 'visual' 'conclusion' 'accion';
+}
+.pp__titular { grid-area: titular; padding: 1.1rem var(--g) 0.9rem; display: flex; flex-direction: column; gap: 0.55rem; align-items: flex-start; }
+.pp__visual { grid-area: visual; position: relative; min-height: 0; margin: 0 var(--g); border-radius: var(--r); overflow: hidden; border: 1px solid var(--linea); }
+.pp__visual-propio { position: absolute; inset: 0; z-index: 4; background: var(--papel); display: flex; }
+.pp__conclusion { grid-area: conclusion; padding: 0.9rem var(--g) 0; display: flex; flex-direction: column; gap: 0.55rem; }
+.pp__conclusion:empty { display: none; }
+.pp__accion { grid-area: accion; padding: 0.9rem var(--g) 1.1rem; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; }
+.pp__boton { max-width: 30rem; font-size: 1.08rem; min-height: 3.4rem; }
+.pp__boton-2 { max-width: 30rem; }
+.pp__fila { justify-content: center; gap: 1.2rem; }
+
+.pp__titulo { font-size: 2rem; }
+.pp__titulo--xl { font-size: 2.6rem; line-height: 1.02; }
+.pp__titulo--m { font-size: 1.62rem; line-height: 1.1; }
+.pp__bajada { font-size: 1.02rem; line-height: 1.4; color: var(--suave); }
+.pp__cifras { margin: 0; display: flex; flex-direction: column; gap: 0.1rem; font-family: var(--f-display); font-weight: 700; font-size: 1.45rem; line-height: 1.1; color: var(--tinta); }
+.pp__cifras b { font-size: 2.9rem; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pp__morado { color: var(--violeta); }
+:root[data-tema='oscuro'] .pp__morado { color: #a598ff; }
+.pp__etiqueta { font-family: var(--f-mono); font-size: 0.66rem; letter-spacing: 0.04em; color: var(--suave); background: var(--hundido); border-radius: 99rem; padding: 0.3rem 0.7rem; }
+.pp__texto { font-size: 0.92rem; line-height: 1.42; color: var(--suave); }
+.pp__texto b { color: var(--tinta); }
+.pp__remate { font-size: 1.08rem; font-weight: 600; line-height: 1.3; color: var(--tinta); border-left: 3px solid var(--verde); padding-left: 0.8rem; }
+
+/* Antes y después: selector y mensaje sobre el mapa; el conteo debajo */
+.pp__segmentos { position: absolute; z-index: 3; top: 0.6rem; left: 50%; translate: -50% 0; width: min(22rem, calc(100% - 1.2rem)); box-shadow: var(--sombra); background: var(--flotante); }
+.pp__mensaje {
+  position: absolute; z-index: 3; top: 4rem; left: 0; right: 0; margin: 0 auto; width: max-content; pointer-events: none;
+  background: var(--p-verde); color: var(--p-navy); font-family: var(--f-display); font-weight: 700; font-size: 1.15rem;
+  padding: 0.45rem 1.1rem; border-radius: 99rem; box-shadow: var(--sombra);
+}
+.pp__conteo { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.45rem; }
+.pp__conteo > div { display: flex; flex-direction: column; gap: 0.15rem; background: var(--hundido); border-radius: var(--r-chico); padding: 0.55rem 0.6rem; transition: opacity 0.5s; }
+.pp__conteo b { font-family: var(--f-display); font-size: 1.7rem; line-height: 1; color: var(--tinta); }
+.pp__conteo span { font-size: 0.7rem; line-height: 1.25; color: var(--suave); }
+.pp__conteo .pp__conteo--salen b { color: var(--violeta); }
+.pp__conteo .pp__conteo--entran b { color: var(--verde-texto); }
+.pp__oculto { opacity: 0.18; }
+
+/* Resultados: dos cifras grandes */
+.pp__dos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.pp__dos-uno { display: flex; flex-direction: column; gap: 0.1rem; background: var(--hundido); border-radius: var(--r); padding: 0.7rem 0.85rem; }
+.pp__dos-uno span { font-size: 0.78rem; font-weight: 600; color: var(--tinta); }
+.pp__dos-uno b { font-family: var(--f-display); font-size: 2.6rem; line-height: 1.05; color: var(--tinta); }
+.pp__dos-uno small { font-size: 0.72rem; color: var(--suave); line-height: 1.25; }
+.pp__dos-uno--destacado { background: var(--violeta-suave); }
+.pp__dos-uno--destacado b { color: var(--violeta); }
+:root[data-tema='oscuro'] .pp__dos-uno--destacado b { color: #a598ff; }
+
+/* Solución: dos períodos en barras */
+.periodos { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 1rem 0.8rem; min-height: 0; }
+.periodos__grupos { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+.periodos__grupo { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; min-height: 0; }
+.periodos__barras { flex: 1; min-height: 0; display: flex; gap: 0.7rem; align-items: stretch; border-bottom: 2px solid var(--linea-2); padding: 0 0.4rem; }
+.periodos__col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 0.3rem; }
+.periodos__valor { font-family: var(--f-display); font-size: 1.5rem; line-height: 1.2; text-align: center; color: var(--tinta); }
+.periodos__barra { display: block; border-radius: 0.4rem 0.4rem 0 0; transform-origin: bottom; }
+.periodos__grupo--salen .periodos__barra { background: var(--violeta); }
+.periodos__grupo--entran .periodos__barra { background: var(--verde); }
+.periodos__barra--0 { opacity: 0.45; }
+.periodos__anios { display: flex; gap: 0.7rem; padding: 0 0.4rem; }
+.periodos__anios span { flex: 1; text-align: center; font-family: var(--f-mono); font-size: 0.78rem; color: var(--suave); }
+.periodos__grupo figcaption { font-size: 0.86rem; line-height: 1.3; color: var(--suave); text-align: center; }
+.periodos__grupo figcaption b { color: var(--tinta); }
+.periodos__unidad { text-align: center; font-size: 0.72rem; color: var(--tenue); font-family: var(--f-mono); }
+.periodos__nota { text-align: center; font-size: 0.72rem; line-height: 1.35; color: var(--tenue); }
+
+/* Cómo lo hicimos: tres etapas conectadas */
+.etapas { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 1rem; }
+.etapas__paso { display: flex; flex-direction: column; align-items: center; width: min(24rem, 100%); }
+.etapas__flecha { font-size: 1.8rem; line-height: 1.3; color: var(--verde); }
+.etapas__modulo { width: 100%; display: flex; align-items: center; gap: 1rem; padding: 1.1rem 1.3rem; border-radius: var(--r); background: var(--hundido); border: 1px solid var(--linea); }
+.etapas__modulo svg { flex: none; width: 2.6rem; height: 2.6rem; color: var(--violeta); }
+.etapas__modulo b { font-family: var(--f-display); font-size: 1.25rem; line-height: 1.15; color: var(--tinta); }
+.etapas__paso:last-child .etapas__modulo { background: var(--violeta); border-color: var(--violeta); }
+.etapas__paso:last-child .etapas__modulo b, .etapas__paso:last-child .etapas__modulo svg { color: #fff; }
+
+/* Portada y Tu reto */
+.pp__proli { display: flex; justify-content: center; }
+.pp__reto { flex: 1; display: grid; place-items: center; padding: 1rem; }
+.pp__marca { text-align: center; font-size: 0.95rem; color: var(--suave); }
+.pp__marca b { color: var(--tinta); }
+.app--pp-portada .pp__visual { border: 0; }
+
+/* Detalles opcionales: una hoja que sube desde abajo (aquí sí hay scroll) */
+.hoja { position: fixed; inset: 0; z-index: 60; }
+.hoja__fondo { position: absolute; inset: 0; background: rgba(22, 43, 42, 0.45); }
+.hoja__panel {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: 86%; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--papel); border-radius: 1.2rem 1.2rem 0 0; padding: 1.4rem var(--g) 2rem; display: flex; flex-direction: column; gap: 0.9rem;
+  box-shadow: 0 -0.6rem 2rem rgba(0, 0, 0, 0.2);
+}
+.hoja__cerrar { position: sticky; top: 0; align-self: flex-end; margin-bottom: -2.4rem; width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid var(--linea-2); background: var(--blanco); font-size: 1rem; z-index: 1; flex: none; }
+.metodo-mov { margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+.metodo-mov dt { font-weight: 700; color: var(--tinta); font-size: 0.92rem; margin-top: 0.5rem; }
+.metodo-mov dd { margin: 0; font-size: 0.85rem; line-height: 1.45; color: var(--suave); }
+.metodo-mov .fuentes-mov { margin-top: 0.5rem; }
+
+/* Horizontal (escritorio): texto a la izquierda, visual a la derecha */
+:root[data-modo='escritorio'] .pp {
+  grid-template-columns: minmax(26rem, 34rem) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas: 'titular visual' 'conclusion visual' 'accion visual';
+}
+:root[data-modo='escritorio'] .pp__titular { padding: 2.2rem 2rem 0.6rem; }
+:root[data-modo='escritorio'] .pp__conclusion { padding: 0.9rem 2rem 0; }
+:root[data-modo='escritorio'] .pp__accion { padding: 1rem 2rem 1.8rem; justify-content: flex-end; align-items: stretch; }
+:root[data-modo='escritorio'] .pp__visual { margin: 0; border: 0; border-left: 1px solid var(--linea); border-radius: 0; }
+:root[data-modo='escritorio'] .hoja__panel { left: 50%; right: auto; width: min(48rem, 100%); translate: -50% 0; }
+:root[data-modo='escritorio'] .pp__titulo--xl { font-size: 3.2rem; }
+
+/* Celular: un poco más compacto */
+:root[data-modo='celular'] .pp__titulo { font-size: 1.6rem; }
+:root[data-modo='celular'] .pp__titulo--xl { font-size: 2.1rem; }
+:root[data-modo='celular'] .pp__titulo--m { font-size: 1.32rem; }
+:root[data-modo='celular'] .pp__cifras b { font-size: 2.3rem; }
+:root[data-modo='celular'] .pp__conteo { grid-template-columns: 1fr 1fr; }
+:root[data-modo='celular'] .pp__titular { padding-top: 0.9rem; }
+
+/* Presupuesto+: el crédito de OSM va en el pie (en el mapa taparía la ciudad) */
+.app--pp .mapa--movilidad .mapa__atribucion { display: none; }
+.pp__etiqueta--mapa { position: absolute; z-index: 3; top: 0.6rem; left: 0.6rem; box-shadow: var(--sombra); background: var(--flotante); }
+.pp__mensaje { position: static; align-self: center; margin: 0; }
+:root[data-modo='escritorio'] .pp__mensaje { align-self: flex-start; }
+
+/* Proli flotante: en la franja del botón, a la derecha (sin tapar mapa ni textos) */
+:root:has(.app--pp) .proli-flotante { bottom: 2.4rem; right: 0.5rem; }
+:root:is(:has(.app--pp-portada), :has(.app--pp-reto)) .proli-flotante { display: none; }
+:root:not([data-modo='escritorio']) :is(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: var(--g); }
+
+/* Resultados: cifras más compactas para que el mapa respire */
+.app--pp-resultados .pp__dos-uno { padding: 0.55rem 0.8rem; }
+.app--pp-resultados .pp__dos-uno b { font-size: 2.3rem; }
+.app--pp-resultados .pp__remate { font-size: 1rem; }
+.app--pp-resultados .pp__texto { font-size: 0.86rem; }
+
+/* Presupuesto+: el mapa y, debajo, su leyenda en una franja propia (no tapa la ciudad) */
+.pp__visual { display: flex; flex-direction: column; }
+.pp__mapa { position: relative; flex: 1; min-height: 0; }
+.pp__leyenda {
+  flex: none; display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.9rem; row-gap: 0.15rem;
+  padding: 0.4rem 0.7rem; border-top: 1px solid var(--linea); background: var(--papel); font-size: 0.66rem; color: var(--suave);
+}
+.pp__leyenda span { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
+.k-pp { flex: none; width: 0.7rem; height: 0.7rem; border-radius: 50%; display: inline-block; box-sizing: border-box; }
+.k-pp--fondo { border-radius: 0.15rem; background: #a8bcd8; }
+:root[data-tema='oscuro'] .k-pp--fondo { background: #3e605e; }
+.k-pp--morado { background: #5a44dd; }
+.k-pp--verde { background: #3e8e52; }
+.k-pp--gris { background: #505b7d; }
+.k-pp--naranja { background: #e07a1f; }
+.k-pp--tenue { background: rgb(90 68 221 / 0.28); border: 1px solid #5a44dd; }
+:root:not([data-modo='escritorio']) .app--pp:not(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: 4.4rem; }
+:root:has(.hoja) .proli-flotante { display: none; }
+:root[data-modo='celular'] .app--pp:not(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: 3.8rem; }
+:root[data-modo='celular'] .pp__boton { font-size: 0.98rem; }
+:root[data-tema='oscuro'] .pp__conteo .pp__conteo--salen b { color: #a598ff; }
+
+/* =========================================================
+   Matrícula+ en vertical (documento de Paola, 29 oct): piezas propias sobre el formato de Recorrido
+   ========================================================= */
+.pp__protagonista { display: flex; align-items: baseline; gap: 0.6rem; font-family: var(--f-display); color: var(--tinta); }
+.pp__protagonista b { font-size: 4.2rem; line-height: 1; letter-spacing: -0.03em; color: var(--violeta); }
+:root[data-tema='oscuro'] .pp__protagonista b { color: #a598ff; }
+.pp__protagonista span { font-size: 1.5rem; font-weight: 700; }
+.pp__etiqueta--centro { align-self: center; text-align: center; }
+.pp__remate--centro { align-self: center; border-left: 0; padding-left: 0; text-align: center; }
+.pp__pregunta { font-family: var(--f-display); font-size: 1.35rem; font-weight: 700; color: var(--violeta); }
+:root[data-tema='oscuro'] .pp__pregunta { color: var(--verde); }
+.etapas__modulo > span { display: flex; flex-direction: column; gap: 0.2rem; }
+.etapas__modulo small { font-size: 0.78rem; line-height: 1.3; color: var(--suave); }
+.etapas__paso:last-child .etapas__modulo small { color: rgb(255 255 255 / 0.85); }
+
+/* La solución: cómo los datos se convierten en una asignación */
+.asigna { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.55rem; padding: 1rem; position: relative; }
+.asigna__etiqueta { position: absolute; top: 0.6rem; left: 0.6rem; font-family: var(--f-mono); font-size: 0.62rem; color: var(--tenue); text-transform: uppercase; letter-spacing: 0.06em; }
+.asigna__estudiante { display: flex; align-items: center; gap: 0.7rem; padding: 0.8rem 1.1rem; border-radius: var(--r); background: var(--violeta-suave); color: var(--tinta); }
+.asigna__estudiante svg { width: 2.2rem; height: 2.2rem; color: var(--violeta); flex: none; }
+.asigna__estudiante b { font-size: 1.05rem; }
+.asigna__flecha { font-size: 1.5rem; line-height: 1; color: var(--verde); }
+.asigna__colegios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; width: 100%; }
+.asigna__colegio { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.6rem 0.6rem; border-radius: var(--r-chico); border: 1px solid var(--linea); background: var(--hundido); text-align: center; }
+.asigna__colegio b { font-size: 0.9rem; color: var(--tinta); }
+.asigna__colegio span { font-size: 0.7rem; line-height: 1.25; color: var(--suave); }
+.asigna__colegio--no { opacity: 0.75; }
+.asigna__colegio--si { border: 2px solid var(--verde); background: var(--verde-suave, #e6f5e9); opacity: 1; }
+.asigna__prioridades { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--suave); }
+.asigna__prioridades i { font-style: normal; font-weight: 600; color: var(--violeta-osc); background: var(--violeta-suave); border-radius: 99rem; padding: 0.25rem 0.65rem; }
+.asigna__decision { display: flex; align-items: center; gap: 0.45rem; padding: 0.65rem 1.1rem; border-radius: 99rem; background: var(--verde); color: var(--p-navy); font-size: 0.95rem; }
+.asigna__decision svg { width: 1.3rem; height: 1.3rem; }
+
+/* La gran revelación: referencia → Matrícula+ y el porcentaje dominante */
+.revela { display: flex; align-items: stretch; justify-content: center; gap: 0.5rem; }
+.revela__uno { flex: 1; display: flex; flex-direction: column; gap: 0.1rem; padding: 0.55rem 0.8rem; border-radius: var(--r); background: var(--hundido); transition: opacity 0.5s; }
+.revela__uno span { font-size: 0.72rem; font-weight: 600; color: var(--suave); }
+.revela__uno b { font-family: var(--f-display); font-size: 2.2rem; line-height: 1.05; color: var(--violeta); }
+.revela__uno--mat b { color: var(--verde-texto); }
+:root[data-tema='oscuro'] .revela__uno b { color: #a598ff; }
+:root[data-tema='oscuro'] .revela__uno--mat b { color: var(--verde-texto); }
+.revela__flecha { align-self: center; font-size: 1.5rem; color: var(--tenue); transition: opacity 0.5s; }
+.revela__pct { text-align: center; font-family: var(--f-display); font-size: 1.35rem; font-weight: 700; color: var(--tinta); line-height: 1.1; }
+.revela__pct b { display: block; font-size: 3.4rem; line-height: 1; color: var(--verde-texto); letter-spacing: -0.02em; }
+.revela__proli { display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.85rem; font-style: italic; color: var(--suave); }
+
+/* La segunda revelación: tres resultados breves y el detalle de la localidad sobre el mapa */
+.tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; width: 100%; }
+.tres__uno { display: flex; flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.65rem; border-radius: var(--r-chico); background: var(--hundido); }
+.tres__uno b { font-family: var(--f-display); font-size: 1.45rem; line-height: 1.05; color: var(--verde-texto); white-space: nowrap; }
+.tres__uno span { font-size: 0.7rem; line-height: 1.3; color: var(--suave); }
+.pp__detalle-loc {
+  position: absolute; z-index: 3; left: 0.6rem; bottom: 0.6rem; display: flex; flex-direction: column; gap: 0.1rem; max-width: calc(100% - 1.2rem);
+  background: var(--flotante); box-shadow: var(--sombra); border-radius: var(--r-chico); padding: 0.45rem 0.7rem; font-size: 0.78rem; color: var(--suave);
+}
+.pp__detalle-loc b { color: var(--tinta); font-size: 0.9rem; }
+.k-pp--rampa { border-radius: 0.15rem; width: 1.6rem; background: linear-gradient(90deg, #bebaf6, #8c7cee, #5a44dd, #342696); }
+.k-pp--tinta { background: #162b2a; width: 0.45rem; height: 0.45rem; }
+:root[data-tema='oscuro'] .k-pp--tinta { background: #f0f6f5; }
+:root[data-modo='celular'] .pp__protagonista b { font-size: 3.2rem; }
+:root[data-modo='celular'] .tres__uno b { font-size: 1.15rem; }
+:root[data-modo='celular'] .revela__pct b { font-size: 2.6rem; }
+.pp__leyenda span { white-space: normal; }
+.tres__uno b { font-size: 1.2rem; white-space: normal; }
+.revela__pct { font-size: 1.15rem; }
+.revela__pct b { font-size: 2.7rem; }
+.revela__uno b { font-size: 1.9rem; }
+.revela__proli { font-size: 0.78rem; }
+.app--pp-antes .pp__remate--centro { font-size: 0.98rem; }
+.etapas:has(small) { gap: 0; padding: 0.6rem 1rem; }
+.etapas:has(small) .etapas__modulo { padding: 0.7rem 1rem; gap: 0.8rem; }
+.etapas:has(small) .etapas__modulo svg { width: 2.1rem; height: 2.1rem; }
+.etapas:has(small) .etapas__flecha { font-size: 1.2rem; line-height: 1.2; }
+.etapas:has(small) .etapas__modulo b { font-size: 1.1rem; }
+.etapas:has(small) .etapas__modulo small { font-size: 0.72rem; }
+:root:not([data-modo='escritorio']) .app--pp:not(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: 4rem; }
+:root[data-modo='stand'] .pp__boton { font-size: 1.02rem; }
+
+/* =========================================================
+   Pantallas generales en vertical (documento de Paola, 29 oct)
+   ========================================================= */
+/* P0 · Atracción: titular protagonista arriba; Proli pequeño y el botón único abajo */
+.portada-stand__cabeza { margin-top: 1.6rem; gap: 1.1rem; }
+.portada-stand__pregunta { font-size: 3rem; line-height: 1.04; }
+.portada-stand .display em, :root[data-tema='oscuro'] .portada-stand .display em { color: #a598ff; }
+.portada-stand__bajada { font-size: 1.25rem; }
+.portada-stand__proli { margin-top: auto; display: flex; justify-content: center; }
+.portada-stand__accion { margin-bottom: 0.4rem; }
+.portada-stand__boton { max-width: 30rem; min-height: 3.6rem; font-size: 1.2rem; }
+:root[data-modo='escritorio'] .portada-stand__pregunta { font-size: 3.6rem; }
+
+/* P1 · Conoce a Proli: Proli arriba con su globo; debajo, el texto y el botón */
+.proli-intro__heroe { flex-direction: column; align-items: center; margin-top: 1rem; gap: 0.6rem; }
+.proli-intro__figura { width: 14rem; }
+.proli-intro__img { height: 13rem; }
+.proli-intro__heroe .proli-intro__globo { align-self: stretch; text-align: center; font-size: 1.15rem; }
+.proli-intro__presenta { margin-top: auto; gap: 0.8rem; }
+.proli-intro__texto { font-size: 1.2rem; color: var(--suave); }
+.proli-intro__accion { margin-bottom: 0; display: flex; justify-content: center; }
+.proli-intro__boton { max-width: 30rem; min-height: 3.6rem; font-size: 1.15rem; }
+
+/* P2 · Elige un reto: dos tarjetas grandes, una debajo de la otra, con la pregunta primero */
+.inicio__tarjetas { flex: 1; min-height: 0; grid-auto-rows: 1fr; }
+.proyecto__pregunta { font-family: var(--f-display); font-size: 1.55rem; font-weight: 700; line-height: 1.12; }
+.proyecto__bajada { font-size: 1rem; color: var(--suave); }
+.proyecto__nombre { font-size: 1.15rem; opacity: 0.85; }
+.proyecto__entrar { align-self: flex-start; margin-top: auto; background: var(--violeta); color: #fff; border-radius: 99rem; padding: 0.6rem 1.6rem; font-weight: 600; }
+:root[data-modo='escritorio'] .inicio__tarjetas { grid-auto-rows: auto; }
+:root:is([data-modo='stand'], [data-modo='auto']) .proyecto { grid-template-columns: 6.5rem 1fr; }
+:root:is([data-modo='stand'], [data-modo='auto'], [data-modo='celular']) .proyecto__pregunta { font-size: 1.4rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .pie-empresa { padding-block: 0.6rem; }
+/* Elige un reto: Proli no se repite sobre las tarjetas (ya se presentó en la pantalla anterior) */
+:root:not([data-modo='escritorio']):has(.inicio) .proli-flotante { display: none; }
+:root:is([data-modo='stand'], [data-modo='auto']) .portada-stand__cabeza { margin-top: 3rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .portada-stand__pregunta { font-size: 3.5rem; }
+:root[data-modo='celular'] .proyecto__pregunta { font-size: 1.22rem; }
+:root[data-modo='celular'] .proyecto__bajada { font-size: 0.9rem; }
+:root[data-modo='celular'] .pie-empresa__marca span, :root[data-modo='celular'] .pie-empresa__datos { display: none; }
+
+/* =========================================================
+   Celular (revisión del 29 oct en un teléfono real de 360×670): el tamaño base se ajusta al alto
+   disponible (pantallas bajas o con la barra del navegador), y si aun así no cabe, la pantalla se
+   desplaza: nada se corta.
+   ========================================================= */
+:root[data-modo='celular'] { font-size: clamp(12.5px, min(4.1vw, 1.95dvh), 16px); }
+:root[data-modo='celular'] .pp { overflow-y: auto; overscroll-behavior: contain; grid-template-rows: auto minmax(13rem, 1fr) auto auto; }
+:root:not([data-modo='escritorio']) .inicio__tarjetas { flex: 1 0 auto; grid-auto-rows: minmax(min-content, 1fr); }
+:root[data-modo='celular'] .portada-stand__marca { flex-wrap: nowrap; }
+:root[data-modo='celular'] .portada-stand__marca .selector-tema { display: none; }
+:root[data-modo='celular'] .portada-stand__evento { font-size: 0.6rem; text-align: right; }
+:root[data-modo='celular'] .portada-stand__pregunta { font-size: 2.5rem; }
+:root[data-modo='celular'] .proli-intro__figura { width: 11rem; }
+:root[data-modo='celular'] .proli-intro__img { height: 10rem; }
+/* El selector sobre el mapa no pisa el botón de centrar (arriba a la derecha) */
+.pp__segmentos { left: 0.6rem; translate: none; width: min(22rem, calc(100% - 4rem)); }
+/* Celular: Proli más pequeño junto al botón, y un poco menos de aire arriba */
+:root[data-modo='celular']:has(.app--pp) .proli-flotante .proli-animado { height: 3rem !important; }
+:root[data-modo='celular'] .app--pp:not(.app--pp-portada, .app--pp-reto) .pp__accion { padding-inline: 3.6rem; }
+:root[data-modo='celular'] .pp__boton { font-size: 0.92rem; padding-inline: 1rem; }
+:root[data-modo='celular']:has(.app--pp) .proli-flotante { bottom: 2.1rem; right: 0.3rem; }
+:root[data-modo='celular'] .pp__titular { padding-top: 0.75rem; padding-bottom: 0.65rem; }
+:root[data-modo='celular'] .pp__conclusion { padding-top: 0.65rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .inicio__contenido { gap: 1.1rem; padding-bottom: 1rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .proyecto__texto { padding: 0.95rem 1.1rem 1rem; gap: 0.4rem; }

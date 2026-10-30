@@ -1,6 +1,6 @@
 /**
  * Canal entre Proli y la interfaz. Proli (la IA) pide acciones con nombre y entrada
- * (p. ej. movilidad_presupuesto {nivel: 'medio'}); aquí se reparten al componente que las sabe hacer:
+ * (p. ej. movilidad_lista {lista: 'modelo'}); aquí se reparten al componente que las sabe hacer:
  *  · «inicio»    → Inicio.tsx (portada, conozca a Proli, elegir demo, abrir un demo)
  *  · «movilidad» → movilidad/Movilidad.tsx
  *  · «matricula» → matricula/Matricula.tsx (Matrícula+)
@@ -15,6 +15,7 @@
  */
 import { useSyncExternalStore } from 'react'
 import { selectorDe, senalar, visible } from './cursor'
+import { NOMBRE_MOVILIDAD } from '../config'
 
 export type Ambito = 'inicio' | 'movilidad' | 'matricula'
 export interface Orden { nombre: string; entrada: Record<string, unknown> }
@@ -73,15 +74,13 @@ function aplicarOrden(orden: Orden): Promise<string> {
   // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
     const demo = orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad'
-    return aplicarOrden(demo === 'movilidad'
-      ? { nombre: 'movilidad_capitulo', entrada: { capitulo: 'cierre' } }
-      : { nombre: 'matricula_capitulo', entrada: { capitulo: 'reto' } })
+    return aplicarOrden({ nombre: `${demo}_capitulo`, entrada: { capitulo: 'agenda' } })
   }
   const ambito = ambitoDe(orden.nombre)
   const manejador = manejadores.get(ambito)
   if (manejador) return Promise.resolve(aplicar(manejador, orden))
   if (ambito === 'inicio') return Promise.resolve('La pantalla todavía no está lista; intente de nuevo en un momento.')
-  const nombreDemo = ambito === 'movilidad' ? 'Movilidad+' : 'Matrícula+'
+  const nombreDemo = ambito === 'movilidad' ? NOMBRE_MOVILIDAD : 'Matrícula+'
   return new Promise((resolver) => {
     const pendiente = { orden, responder: (r: string) => { window.clearTimeout(id); resolver(`Se abrió ${nombreDemo}. ${r}`) } }
     const id = window.setTimeout(() => {
@@ -107,7 +106,7 @@ export function usePantalla(): string {
 }
 
 // --- El reto del visitante: un resumen corto, sin datos personales, que va en el mensaje de la cita ---
-const MAX_RETO = 280
+const MAX_RETO = 400
 let reto = ''
 const oyentesReto = new Set<() => void>()
 export function fijarReto(texto: string) {

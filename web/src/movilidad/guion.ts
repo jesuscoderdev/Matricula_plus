@@ -36,6 +36,14 @@ export interface Guion {
   cambiosPresupuesto: Cambio
   /** las esquinas de «¿Cuáles 3 esquinas arreglarías tú?» (las primeras de «contar solo 2024») */
   tabla: number[]
+  /** las mismas, en un desorden fijo: así el visitante escoge pensando y no por el puesto */
+  tablaDesordenada: number[]
+  /** con el presupuesto: las que escoge el modelo y no «contar solo 2024» */
+  entranPresupuesto: number[]
+  /** con el presupuesto: las que escoge «contar solo 2024» y no el modelo */
+  salenPresupuesto: number[]
+  /** con el presupuesto: las que escogen las dos formas */
+  comunesPresupuesto: number[]
   /** de las 30 de contar solo 2024, cuántas bajaron en 2025 */
   bajaron: number
   /** la esquina con más siniestros en 2024: el ejemplo de la animación */
@@ -99,12 +107,22 @@ export function guionDe(d: DatosMovilidad): Guion {
     cambios30: cambio(c30),
     cambiosPresupuesto: cambio(cP),
     tabla: orden.contar1.slice(0, ESQUINAS_TABLA),
+    tablaDesordenada: desordenar(orden.contar1.slice(0, ESQUINAS_TABLA), s.id),
+    entranPresupuesto: cP.modelo.lista.filter((i) => !new Set(cP.contar1.lista).has(i)),
+    salenPresupuesto: cP.contar1.lista.filter((i) => !new Set(cP.modelo.lista).has(i)),
+    comunesPresupuesto: cP.contar1.lista.filter((i) => new Set(cP.modelo.lista).has(i)),
     bajaron: c30.contar1.lista.filter((i) => s.k25[i] < s.k24[i]).length,
     ejemplo: orden.contar1[0],
     porLocalidad,
   }
   cache = { datos: d, guion }
   return guion
+}
+
+/** Un desorden fijo (el mismo en cada visita), por un hash del id de la zona */
+function desordenar(l: number[], ids: string[]): number[] {
+  const h = (t: string) => [...t].reduce((a, c) => Math.imul(a ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261)
+  return [...l].sort((a, b) => h(ids[a]) - h(ids[b]))
 }
 
 /** Las esquinas parecidas a la del índice: cuántas son y su promedio de siniestros graves al año */

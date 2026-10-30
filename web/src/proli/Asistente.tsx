@@ -27,6 +27,7 @@ import { leerModo } from '../modo'
 import { alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, type Orden } from './ordenes'
 import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
+import { NOMBRE_MOVILIDAD } from '../config'
 
 type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
 type Bloque = Anthropic.Beta.Messages.BetaContentBlock
@@ -99,28 +100,28 @@ function esPropuesta(texto: string) {
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
     texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
-    sinConexion: '¡Cuéntanos! Proliferante lo resuelve con los datos y las reglas de tu entidad. Agenda una reunión con el equipo: con el código QR o con el botón de la pantalla.',
+    sinConexion: 'Ahora no puedo conversar, pero el equipo sí. Escanea el código o toca «Agendar conversación» para enviar tu solicitud: te confirmarán un horario.',
   })
-  if (pantalla.startsWith('Movilidad+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Movilidad+: con datos abiertos de Bogotá, buscamos qué esquinas arreglar primero con un presupuesto limitado, y cuánto se puede prometer sin exagerar.' },
-    { texto: '¿Por qué bajaron las esquinas con más siniestros?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'falla' } }],
-      sinConexion: 'Un año malo suele venir seguido de uno más tranquilo, con obra o sin ella. Por eso, para saber si una obra funcionó, hay que compararla con lo que se esperaba que pasara sin ella.' },
+  if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
+    { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },
+    { texto: '¿Por qué no basta un solo año?', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'solucion' } }],
+      sinConexion: 'Mirar un solo período puede ocultar patrones importantes: una sola cifra no cuenta toda la historia.' },
     { texto: 'Muéstrame los resultados', ordenes: [{ nombre: 'movilidad_capitulo', entrada: { capitulo: 'resultados' } }],
-      sinConexion: 'Aquí están. Con estos supuestos, mirar la historia de cada esquina cambia dónde se invierte frente a mirar solo el último año, y el modelo promete evitar casi lo mismo que se evita.' },
+      sinConexion: 'Aquí están: qué pasó en 2025 en los lugares de cada selección, en un análisis retrospectivo.' },
     agenda('movilidad'),
   ]
   if (pantalla.startsWith('Matrícula+')) return [
-    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: hoy el cupo escolar se reparte por orden de llegada y muchos niños quedan lejos de casa. Aquí ves qué pasa si se reparte con datos, con los mismos colegios y cupos, y con niños recreados a partir de datos abiertos.' },
-    { texto: 'Muéstrame el antes y el después', ordenes: [{ nombre: 'matricula_reparto', entrada: { reparto: 'despues' } }],
-      sinConexion: 'Aquí está: en verde, los niños que estaban lejos y con Matrícula+ quedan cerca.' },
-    { texto: '¿Dónde faltan cupos?', ordenes: [{ nombre: 'matricula_capitulo', entrada: { capitulo: 'faltan' } }],
-      sinConexion: 'Repartir mejor no crea cupos: el mapa muestra dónde siguen niños lejos y de qué nivel faltan cupos.' },
+    { texto: '¿Qué estoy viendo?', sinConexion: 'Es Matrícula+: una simulación con datos abiertos que compara el reparto por orden de llegada (escenario de referencia) con otra forma de asignar los mismos cupos, por cercanía y prioridad.' },
+    { texto: 'Muéstrame el cambio', ordenes: [{ nombre: 'matricula_reparto', entrada: { reparto: 'despues' } }],
+      sinConexion: 'Aquí está: en verde, los estudiantes que estaban lejos y con Matrícula+ quedan cerca.' },
+    { texto: '¿Dónde faltan cupos?', ordenes: [{ nombre: 'matricula_capitulo', entrada: { capitulo: 'resultados' } }],
+      sinConexion: 'Repartir mejor no crea cupos: el mapa muestra dónde siguen estudiantes lejos.' },
     agenda('matricula'),
   ]
   return [
     { texto: '¿Qué es Proliferante?', sinConexion: 'Un estudio de innovación aplicada: conectamos datos, matemáticas, IA y tecnología para que las organizaciones decidan mejor, y dejamos esas capacidades funcionando. Hacemos simple lo complejo.' },
-    { texto: 'Muéstrame Movilidad+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
-      sinConexion: 'Vamos a Movilidad+: qué esquinas arreglar primero con un presupuesto limitado.' },
+    { texto: `Muéstrame ${NOMBRE_MOVILIDAD}`, ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'movilidad' } }],
+      sinConexion: `Vamos a ${NOMBRE_MOVILIDAD}: cómo invertir mejor un presupuesto limitado de seguridad vial.` },
     { texto: 'Muéstrame Matrícula+', ordenes: [{ nombre: 'abrir_demo', entrada: { demo: 'matricula' } }],
       sinConexion: 'Vamos a Matrícula+: cómo lograr que más niños tengan colegio cerca de casa.' },
   ]
@@ -417,7 +418,7 @@ export default function Asistente() {
             </header>
             <div className="proli-panel__lista" ref={refLista} aria-live="polite">
               {lineas.length === 0 && (
-                <p className="proli-panel__linea proli-panel__linea--proli">¿En qué te ayudo? Puedo explicarte lo que ves, mostrarte algo en la pantalla o llevarte a un demo.</p>
+                <p className="proli-panel__linea proli-panel__linea--proli">Hola, soy Proli, el asistente virtual de Proliferante. Aquí mostramos lo que pasa cuando los datos se convierten en decisiones. ¿Quieres ver un ejemplo o tienes algún reto en mente?</p>
               )}
               {lineas.filter((l) => l.texto).map((l, i) => (
                 <p key={i} className={`proli-panel__linea proli-panel__linea--${l.quien}`}>{l.quien === 'accion' ? `↳ ${l.texto}` : l.texto}</p>

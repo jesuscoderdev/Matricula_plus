@@ -8,6 +8,7 @@
  *  · capa "k24" / "k25" — siniestros graves de ese año (calles de barrio; avenidas en gris)
  *  · capa "kappa"       — riesgo anual corregido (lo que se puede prometer)
  *  · capa "sel"         — las esquinas que alcanza el presupuesto elegido
+ *  · capa "tenue"       — las calles de barrio con siniestros graves en 2024, en un solo tono claro (fondo de las selecciones)
  * Encima: las esquinas que tocó el visitante (numeradas) y, si se pide, las peores de 2024 (anillos).
  * Con `croquis`: las localidades de fondo, y sus límites y nombres sobre los hexágonos. Con
  * `onLocalidad`, tocar una localidad la elige (el mapa se acerca a ella); ya adentro, el toque elige
@@ -23,7 +24,7 @@ import type { Bbox, Croquis, DatosMovilidad } from './datos'
 
 type RGB = [number, number, number]
 type RGBA = [number, number, number, number]
-export type Capa = 'k24' | 'k25' | 'kappa' | 'sel'
+export type Capa = 'k24' | 'k25' | 'kappa' | 'sel' | 'tenue'
 
 // ---------------------------------------------------------------- paleta (la de la app)
 const RAMPA: Record<Tema, RGB[]> = {
@@ -33,13 +34,16 @@ const RAMPA: Record<Tema, RGB[]> = {
 const PALETA = {
   // tierra: el croquis de Bogotá (más claro que el fondo en el tema claro, apenas más claro en el oscuro)
   claro: { vacio: [210, 222, 238, 255] as RGBA, avenida: [230, 237, 246, 255] as RGBA, tinta: [22, 43, 42, 255] as RGBA,
-    superficie: [255, 255, 255, 245] as RGBA, fuera: 70, tierra: [255, 255, 255, 255] as RGBA },
+    superficie: [255, 255, 255, 245] as RGBA, fuera: 70, tierra: [255, 255, 255, 255] as RGBA, tenue: [168, 188, 216, 255] as RGBA },
   oscuro: { vacio: [36, 64, 62, 255] as RGBA, avenida: [24, 48, 46, 255] as RGBA, tinta: [240, 246, 245, 255] as RGBA,
-    superficie: [29, 54, 52, 245] as RGBA, fuera: 60, tierra: [23, 43, 42, 255] as RGBA },
+    superficie: [29, 54, 52, 245] as RGBA, fuera: 60, tierra: [23, 43, 42, 255] as RGBA, tenue: [62, 96, 94, 255] as RGBA },
 }
 const VIOLETA: RGBA = [90, 68, 221, 255]
-// Listas resaltadas: contar (naranja), modelo (verde), las dos (gris pizarra)
-const COLOR_RESALTE: Record<'naranja' | 'verde' | 'gris', RGBA> = { naranja: [224, 122, 31, 240], verde: [62, 142, 82, 240], gris: [80, 91, 125, 200] }
+// Listas resaltadas: solo mirando 2024 (morado), solo el modelo (verde), las dos (gris pizarra)
+type ColorResalte = 'naranja' | 'morado' | 'verde' | 'gris'
+const COLOR_RESALTE: Record<ColorResalte, RGBA> = {
+  naranja: [224, 122, 31, 240], morado: [90, 68, 221, 240], verde: [62, 142, 82, 240], gris: [80, 91, 125, 235],
+}
 
 /** Cortes de la escala a partir de los datos (cuantiles de los valores positivos, sin repetir). */
 function cortesDe(valores: number[], enteros: boolean): number[] {
@@ -197,12 +201,14 @@ interface Props {
   candidatas?: number[]
   /** número o letra encima de cada esquina resaltada o tocada (p. ej. su puesto en la lista) */
   etiqueta?: (i: number) => string
+  /** título de la leyenda (si no, el de la capa) */
+  tituloLeyenda?: string
 }
-export interface Resalte { indices: number[]; color: 'naranja' | 'verde' | 'gris'; hueco?: boolean; texto?: string }
+export interface Resalte { indices: number[]; color: ColorResalte; hueco?: boolean; texto?: string; /** casi transparente (p. ej. las que salen) */ tenue?: boolean }
 
 export default function MapaMovilidad({
   datos, capa, localidad = null, esquinas = 0, tocadas = [], onTocar, onLocalidad, peores = false, interactivo = true,
-  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, croquis = false, children, resaltar = [], candidatas, etiqueta,
+  respirar = false, margen = {}, encuadre = null, leyenda = true, agrupar = false, croquis = false, children, resaltar = [], candidatas, etiqueta, tituloLeyenda,
 }: Props) {
   const tema = useTema()
   const P = PALETA[tema]
@@ -241,6 +247,7 @@ export default function MapaMovilidad({
     const dentro = localidad == null || s.loc[i] === localidad
     let c: RGBA
     if (capa === 'sel') c = elegida(i) ? [...rampa[tema === 'oscuro' ? 4 : 3], 255] : s.local[i] ? P.vacio : P.avenida
+    else if (capa === 'tenue') c = s.local[i] && valor[i] > 0 ? P.tenue : s.local[i] ? P.vacio : P.avenida
     else if (!s.local[i]) c = P.avenida
     else c = valor[i] > 0 ? [...rampa[claseDe(cortes, valor[i])], 255] : P.vacio
     return dentro ? c : [c[0], c[1], c[2], P.fuera]
@@ -375,11 +382,12 @@ export default function MapaMovilidad({
     ...resaltar.flatMap((r, k) => [
       new ScatterplotLayer<number>({
         id: `resaltar-${k}`, data: r.indices, getPosition: (i) => [s.lon[i], s.lat[i]], radiusUnits: 'pixels',
-        getRadius: (etiqueta ? 9 : r.color === 'gris' ? 5 : 7) * e, filled: !r.hueco, stroked: true, lineWidthUnits: 'pixels',
+        getRadius: (etiqueta ? 9 : r.indices.length > 60 ? (r.color === 'gris' ? 3.6 : 4.6) : r.color === 'gris' ? 5 : 7) * e, filled: !r.hueco, stroked: true, lineWidthUnits: 'pixels',
         getLineWidth: (r.hueco ? 2.2 : 1.5) * e,
-        getFillColor: r.hueco ? [P.superficie[0], P.superficie[1], P.superficie[2], 220] : COLOR_RESALTE[r.color],
-        getLineColor: r.hueco ? COLOR_RESALTE[r.color] : [255, 255, 255, 230],
-        updateTriggers: { getRadius: [e, !!etiqueta], getLineWidth: [e], getFillColor: [tema] },
+        getFillColor: r.hueco ? [P.superficie[0], P.superficie[1], P.superficie[2], 220]
+          : r.tenue ? [COLOR_RESALTE[r.color][0], COLOR_RESALTE[r.color][1], COLOR_RESALTE[r.color][2], 70] : COLOR_RESALTE[r.color],
+        getLineColor: r.hueco ? COLOR_RESALTE[r.color] : r.tenue ? [COLOR_RESALTE[r.color][0], COLOR_RESALTE[r.color][1], COLOR_RESALTE[r.color][2], 150] : [255, 255, 255, 230],
+        updateTriggers: { getRadius: [e, !!etiqueta], getLineWidth: [e], getFillColor: [tema, r.color, r.tenue], getLineColor: [r.color, r.tenue] },
       }),
       etiqueta && new TextLayer<number>({
         id: `resaltar-n-${k}`, data: r.indices, getPosition: (i) => [s.lon[i], s.lat[i]], getText: etiqueta,
@@ -444,9 +452,9 @@ export default function MapaMovilidad({
     if (mejor >= 0) onTocar(mejor)
   }
 
-  const titulo = capa === 'sel' ? 'Esquinas que alcanza el presupuesto'
-    : capa === 'kappa' ? 'Riesgo real de cada esquina, sin el azar de un año · calles de barrio'
-      : `Siniestros graves ${capa === 'k25' ? datos.resumen.anio_validacion : datos.experiencia.pantalla_1_usted_decide.anio_mostrado} · calles de barrio`
+  const titulo = tituloLeyenda ?? (capa === 'sel' ? 'Esquinas que alcanza el presupuesto'
+    : capa === 'kappa' ? 'Riesgo estimado por esquina, al año · calles de barrio'
+      : `Siniestros graves ${capa === 'k25' ? datos.resumen.anio_validacion : datos.experiencia.pantalla_1_usted_decide.anio_mostrado} · calles de barrio`)
   const nombres = etiquetas(cortes, enteros)
   const css = (c: RGB | RGBA) => `rgb(${c[0]},${c[1]},${c[2]})`
   return (
@@ -464,13 +472,16 @@ export default function MapaMovilidad({
           <span className="mapa__leyenda-titulo">{titulo}</span>
           {capa === 'sel' ? (
             <span className="mapa__zona"><i className="k-cuadro" style={{ background: css(rampa[tema === 'oscuro' ? 4 : 3]) }} />esquina elegida</span>
-          ) : (
+          ) : capa !== 'tenue' && (
             <div className="mapa__escala">{nombres.map((n, i) => <span key={n}><i style={{ background: css(rampa[i] ?? rampa[rampa.length - 1]) }} />{n}</span>)}</div>
           )}
-          <span className="mapa__zona mapa__zona--avenidas"><i className="k-cuadro" style={{ background: css(P.avenida), outline: `1px solid ${css(P.vacio)}` }} />avenidas{capa === 'sel' ? '' : ' (no se colorean)'}</span>
+          {capa === 'tenue' ? <span className="mapa__zona"><i className="k-cuadro" style={{ background: css(P.tenue) }} />con siniestros graves</span>
+            : <span className="mapa__zona mapa__zona--avenidas"><i className="k-cuadro" style={{ background: css(P.avenida), outline: `1px solid ${css(P.vacio)}` }} />avenidas{capa === 'sel' ? '' : ' (no se colorean)'}</span>}
           {resaltar.filter((r) => r.texto).map((r) => (
             <span key={r.texto} className="mapa__zona">
-              <i className="k-punto" style={r.hueco ? { border: `2px solid ${css(COLOR_RESALTE[r.color])}` } : { background: css(COLOR_RESALTE[r.color]) }} />{r.texto}
+              <i className="k-punto" style={r.hueco ? { border: `2px solid ${css(COLOR_RESALTE[r.color])}` }
+                : r.tenue ? { background: `rgb(${COLOR_RESALTE[r.color].slice(0, 3).join(',')} / 0.3)`, border: `1px solid ${css(COLOR_RESALTE[r.color])}` }
+                  : { background: css(COLOR_RESALTE[r.color]) }} />{r.texto}
             </span>
           ))}
           {peores && <span className="mapa__zona"><i className="k-anillo-vacio" />las {datos.peores.length} peores esquinas de barrio de {datos.experiencia.pantalla_1_usted_decide.anio_mostrado}</span>}

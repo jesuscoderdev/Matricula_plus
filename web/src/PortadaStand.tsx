@@ -5,7 +5,8 @@
  *
  * Sigue el tema. Oscuro: fondo navy con letras blancas y foco verde, como la portada del manual de
  * marca («blanco sobre navy»), con el logo en su versión blanca. Claro: papel con letras navy.
- * Los textos se cambian en config.ts (PORTADA_STAND).
+ * Los textos se cambian en config.ts (PORTADA_STAND). Formato del documento de Paola (29-oct): el
+ * titular ocupa la mitad superior, Proli pequeño y animado, un solo botón grande y centrado.
  */
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
@@ -27,6 +28,7 @@ export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alCont
   const p = PORTADA_STAND
   const totem = esTotem(modo)
   const tema = useTema()
+  // en el tótem, «toca la pantalla» lo dice Proli; el botón es el control accesible
 
   // Modo automático: se queda unos segundos y sigue solo
   useEffect(() => {
@@ -49,11 +51,10 @@ export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alCont
         <motion.header className="portada-stand__marca" {...entrar} transition={{ delay: 0.05 }}>
           <LogoEmpresa />
           <span className="portada-stand__evento">{p.evento}</span>
-          {modo !== 'auto' && <BotonTema sobreOscuro={tema === 'oscuro'} />}
+          {!totem && <BotonTema sobreOscuro={tema === 'oscuro'} />}
         </motion.header>
 
         <div className="portada-stand__cabeza">
-          <motion.span className="kicker" {...entrar} transition={{ delay: 0.15 }}>{p.kicker}</motion.span>
           <motion.h1 className="display display--xl portada-stand__pregunta" {...entrar} transition={{ delay: 0.25 }}>
             {conResaltado(p.pregunta)}
           </motion.h1>
@@ -61,19 +62,12 @@ export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alCont
         </div>
 
         <motion.div className="portada-stand__proli" {...entrar} transition={{ delay: 0.5 }}>
-          <Proli tamano={totem ? 9 : 8} lado="izquierda" globo={p.proli} />
-        </motion.div>
-
-        <motion.div className="portada-stand__eslogan" {...entrar} transition={{ delay: 0.65 }}>
-          <p className="portada-stand__frase">{p.eslogan}</p>
-          <p className="acento">{p.acento}</p>
+          <Proli tamano={totem ? 6.5 : 5.5} lado="izquierda" globo={p.proli} />
         </motion.div>
 
         <motion.div className="portada-stand__accion" {...entrar} transition={{ delay: 0.8 }}>
-          {totem
-            ? modo === 'stand' && <span className="portada-stand__tocar"><i aria-hidden />{p.tocar}</span>
-            : <button type="button" className="boton portada-stand__boton boton--latir"
-                      onClick={(e) => { e.stopPropagation(); alContinuar() }}>{p.boton}</button>}
+          {modo !== 'auto' && <button type="button" className="boton boton--ancho portada-stand__boton boton--latir"
+                                      onClick={(e) => { e.stopPropagation(); alContinuar() }}>{p.boton}</button>}
         </motion.div>
       </div>
     </div>
