@@ -2052,9 +2052,7 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
   grid-template-areas: 'titular visual' 'conclusion visual' 'escena visual' 'accion visual';
 }
 :root[data-modo='escritorio'] .pp__escena { grid-area: escena; display: flex; align-items: center; justify-content: center; min-height: 0; container-type: size; padding: 0.6rem 2rem; }
-.actividad { height: min(92cqh, 48cqw, 22rem); max-width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 0.8rem; }
-.actividad__proli { height: 78%; flex: none; }
-.actividad__proli .proli-animado { height: 100% !important; }
+.actividad { height: min(88cqh, 70cqw, 17rem); max-width: 100%; display: flex; align-items: center; justify-content: center; }
 .actividad__objeto { height: 100%; width: auto; aspect-ratio: 120 / 104; flex: none; overflow: visible; }
 @container (max-height: 130px) { .actividad { display: none; } }
 :root[data-modo='escritorio'] .pp__accion { justify-content: flex-start; }

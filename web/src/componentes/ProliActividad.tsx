@@ -1,13 +1,11 @@
 /**
- * Proli haciendo algo relacionado con la pantalla. Solo se ve en horizontal, en el espacio que queda
- * en la columna de texto entre la conclusión y el botón (Recorrido.tsx); si ese espacio es muy bajo,
- * se oculta (container query en estilos.css). Cada escena es Proli más un objeto animado en SVG, con
- * los colores del manual. Son ilustrativas: no llevan cifras.
+ * Una escena animada relacionada con la pantalla (sin Proli: lo pidió David el 30-oct). Solo se ve en
+ * horizontal, en el espacio que queda en la columna de texto entre la conclusión y el botón
+ * (Recorrido.tsx); si ese espacio es muy bajo, se oculta (container query en estilos.css). Son objetos
+ * en SVG con los colores del manual, ilustrativos: no llevan cifras.
  */
-import { motion, useReducedMotion } from 'framer-motion'
-import { useEffect, useState, type ReactNode } from 'react'
-import ProliAnimado from './ProliAnimado'
-import { SALUDO_S } from './proliGeometria'
+import { motion } from 'framer-motion'
+import type { ReactNode } from 'react'
 
 export type Actividad = 'monedas' | 'lupa' | 'intercambio' | 'grafica' | 'calculos' | 'telescopio' | 'ruta' | 'puzzle' | 'acerca' | 'construye'
 
@@ -90,8 +88,10 @@ const ESCENAS: Record<Actividad, () => ReactNode> = {
       ))}
       <g>
         <rect x={-2} y={60} width={34} height={9} rx={3} fill={PIZARRA} transform="rotate(-20 0 64)" />
-        <animateTransform attributeName="transform" type="rotate" values="-6 0 64; 4 0 64; -6 0 64" dur="4s" repeatCount="indefinite" />
+        <animateTransform attributeName="transform" type="rotate" values="-6 6 70; 4 6 70; -6 6 70" dur="4s" repeatCount="indefinite" />
       </g>
+      {/* trípode del telescopio */}
+      <path d="M6 70 L-2 96 M6 70 L14 96 M6 70 L6 96" stroke={NAVY} strokeWidth={2.5} strokeLinecap="round" />
     </>
   ),
   // El problema (Matrícula+): el trayecto largo de la casa al colegio
@@ -143,17 +143,8 @@ const ESCENAS: Record<Actividad, () => ReactNode> = {
 }
 
 export default function ProliActividad({ tipo }: { tipo: Actividad }) {
-  const reducir = useReducedMotion()
-  // Al terminar algo (construir, encajar…) Proli saluda de vez en cuando
-  const [saluda, setSaluda] = useState(false)
-  useEffect(() => {
-    if (reducir) return
-    const id = window.setInterval(() => { setSaluda(true); window.setTimeout(() => setSaluda(false), SALUDO_S * 1000) }, 6000)
-    return () => window.clearInterval(id)
-  }, [reducir])
   return (
     <div className="actividad" aria-hidden>
-      <span className="actividad__proli"><ProliAnimado saludar={saluda} mirar={{ x: 0.9, y: 0.2 }} /></span>
       <svg className="actividad__objeto" viewBox="0 0 120 104">{ESCENAS[tipo]()}</svg>
     </div>
   )
