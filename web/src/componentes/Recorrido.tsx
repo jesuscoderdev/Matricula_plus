@@ -5,7 +5,7 @@
  * detalles (metodología, tablas) se abren en una hoja aparte. Lo usan Matrícula+ y Presupuesto+.
  */
 import { AnimatePresence, motion } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { BotonInicio, BotonTema, LogoEmpresa, LogoReinicio, NombreApp } from './Marca'
 import { ProliMarca } from './Proli'
 import ProliActividad, { type Actividad } from './ProliActividad'
@@ -30,6 +30,35 @@ export interface ItemLeyenda { clase: string; texto: string }
 
 /** «Más de N»: la cifra redondeada hacia abajo a `paso` (655.087 con paso 50.000 → «650.000») */
 export const masDe = (n: number, paso: number) => new Intl.NumberFormat('es-CO').format(Math.floor(n / paso) * paso)
+
+/**
+ * Cómo lo hicimos: la cifra de cálculos, bien grande (sorprende la cantidad de información que se maneja).
+ * Cuenta de 0 hasta «más de N millones» (N = el total redondeado hacia abajo a `paso` millones).
+ */
+export function CifraGrande({ total, paso, de, detalle }: { total: number; paso: number; de: string; detalle: ReactNode }) {
+  const meta = Math.floor(total / 1e6 / paso) * paso
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setN(meta); return }
+    let raf = 0
+    const t0 = performance.now() + 500
+    const paso = (ahora: number) => {
+      const u = Math.max(0, Math.min(1, (ahora - t0) / 1800))
+      setN(Math.round(meta * (1 - Math.pow(1 - u, 3))))
+      if (u < 1) raf = requestAnimationFrame(paso)
+    }
+    raf = requestAnimationFrame(paso)
+    return () => cancelAnimationFrame(raf)
+  }, [meta])
+  return (
+    <motion.div className="cifra-grande" {...entrar(1)}>
+      <span className="cifra-grande__mas">Más de</span>
+      <b className="cifra-grande__numero">{new Intl.NumberFormat('es-CO').format(n)} <span>millones</span></b>
+      <span className="cifra-grande__de">{de}</span>
+      <span className="cifra-grande__detalle">{detalle}</span>
+    </motion.div>
+  )
+}
 
 export const entrar = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 + 0.12 * k, duration: 0.35 } })
 

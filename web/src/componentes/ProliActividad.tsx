@@ -7,7 +7,7 @@
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
-export type Actividad = 'monedas' | 'lupa' | 'intercambio' | 'grafica' | 'calculos' | 'telescopio' | 'ruta' | 'puzzle' | 'acerca' | 'construye'
+export type Actividad = 'historia' | 'monedas' | 'lupa' | 'intercambio' | 'grafica' | 'calculos' | 'telescopio' | 'ruta' | 'puzzle' | 'acerca' | 'construye'
 
 const V = '#5a44dd', VERDE = '#7bc689', VERDE_OSC = '#3e8e52', NAVY = '#162b2a', AZUL = '#c7d7ec', PIZARRA = '#505b7d'
 const siempre = (duracion: number, extra: object = {}) => ({ duration: duracion, repeat: Infinity, ease: 'easeInOut' as const, ...extra })
@@ -21,6 +21,46 @@ const Pin = ({ color, x = 0, y = 0 }: { color: string; x?: number; y?: number })
 )
 
 const ESCENAS: Record<Actividad, () => ReactNode> = {
+  // La solución (Presupuesto+), en grande: tres años de la misma calle. El último año solo muestra la esquina
+  // de la izquierda; la lupa recorre los años anteriores, aparecen los siniestros de la esquina de la derecha
+  // y abajo esa esquina se enciende: mirando un solo año se escapaba.
+  historia: () => {
+    const ciclo = (times: number[], extra: object = {}) => siempre(8, { times, ease: 'easeInOut', ...extra })
+    // [x de la tarjeta, puntos en la esquina izquierda, puntos en la derecha, cuándo aparecen los de la derecha]
+    const anios: [number, number, number, number][] = [[6, 1, 2, 0.5], [72, 0, 2, 0.3], [138, 2, 0, 0]]
+    return (
+      <>
+        {anios.map(([x, izq, der, aparece], k) => (
+          <g key={x}>
+            <rect x={x} y={14} width={56} height={62} rx={6} fill={k === 2 ? '#ffffff' : '#eef2f8'} stroke={k === 2 ? V : AZUL} strokeWidth={k === 2 ? 2 : 1.5} />
+            <line x1={x + 4} y1={52} x2={x + 52} y2={52} stroke={AZUL} strokeWidth={4} strokeLinecap="round" />
+            {[18, 38].map((dx) => <line key={dx} x1={x + dx} y1={22} x2={x + dx} y2={70} stroke={AZUL} strokeWidth={4} strokeLinecap="round" />)}
+            {Array.from({ length: izq }, (_, i) => <circle key={`i${i}`} cx={x + 18} cy={42 - i * 9} r={3.6} fill={V} />)}
+            {Array.from({ length: der }, (_, i) => (
+              <motion.circle key={`d${i}`} cx={x + 38} cy={42 - i * 9} r={3.6} fill={VERDE_OSC}
+                             animate={{ opacity: [0, 0, 1, 1, 0], scale: [0.3, 0.3, 1, 1, 0.3] }}
+                             transition={ciclo([0, aparece + i * 0.03, aparece + 0.08 + i * 0.03, 0.9, 1])} />
+            ))}
+            <text x={x + 28} y={88} textAnchor="middle" fontSize={7.5} fontWeight={600} fill={k === 2 ? V : PIZARRA}>{k === 2 ? 'último año' : 'años anteriores'}</text>
+          </g>
+        ))}
+        {/* la lupa: empieza en el último año y recorre hacia atrás */}
+        <motion.g animate={{ x: [132, 132, 66, 0, 0, 132], opacity: [0, 1, 1, 1, 1, 0] }} transition={ciclo([0, 0.1, 0.32, 0.52, 0.85, 1])}>
+          <circle cx={34} cy={45} r={21} fill="rgba(123,198,137,0.14)" stroke={NAVY} strokeWidth={3} />
+          <line x1={49} y1={60} x2={58} y2={70} stroke={NAVY} strokeWidth={5} strokeLinecap="round" />
+        </motion.g>
+        {/* abajo, la calle con las dos esquinas: la de la derecha se enciende */}
+        <line x1={24} y1={134} x2={176} y2={134} stroke={AZUL} strokeWidth={5} strokeLinecap="round" />
+        <Pin color={V} x={72} y={132} />
+        <motion.g animate={{ scale: [1, 1, 1.25, 1.25, 1], opacity: [0.35, 0.35, 1, 1, 0.35] }} style={{ originX: '128px', originY: '132px' }}
+                  transition={ciclo([0, 0.6, 0.68, 0.9, 1])}>
+          <Pin color={VERDE_OSC} x={128} y={132} />
+        </motion.g>
+        <motion.path d="M138 104 L143 109 L152 99" fill="none" stroke={VERDE_OSC} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"
+                     animate={{ opacity: [0, 0, 1, 1, 0] }} transition={ciclo([0, 0.66, 0.72, 0.9, 1])} />
+      </>
+    )
+  },
   // El problema (Presupuesto+): pocas monedas, muchos lugares; caen sobre un punto distinto cada vez
   monedas: () => (
     <>
@@ -144,8 +184,8 @@ const ESCENAS: Record<Actividad, () => ReactNode> = {
 
 export default function ProliActividad({ tipo }: { tipo: Actividad }) {
   return (
-    <div className="actividad" aria-hidden>
-      <svg className="actividad__objeto" viewBox="0 0 120 104">{ESCENAS[tipo]()}</svg>
+    <div className={`actividad actividad--${tipo}`} aria-hidden>
+      <svg className="actividad__objeto" viewBox={tipo === 'historia' ? '0 0 200 150' : '0 0 120 104'}>{ESCENAS[tipo]()}</svg>
     </div>
   )
 }

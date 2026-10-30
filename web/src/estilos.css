@@ -1938,29 +1938,6 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 /* =========================================================
    Reunión del 30 oct
    ========================================================= */
-/* Presupuesto+ · La solución: la mirada de un solo año (lente) que se abre a la historia */
-.miope { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0.8rem; padding: 1rem 1.2rem; }
-.miope__tabla { position: relative; display: grid; grid-template-columns: auto 1fr 1fr; align-items: center; row-gap: 0.6rem; column-gap: 0.4rem; }
-.miope__fila { display: contents; }
-.miope__anio { font-family: var(--f-mono); font-size: 0.85rem; font-weight: 600; color: var(--suave); text-align: center; position: relative; z-index: 1; transition: opacity 0.6s; }
-.miope__nombre { font-size: 1rem; color: var(--tinta); padding-right: 0.6rem; }
-.miope__celda { position: relative; z-index: 1; min-height: 3.2rem; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 0.3rem; padding: 0.5rem; transition: opacity 0.6s; }
-.miope__celda i { width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--violeta); }
-.miope__fila--b .miope__celda i { background: var(--verde); }
-.miope:not(.miope--abierta) .miope__celda--vieja, .miope:not(.miope--abierta) .miope__anio--viejo { opacity: 0.12; }
-/* La lente: primero solo la última columna; luego, las dos */
-.miope__lente {
-  grid-row: 1 / 4; grid-column: 3; align-self: stretch; z-index: 0; border-radius: var(--r);
-  border: 2px solid var(--violeta); background: var(--violeta-suave);
-}
-.miope--abierta .miope__lente { grid-column: 2 / 4; border-color: var(--verde); background: rgb(123 198 137 / 0.14); }
-.miope__dice { min-height: 2.8em; text-align: center; font-size: 1rem; line-height: 1.35; color: var(--tinta); }
-.miope__dice b { color: var(--violeta); }
-.miope--abierta .miope__dice b { color: var(--verde-texto); }
-.miope__nota { text-align: center; font-size: 0.7rem; line-height: 1.3; color: var(--tenue); }
-.miope__otra { align-self: center; }
-:root[data-tema='oscuro'] .miope__dice b { color: #a598ff; }
-
 /* Cifra destacada en «Cómo lo hicimos» */
 .pp__dato { font-size: 0.95rem; line-height: 1.35; color: var(--suave); }
 .pp__dato b { font-family: var(--f-display); font-size: 1.35rem; color: var(--violeta); }
@@ -2085,3 +2062,51 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 .compara__muestra--entran { background: #3e8e52; }
 .compara__pista { font-size: 0.85rem; line-height: 1.35; color: var(--suave); }
 :root[data-modo='celular'] .compara__fila { grid-template-columns: 6.8rem 1fr; }
+
+/* 30-oct (Paola) · Presupuesto+ paso 2: pregunta y respuesta en grande, y una escena en el cuadro */
+.pp__pregunta { font-size: 2.15rem; line-height: 1.12; color: var(--tinta); }
+.pp__pregunta em { font-style: normal; color: var(--violeta); }
+.pp__respuesta { font-size: 1.3rem; line-height: 1.4; color: var(--tinta); background: rgb(123 198 137 / 0.14); border-left: 4px solid var(--verde); border-radius: 0 0.8rem 0.8rem 0; padding: 0.9rem 1.1rem; }
+.pp__respuesta b { color: var(--verde-texto); }
+:root[data-modo='celular'] .pp__pregunta { font-size: 1.75rem; }
+:root[data-modo='celular'] .pp__respuesta { font-size: 1.12rem; }
+:root[data-modo='escritorio'] .pp__pregunta { font-size: 2.5rem; }
+:root[data-modo='escritorio'] .pp__respuesta { font-size: 1.45rem; }
+:root[data-tema='oscuro'] .pp__pregunta em { color: #a598ff; }
+.pp__ilustracion { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; container-type: size; }
+.pp__ilustracion .actividad { height: min(92cqh, 64cqw, 30rem); }
+.actividad--historia .actividad__objeto { aspect-ratio: 200 / 150; }
+
+/* 30-oct (Paola) · Cómo lo hicimos: la cifra de cálculos, muy notoria */
+.cifra-grande { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; margin-top: 0.3rem; }
+.cifra-grande__mas { font-size: 1rem; font-weight: 600; color: var(--suave); text-transform: uppercase; letter-spacing: 0.08em; }
+.cifra-grande__numero { font-family: var(--f-display); font-size: 3.4rem; font-weight: 700; color: var(--violeta); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cifra-grande__numero span { font-size: 0.6em; }
+.cifra-grande__de { font-family: var(--f-display); font-size: 1.5rem; font-weight: 600; color: var(--tinta); }
+.cifra-grande__detalle { margin-top: 0.45rem; font-size: 0.9rem; line-height: 1.38; color: var(--suave); }
+:root[data-modo='celular'] .cifra-grande__numero { font-size: 2.7rem; }
+:root[data-modo='celular'] .cifra-grande__de { font-size: 1.25rem; }
+:root[data-modo='escritorio'] .cifra-grande__numero { font-size: 4.2rem; }
+:root[data-tema='oscuro'] .cifra-grande__numero { color: #a598ff; }
+
+/* 30-oct (Paola) · Vertical: cuando el cuadro sobra, su contenido crece en vez de dejar espacio vacío */
+:root:not([data-modo='escritorio']) .pp__visual { container: cuadro / size; }
+@container cuadro (min-height: 400px) { .asigna { zoom: 1.15; } }
+@container cuadro (min-height: 460px) { .asigna { zoom: 1.3; } }
+/* Tu reto en vertical: el globo arriba, ancho y legible, y Proli más grande debajo */
+@container cuadro (min-height: 380px) {
+  .pp__reto > .proli { flex-direction: column; align-items: center; gap: 0.9rem; }
+  .pp__reto > .proli > .proli__globo { order: -1; max-width: 19rem; font-size: 1rem; line-height: 1.4; padding: 0.8rem 1rem; margin-bottom: 0; border-radius: var(--r); }
+  .pp__reto > .proli > .proli__img { zoom: 1.4; }
+}
+:root:not([data-modo='escritorio']) .pp__ilustracion .actividad { height: min(94cqh, 74cqw, 30rem); }
+:root:not([data-modo='escritorio']) .pp__ilustracion { padding: 0.4rem; }
+@container cuadro (min-height: 400px) {
+  .asigna__colegios { gap: 0.3rem; }
+  .asigna__colegio { padding: 0.5rem 0.25rem; }
+  .asigna__colegio b { white-space: nowrap; font-size: 0.82rem; }
+}
+:root[data-modo='celular'] .pp__pregunta { font-size: 1.95rem; }
+:root[data-modo='celular'] .pp__respuesta { font-size: 1.22rem; }
+:root[data-modo='escritorio'] .pp__pregunta { font-size: 2.85rem; }
+:root[data-modo='escritorio'] .pp__respuesta { font-size: 1.6rem; padding: 1.1rem 1.3rem; }

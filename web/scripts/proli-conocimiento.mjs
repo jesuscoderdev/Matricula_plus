@@ -120,6 +120,7 @@ ${Object.entries(pres.escenarios).map(([nivel, e]) => {
 ### Fuentes
 ${fue.fuentes.map((f) => `- ${f.dato}: ${f.fuente}${f.fuente.includes(f.anio) ? '' : ` (${f.anio})`}.`).join('\n')}
 - Cruces: ${fue.cruces}
+- Registros analizados: ${fmt(fue.registros_analizados.total)} (el sitio dice «más de 650.000»). Cálculos realizados: ${fmt(fue.calculos_realizados.total)} (el sitio dice «más de 800 millones»): ${Object.entries(fue.calculos_realizados.detalle).map(([k, v]) => `${k.replaceAll('_', ' ')} ${fmt(v)}`).join('; ')}. ${fue.calculos_realizados.fuente} Casi todos son combinaciones de la optimización exacta del presupuesto: si preguntan, explícalo así, sin exagerar.
 - Validación: ${fue.metodo_validacion}
 
 ### Siniestros graves por localidad (hexágonos con algún siniestro; Sumapaz casi no tiene)
@@ -169,7 +170,7 @@ La edad y el grado de cada niño no se publican: la edad es la típica de su niv
 - Repartir mejor no crea cupos. Por nivel, siguen lejos: ${NIV.map((k) => `${k.toLowerCase()} ${fmt(R.por_nivel[k].lejos_despues)}`).join(', ')}.
 
 ### Cómo se hizo
-${fmt(S.fuentes_publicas)} fuentes públicas; ${fmt(S.sedes_con_cupos_de_nuevos)} sedes con cupos por nivel; ${fmt(S.colegios_con_solicitudes_por_nivel)} colegios con solicitudes por nivel; ${fmt(S.manzanas_residenciales)} manzanas residenciales con su estrato; ${fmt(S.ninos)} niños recreados (grupos de ${R.ninos_por_grupo_simulado}) en ${S.upz} UPZ y ${S.localidades} localidades; ${fmt(S.distancias_calculadas)} distancias; ${fmt(S.combinaciones_nino_colegio)} combinaciones niño–colegio. Escenario de referencia: cada familia pide sus 3 colegios más cercanos de su nivel y se atiende por orden de llegada; quien no entra queda en el más cercano con cupo libre. Matrícula+: reparto óptimo por programación lineal con los puntos de prioridad, respetando cupos por nivel y la regla de oro. Límites: distancia en línea recta; cifras en múltiplos de 10; traslados no simulados; el estrato es un indicador por zona. Los niños son recreados: no hay datos personales.
+${fmt(S.fuentes_publicas)} fuentes públicas; ${fmt(S.sedes_con_cupos_de_nuevos)} sedes con cupos por nivel; ${fmt(S.colegios_con_solicitudes_por_nivel)} colegios con solicitudes por nivel; ${fmt(S.manzanas_residenciales)} manzanas residenciales con su estrato; ${fmt(S.ninos)} niños recreados (grupos de ${R.ninos_por_grupo_simulado}) en ${S.upz} UPZ y ${S.localidades} localidades; ${fmt(S.distancias_calculadas)} distancias; ${fmt(S.combinaciones_nino_colegio)} combinaciones niño–colegio; en total ${fmt(S.calculos_realizados)} cálculos (distancias más combinaciones; el sitio dice «más de 12 millones de cálculos»). Escenario de referencia: cada familia pide sus 3 colegios más cercanos de su nivel y se atiende por orden de llegada; quien no entra queda en el más cercano con cupo libre. Matrícula+: reparto óptimo por programación lineal con los puntos de prioridad, respetando cupos por nivel y la regla de oro. Límites: distancia en línea recta; cifras en múltiplos de 10; traslados no simulados; el estrato es un indicador por zona. Los niños son recreados: no hay datos personales.
 
 ### Por localidad (niños que piden cupo, cupos, lejos en el escenario de referencia → con Matrícula+, y los que siguen lejos por nivel)
 | Localidad | Niños | Cupos | Lejos | Preescolar | Primaria | Secundaria | Media |

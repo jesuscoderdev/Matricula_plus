@@ -293,7 +293,7 @@ def calcular():
         "manzanas_residenciales": int(len(base.manzanas)), "upz": int(base.upz.shape[0]), "localidades": len(locs),
         "sedes_con_cupos_de_nuevos": int(S), "grupos": int(n), "ninos": int(n * epf),
         "nuevos_oficial": int(p.demanda_nuevos_total), "distancias_calculadas": int(n * S),
-        "combinaciones_nino_colegio": int(mm), "restricciones": int(n + S * 4 + len(locs)),
+        "combinaciones_nino_colegio": int(mm), "calculos_realizados": int(n * S + mm), "restricciones": int(n + S * 4 + len(locs)),
         "segundos": round(segundos),
         "por_nivel_ninos": {NIVELES[k]: int((nivel == k).sum() * epf) for k in range(4)},
         "edades_por_nivel": {NIVELES[k]: list(EDADES[k]) for k in range(4)},

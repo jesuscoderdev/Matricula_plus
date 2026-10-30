@@ -12,10 +12,10 @@
  * información cambia 46 decisiones de inversión. No se presentan siniestros evitados como resultado:
  * dependen de un supuesto de efectividad y solo van en la metodología, como escenario hipotético.
  */
-import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
 import Proli from '../componentes/Proli'
-import { Boton, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import { Boton, CifraGrande, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import ProliActividad from '../componentes/ProliActividad'
 import AnimacionSistema from './AnimacionSistema'
 import QrCita from '../componentes/QrCita'
 import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
@@ -111,75 +111,19 @@ export function problema({ datos, modo, ir }: PropsMov): Pantalla {
 }
 
 // ---------------------------------------------------------------- 2. La solución
-/**
- * Mirar un solo año es una mirada miope: primero se ve solo el último año (la esquina A parece la de
- * más riesgo y la B queda por fuera); luego se abre la mirada a los años anteriores y la B resulta
- * llevar tiempo con siniestros. Cada punto es un siniestro grave al año, con el promedio por zona de
- * las zonas que cambian entre las dos selecciones (salen = A, entran = B).
- */
-function MiradaMiope({ datos, modo }: { datos: DatosMovilidad; modo: Modo }) {
-  const c = guionDe(datos).cambiosPresupuesto
-  const a0 = anioBase(datos)
-  const prom = (k: number, n: number) => Math.max(1, Math.round(k / Math.max(1, n)))
-  const filas = [
-    { nombre: 'Esquina A', v: [prom(c.salen.k23, c.salen.n), prom(c.salen.k24, c.salen.n)], clase: 'a' },
-    { nombre: 'Esquina B', v: [prom(c.entran.k23, c.entran.n), prom(c.entran.k24, c.entran.n)], clase: 'b' },
-  ]
-  const [abierta, setAbierta] = useState(false)
-  const [vuelta, setVuelta] = useState(0)
-  useEffect(() => {
-    setAbierta(false)
-    const id = window.setTimeout(() => setAbierta(true), 2600)
-    return () => window.clearTimeout(id)
-  }, [vuelta])
-  return (
-    <div className={`miope ${abierta ? 'miope--abierta' : ''}`} aria-label={`Mirando solo ${a0} se escoge la esquina A; con los años anteriores, la esquina B también es de alto riesgo`}>
-      <div className="miope__tabla">
-        {/* Posiciones fijas: la lente ocupa una o dos columnas y no debe empujar a los demás */}
-        <span className="miope__anio miope__anio--viejo" style={{ gridRow: 1, gridColumn: 2 }}>{a0 - 1}</span>
-        <span className="miope__anio" style={{ gridRow: 1, gridColumn: 3 }}>{a0}</span>
-        {filas.map((f, k) => (
-          <div key={f.nombre} className={`miope__fila miope__fila--${f.clase}`}>
-            <b className="miope__nombre" style={{ gridRow: k + 2, gridColumn: 1 }}>{f.nombre}</b>
-            {f.v.map((n, j) => (
-              <span key={j} className={`miope__celda ${j === 0 ? 'miope__celda--vieja' : ''}`} style={{ gridRow: k + 2, gridColumn: j + 2 }}>
-                {Array.from({ length: n }, (_, k) => <i key={k} />)}
-              </span>
-            ))}
-          </div>
-        ))}
-        <motion.span className="miope__lente" layout transition={{ duration: 0.7, ease: 'easeInOut' }} />
-      </div>
-      <AnimatePresence mode="wait">
-        <motion.p key={abierta ? 'b' : 'a'} className="miope__dice" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-          {abierta
-            ? <>Con la historia, <b>la B también es de alto riesgo</b>. Mirando un solo año, quedaba por fuera.</>
-            : <>Mirando solo {a0}, <b>se escoge la A</b> y la B queda por fuera.</>}
-        </motion.p>
-      </AnimatePresence>
-      <p className="miope__nota">Cada punto, un siniestro grave al año · ejemplo con el promedio de las zonas que cambian entre las dos selecciones</p>
-      {modo !== 'auto' && abierta && <button className="boton-texto miope__otra" onClick={() => setVuelta((x) => x + 1)}>↻ Ver de nuevo</button>}
-    </div>
-  )
-}
-
-export function solucion({ datos, modo, ir }: PropsMov): Pantalla {
+/** Una pregunta y su respuesta, grandes; al lado, una escena: la lupa recorre los años anteriores y aparece la esquina que se escapaba */
+export function solucion({ modo, ir }: PropsMov): Pantalla {
   return {
-    actividad: 'lupa',
     titular: (
-      <>
-        <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
-          ¿Y si las esquinas más peligrosas no fueran simplemente las que tuvieron más accidentes <em>el último año</em>?
-        </motion.h1>
-        <motion.p className="pp__bajada" {...entrar(1)}>Mirar un solo período puede ocultar patrones importantes.</motion.p>
-      </>
+      <motion.h1 className="display pp__pregunta" {...entrar(0)}>
+        ¿Y si las esquinas más peligrosas no fueran simplemente las que tuvieron más accidentes <em>el último año</em>?
+      </motion.h1>
     ),
-    visual: <MiradaMiope datos={datos} modo={modo} />,
+    visual: <div className="pp__ilustracion"><ProliActividad tipo="historia" /></div>,
     conclusion: (
-      <>
-        <p className="pp__remate">Una sola cifra no cuenta toda la historia.</p>
-        <p className="pp__texto">{NOMBRE_MOVILIDAD} analiza los registros históricos y compara lugares con comportamientos similares para estimar su riesgo.</p>
-      </>
+      <motion.p className="pp__respuesta" {...entrar(2)}>
+        <b>{NOMBRE_MOVILIDAD}</b> analiza los registros históricos y compara lugares con comportamientos similares para estimar su riesgo.
+      </motion.p>
     ),
     accion: modo !== 'auto' && <Boton onClick={() => ir('antes')} proli="cap-antes">Ver qué cambia →</Boton>,
   }
@@ -309,17 +253,13 @@ export function como({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los datos estaban ahí. <em>Había que ponerlos a trabajar.</em></motion.h1>
-        <motion.p className="pp__bajada" {...entrar(1)}>Conectamos información histórica, características de las vías y patrones de lugares similares.</motion.p>
+        <CifraGrande total={datos.fuentes.calculos_realizados.total} paso={100} de="de cálculos"
+                     detalle={<>con más de {masDe(datos.fuentes.registros_analizados.total, 50_000)} registros: cada tramo de vía y cada siniestro en su lugar, el riesgo de cada zona y cada combinación posible del presupuesto</>} />
+        <motion.p className="pp__texto" {...entrar(2)}>Y puede seguir aprendiendo con nuevos datos y algoritmos: <b>así se vuelve un sistema inteligente</b>.</motion.p>
+        <motion.p className="pp__remate" {...entrar(3)}>Esto es {EMPRESA}: convertimos datos en inteligencia que actúa.</motion.p>
       </>
     ),
     visual: <AnimacionSistema datos={datos} auto={modo === 'auto'} />,
-    conclusion: (
-      <>
-        <p className="pp__dato"><b>Más de {masDe(datos.fuentes.registros_analizados.total, 50_000)}</b> registros analizados, entendidos y llevados a una solución</p>
-        <p className="pp__texto">Construimos un modelo matemático (Bayes empírico) que estima el riesgo y apoya la priorización del presupuesto.
-          Y puede seguir aprendiendo con nuevos datos y algoritmos: <b>así se vuelve un sistema inteligente</b>.</p>
-      </>
-    ),
     accion: modo !== 'auto' && <Boton onClick={() => ir('reto')} proli="cap-reto">¿Y en tu entidad? →</Boton>,
     secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('metodologia')} data-proli="cap-metodologia">Consultar metodología</button>,
   }
