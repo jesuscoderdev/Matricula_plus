@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import { BotonInicio, BotonTema, LogoEmpresa, LogoReinicio, NombreApp } from './Marca'
 import { ProliMarca } from './Proli'
+import ProliActividad, { type Actividad } from './ProliActividad'
 import type { Modo } from '../modo'
 
 /** Las piezas de una pantalla. Sin `visual`, en su lugar va el mapa. */
@@ -20,6 +21,8 @@ export interface Pantalla {
   accion?: ReactNode
   /** botones de texto, discretos, debajo del principal */
   secundarias?: ReactNode
+  /** en horizontal, Proli haciendo algo de la pantalla en el espacio libre de la columna de texto */
+  actividad?: Actividad
 }
 /** Una línea de la leyenda del mapa: `clase` pinta la muestra (k-pp--…) */
 export interface ItemLeyenda { clase: string; texto: string }
@@ -107,6 +110,7 @@ export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
           {p.conclusion}
         </motion.div>
       </AnimatePresence>
+      <div className="pp__escena">{p.actividad && <ProliActividad key={vista} tipo={p.actividad} />}</div>
       <div className="pp__accion">
         {atras ? (
           <div className="pp__fila">

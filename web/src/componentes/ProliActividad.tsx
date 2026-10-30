@@ -1,0 +1,160 @@
+/**
+ * Proli haciendo algo relacionado con la pantalla. Solo se ve en horizontal, en el espacio que queda
+ * en la columna de texto entre la conclusión y el botón (Recorrido.tsx); si ese espacio es muy bajo,
+ * se oculta (container query en estilos.css). Cada escena es Proli más un objeto animado en SVG, con
+ * los colores del manual. Son ilustrativas: no llevan cifras.
+ */
+import { motion, useReducedMotion } from 'framer-motion'
+import { useEffect, useState, type ReactNode } from 'react'
+import ProliAnimado from './ProliAnimado'
+import { SALUDO_S } from './proliGeometria'
+
+export type Actividad = 'monedas' | 'lupa' | 'intercambio' | 'grafica' | 'calculos' | 'telescopio' | 'ruta' | 'puzzle' | 'acerca' | 'construye'
+
+const V = '#5a44dd', VERDE = '#7bc689', VERDE_OSC = '#3e8e52', NAVY = '#162b2a', AZUL = '#c7d7ec', PIZARRA = '#505b7d'
+const siempre = (duracion: number, extra: object = {}) => ({ duration: duracion, repeat: Infinity, ease: 'easeInOut' as const, ...extra })
+
+/** Un pin de mapa (punta abajo en el origen) */
+const Pin = ({ color, x = 0, y = 0 }: { color: string; x?: number; y?: number }) => (
+  <g transform={`translate(${x} ${y})`}>
+    <path d="M0 0 C -7 -9 -8 -12 -8 -16 A 8 8 0 1 1 8 -16 C 8 -12 7 -9 0 0 Z" fill={color} />
+    <circle cx={0} cy={-16} r={3.2} fill="#ffffff" />
+  </g>
+)
+
+const ESCENAS: Record<Actividad, () => ReactNode> = {
+  // El problema (Presupuesto+): pocas monedas, muchos lugares; caen sobre un punto distinto cada vez
+  monedas: () => (
+    <>
+      {[25, 60, 95].map((x) => <Pin key={x} color={AZUL} x={x} y={88} />)}
+      {[25, 60, 95].map((x, k) => (
+        <motion.g key={x} initial={{ y: -20, opacity: 0 }} animate={{ y: [-20, 52, 52], opacity: [0, 1, 0] }}
+                  transition={siempre(1.6, { delay: k * 1.6, repeatDelay: 3.2, times: [0, 0.55, 1] })}>
+          <circle cx={x} cy={14} r={7} fill="#f2c94c" stroke="#c99a1e" strokeWidth={1.5} />
+          <text x={x} y={17.5} textAnchor="middle" fontSize={9} fontWeight={700} fill="#8a6510">$</text>
+        </motion.g>
+      ))}
+    </>
+  ),
+  // La solución (Presupuesto+): la lupa mira hacia atrás, los años anteriores
+  lupa: () => (
+    <>
+      {[0, 1, 2, 3, 4].map((k) => <rect key={k} x={12 + k * 20} y={90 - [26, 34, 18, 30, 44][k]} width={13} height={[26, 34, 18, 30, 44][k]} rx={2} fill={k === 4 ? V : AZUL} />)}
+      <motion.g animate={{ x: [80, 0, 80] }} transition={siempre(4.5)}>
+        <circle cx={18} cy={40} r={14} fill="rgba(123,198,137,0.18)" stroke={NAVY} strokeWidth={3} />
+        <line x1={28} y1={50} x2={38} y2={62} stroke={NAVY} strokeWidth={5} strokeLinecap="round" />
+      </motion.g>
+    </>
+  ),
+  // Antes y después (Presupuesto+): sale un punto morado, entra uno verde
+  intercambio: () => (
+    <>
+      <Pin color={PIZARRA} x={30} y={88} />
+      <motion.g animate={{ x: [0, 0, -40, -40, 0], opacity: [1, 1, 0, 0, 1] }} transition={siempre(4, { times: [0, 0.3, 0.5, 0.9, 1] })}><Pin color={V} x={60} y={88} /></motion.g>
+      <motion.g animate={{ x: [40, 40, 0, 0, 40], opacity: [0, 0, 1, 1, 0] }} transition={siempre(4, { times: [0, 0.4, 0.6, 0.9, 1] })}><Pin color={VERDE_OSC} x={90} y={88} /></motion.g>
+      <motion.path d="M48 40 Q 70 20 92 40" fill="none" stroke={VERDE_OSC} strokeWidth={2.5} strokeDasharray="4 4" animate={{ strokeDashoffset: [16, 0] }} transition={siempre(0.8, { ease: 'linear' })} />
+    </>
+  ),
+  // Resultados (Presupuesto+): la barra verde supera a la morada
+  grafica: () => (
+    <>
+      <line x1={10} y1={92} x2={112} y2={92} stroke={PIZARRA} strokeWidth={2} />
+      <motion.rect x={28} width={24} rx={3} fill={V} animate={{ height: [0, 52, 52], y: [92, 40, 40] }} transition={siempre(3, { times: [0, 0.4, 1] })} />
+      <motion.rect x={66} width={24} rx={3} fill={VERDE} animate={{ height: [0, 64, 64], y: [92, 28, 28] }} transition={siempre(3, { times: [0, 0.5, 1] })} />
+      <motion.path d="M70 18 L78 8 L86 18 M78 8 L78 26" fill="none" stroke={VERDE_OSC} strokeWidth={3} strokeLinecap="round"
+                   animate={{ opacity: [0, 0, 1, 1], y: [6, 6, 0, 0] }} transition={siempre(3, { times: [0, 0.5, 0.65, 1] })} />
+    </>
+  ),
+  // Cómo lo hicimos: cálculos en el tablero y un engranaje que gira
+  calculos: () => (
+    <>
+      <rect x={6} y={8} width={84} height={64} rx={5} fill={NAVY} stroke={PIZARRA} strokeWidth={2} />
+      {['M14 24 L60 24', 'M14 38 L74 38', 'M14 52 L50 52'].map((d, k) => (
+        <motion.path key={d} d={d} stroke={k === 1 ? VERDE : '#ffffff'} strokeWidth={4} strokeLinecap="round" pathLength={1} strokeDasharray="1 1"
+                     animate={{ strokeDashoffset: [1, 0, 0] }} transition={siempre(3, { delay: k * 0.5, times: [0, 0.4, 1] })} />
+      ))}
+      <g>
+        {Array.from({ length: 8 }, (_, k) => <rect key={k} x={97} y={69} width={6} height={26} rx={1.5} fill={V} transform={`rotate(${k * 45} 100 82)`} />)}
+        <circle cx={100} cy={82} r={10} fill={V} /><circle cx={100} cy={82} r={4} fill="#ffffff" />
+        <animateTransform attributeName="transform" type="rotate" from="0 100 82" to="360 100 82" dur="4s" repeatCount="indefinite" />
+      </g>
+    </>
+  ),
+  // Portada (Matrícula+): Proli mira la ciudad con un telescopio
+  telescopio: () => (
+    <>
+      {[[8, 30], [24, 46], [42, 22], [60, 38], [80, 26], [96, 44]].map(([x, h], k) => <rect key={k} x={x} y={92 - h} width={15} height={h} rx={1.5} fill={k % 2 ? AZUL : '#dfe7f2'} />)}
+      <rect x={42} y={58} width={15} height={12} fill={V} /><path d="M40 58 L49.5 50 L59 58 Z" fill={V} />
+      {[[20, 10], [70, 8], [104, 16]].map(([x, y], k) => (
+        <motion.circle key={k} cx={x} cy={y} r={2.2} fill="#f2c94c" animate={{ opacity: [0.2, 1, 0.2] }} transition={siempre(1.6, { delay: k * 0.5 })} />
+      ))}
+      <g>
+        <rect x={-2} y={60} width={34} height={9} rx={3} fill={PIZARRA} transform="rotate(-20 0 64)" />
+        <animateTransform attributeName="transform" type="rotate" values="-6 0 64; 4 0 64; -6 0 64" dur="4s" repeatCount="indefinite" />
+      </g>
+    </>
+  ),
+  // El problema (Matrícula+): el trayecto largo de la casa al colegio
+  ruta: () => (
+    <>
+      <path d="M10 84 L10 70 L20 62 L30 70 L30 84 Z" fill={VERDE} />
+      <rect x={88} y={56} width={26} height={28} fill={V} /><path d="M86 56 L101 44 L116 56 Z" fill={V} /><rect x={98} y={70} width={6} height={14} fill="#ffffff" />
+      <path d="M30 80 C 50 40, 60 96, 86 70" fill="none" stroke={PIZARRA} strokeWidth={2.5} strokeDasharray="3 4" />
+      <circle r={5} fill={NAVY}><animateMotion dur="3.5s" repeatCount="indefinite" path="M30 80 C 50 40, 60 96, 86 70" /></circle>
+      <text x={58} y={40} textAnchor="middle" fontSize={10} fontWeight={700} fill={PIZARRA}>&gt; 2 km</text>
+    </>
+  ),
+  // La solución (Matrícula+): cada estudiante encaja con un colegio de su nivel
+  puzzle: () => (
+    <>
+      <rect x={66} y={30} width={40} height={40} rx={4} fill={V} />
+      <circle cx={66} cy={50} r={8} fill="#ffffff" />
+      <motion.g animate={{ x: [-26, 0, 0, -26] }} transition={siempre(3.2, { times: [0, 0.35, 0.8, 1] })}>
+        <rect x={26} y={30} width={40} height={40} rx={4} fill={VERDE} />
+        <circle cx={66} cy={50} r={7.5} fill={VERDE} />
+      </motion.g>
+      <motion.path d="M80 18 L86 24 L98 12" fill="none" stroke={VERDE_OSC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"
+                   animate={{ opacity: [0, 0, 1, 0] }} transition={siempre(3.2, { times: [0, 0.38, 0.5, 0.85] })} />
+    </>
+  ),
+  // Antes y después (Matrícula+): los estudiantes que estaban lejos llegan cerca del colegio
+  acerca: () => (
+    <>
+      <rect x={50} y={42} width={22} height={24} fill={V} /><path d="M48 42 L61 32 L74 42 Z" fill={V} />
+      <circle cx={61} cy={54} r={34} fill="none" stroke={VERDE} strokeWidth={2} strokeDasharray="4 4" />
+      {[[6, 14], [112, 20], [10, 92], [114, 88], [60, 100]].map(([x, y], k) => {
+        const cx = 61 + (x - 61) * 0.45, cy = 54 + (y - 54) * 0.45
+        return <motion.circle key={k} r={4.5} animate={{ cx: [x, cx, cx, x], cy: [y, cy, cy, y], fill: [V, VERDE_OSC, VERDE_OSC, V] }}
+                              transition={siempre(3.6, { delay: k * 0.15, times: [0, 0.45, 0.85, 1] })} />
+      })}
+    </>
+  ),
+  // Resultados (Matrícula+): donde faltan cupos, Proli construye un colegio
+  construye: () => (
+    <>
+      {[[30, 76], [56, 76], [82, 76], [43, 58], [69, 58], [56, 40]].map(([x, y], k) => (
+        <motion.rect key={k} x={x} width={24} height={16} rx={2} fill={k % 2 ? V : '#7b68e8'}
+                     animate={{ y: [-20, y, y, y], opacity: [0, 1, 1, 0] }} transition={siempre(4.2, { delay: k * 0.3, times: [0, 0.2, 0.85, 1] })} />
+      ))}
+      <motion.path d="M68 40 L68 22 L82 27 L68 32" fill={VERDE} stroke={NAVY} strokeWidth={1.5}
+                   animate={{ opacity: [0, 0, 1, 1, 0], y: [6, 6, 0, 0, 0] }} transition={siempre(4.2, { times: [0, 0.55, 0.65, 0.9, 1] })} />
+    </>
+  ),
+}
+
+export default function ProliActividad({ tipo }: { tipo: Actividad }) {
+  const reducir = useReducedMotion()
+  // Al terminar algo (construir, encajar…) Proli saluda de vez en cuando
+  const [saluda, setSaluda] = useState(false)
+  useEffect(() => {
+    if (reducir) return
+    const id = window.setInterval(() => { setSaluda(true); window.setTimeout(() => setSaluda(false), SALUDO_S * 1000) }, 6000)
+    return () => window.clearInterval(id)
+  }, [reducir])
+  return (
+    <div className="actividad" aria-hidden>
+      <span className="actividad__proli"><ProliAnimado saludar={saluda} mirar={{ x: 0.9, y: 0.2 }} /></span>
+      <svg className="actividad__objeto" viewBox="0 0 120 104">{ESCENAS[tipo]()}</svg>
+    </div>
+  )
+}

@@ -95,6 +95,7 @@ export function portada({ modo, ir }: PropsMov): Pantalla {
 export function problema({ datos, modo, ir }: PropsMov): Pantalla {
   const esc = escenario(datos)
   return {
+    actividad: 'monedas',
     titular: (
       <motion.h1 className="display pp__titulo" {...entrar(0)}>
         Con un presupuesto limitado, la pregunta no es solo cuánto invertir. <em>Es dónde hacerlo primero.</em>
@@ -164,6 +165,7 @@ function MiradaMiope({ datos, modo }: { datos: DatosMovilidad; modo: Modo }) {
 
 export function solucion({ datos, modo, ir }: PropsMov): Pantalla {
   return {
+    actividad: 'lupa',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
@@ -189,6 +191,7 @@ export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla 
   const visto = lista === 'modelo'
   const a0 = anioBase(datos)
   return {
+    actividad: 'intercambio',
     titular: (
       <motion.h1 className="display pp__titulo" {...entrar(0)}>
         Con el mismo presupuesto, cambian <em>{entero(g.entranPresupuesto.length)}</em> decisiones de inversión.
@@ -230,6 +233,7 @@ export function resultados({ datos, modo, ir }: PropsMov): Pantalla {
   const [e0, e1] = datos.resumen.periodo_estimacion
   const a0 = anioBase(datos), a1 = anioVal(datos)
   return {
+    actividad: 'grafica',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>¿Qué pasó después en los lugares seleccionados?</motion.h1>
@@ -263,6 +267,7 @@ export function resultados({ datos, modo, ir }: PropsMov): Pantalla {
 // ---------------------------------------------------------------- 5. Cómo lo hicimos
 export function como({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
   return {
+    actividad: 'calculos',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los datos estaban ahí. <em>Había que ponerlos a trabajar.</em></motion.h1>

@@ -66,6 +66,7 @@ const lista = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1
 // ---------------------------------------------------------------- portada
 export function portada({ modo, ir }: PropsMat): Pantalla {
   return {
+    actividad: 'telescopio',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--xl" {...entrar(0)}>
@@ -83,6 +84,7 @@ export function portada({ modo, ir }: PropsMat): Pantalla {
 export function problema({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
   const b = datos.r.grupos.bogota
   return {
+    actividad: 'ruta',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>Tener un cupo no siempre significa estudiar <em>cerca de casa</em>.</motion.h1>
@@ -138,6 +140,7 @@ function Asignacion() {
 
 export function solucion({ modo, ir, abrirHoja }: PropsMat): Pantalla {
   return {
+    actividad: 'puzzle',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los mismos cupos. <em>Más información para decidir.</em></motion.h1>
@@ -155,6 +158,7 @@ export function antes({ datos, modo, ir, reparto, setReparto }: PropsMat): Panta
   const b = datos.r.grupos.bogota
   const visto = reparto === 'despues'
   return {
+    actividad: 'acerca',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Una decisión diferente. <em>Un resultado diferente.</em></motion.h1>
@@ -203,6 +207,7 @@ export function resultados({ datos, modo, ir, abrirHoja, localidad }: PropsMat):
   ]
   const c = localidad ? datos.r.por_localidad[localidad] : null
   return {
+    actividad: 'construye',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>No solo podemos asignar mejor. <em>También descubrir dónde hace falta invertir.</em></motion.h1>
@@ -236,6 +241,7 @@ function DetalleLocalidad({ nombre, c }: { nombre: string; c: CifraLocalidad }) 
 export function como({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
   const s = datos.r.simulacion
   return {
+    actividad: 'calculos',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los datos estaban ahí. <em>Había que ponerlos a trabajar.</em></motion.h1>
