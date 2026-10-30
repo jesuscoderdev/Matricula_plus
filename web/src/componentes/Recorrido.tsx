@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 import { BotonInicio, BotonTema, LogoEmpresa, LogoReinicio, NombreApp } from './Marca'
 import { ProliMarca } from './Proli'
 import ProliActividad, { type Actividad } from './ProliActividad'
+import MarcaDeAguaViva from './MarcaDeAguaViva'
 import type { Modo } from '../modo'
 
 /** Las piezas de una pantalla. Sin `visual`, en su lugar va el mapa. */
@@ -72,13 +73,15 @@ export function CabeceraRecorrido({ paso, total, modo, nombre, reiniciar, alSali
 }
 
 /** Titular, visual (el mapa, con su leyenda debajo, u otro), conclusión y acción */
-export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
+export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar, fondoVivo }: {
   vista: string
   p: Pantalla
   mapa: ReactNode
   leyenda?: ItemLeyenda[]
   /** el botón de atrás, al lado del principal (sin él, solo el principal) */
   atras?: () => void
+  /** en horizontal: la marca de agua viva de Proliferante detrás del visual */
+  fondoVivo?: boolean
   /** tocar cualquier parte (la portada del stand) */
   alTocar?: () => void
 }) {
@@ -90,6 +93,7 @@ export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
         </motion.div>
       </AnimatePresence>
       <div className="pp__visual">
+        {fondoVivo && <MarcaDeAguaViva />}
         <div className="pp__mapa">{mapa}</div>
         {!p.visual && leyenda && leyenda.length > 0 && (
           <div className="pp__leyenda">
