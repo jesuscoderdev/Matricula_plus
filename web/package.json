@@ -12,6 +12,7 @@
     "proli:conocimiento": "node scripts/proli-conocimiento.mjs",
     "movilidad:localidades": "node scripts/movilidad-localidades.mjs",
     "proli:local": "node scripts/servidor-local.mjs",
+    "proli:pruebas": "node scripts/proli-pruebas.mjs",
     "proli:videos": "node scripts/proli-videos.ts"
   },
   "dependencies": {
