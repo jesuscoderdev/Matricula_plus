@@ -90,6 +90,8 @@ export interface Fuentes {
   fuentes: { dato: string; fuente: string; anio: string; url: string }[]
   cruces: string
   metodo_validacion: string
+  /** cuántos registros usó el modelo (siniestros y actores viales, red vial de OpenStreetMap y zonas) */
+  registros_analizados: { total: number; detalle: Record<string, number>; fuente: string }
   advertencia: string
 }
 

@@ -15,10 +15,11 @@ import { EMPRESA, LEMA_EMPRESA, NOMBRE_MOVILIDAD, PROYECTOS, SEGUNDOS_INACTIVIDA
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
 import { BotonTema, LogoEmpresa, MarcaDeAgua, NombreApp } from './componentes/Marca'
 import Esqueleto from './componentes/Esqueleto'
+import { ProliMarca } from './componentes/Proli'
 import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
-import { informarPantalla, registrar } from './proli/ordenes'
+import { informarPantalla, pedirAProli, registrar } from './proli/ordenes'
 import { recordado, recordar } from './recordar'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
@@ -184,6 +185,18 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
             </motion.button>
           ))}
         </div>
+        {/* Paola, 30-oct: «entrégale a Proli el tuyo» */}
+        <motion.button type="button" className="proyecto proyecto--tuyo" data-proli="demo-tuyo" disabled={modo === 'auto'}
+                       onClick={() => pedirAProli('Tengo un reto en mi entidad')}
+                       initial={{ opacity: 0, y: 28, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                       transition={{ delay: 0.6, type: 'spring', stiffness: 170, damping: 20 }}>
+          <span className="proyecto__arte proyecto__arte--proli" aria-hidden><ProliMarca tamano={3.6} /></span>
+          <span className="proyecto__texto">
+            <span className="proyecto__pregunta">¿Y tu reto?</span>
+            <span className="proyecto__bajada">Entrégaselo a Proli: lo exploramos con los datos de tu entidad.</span>
+            {modo !== 'auto' && <span className="proyecto__entrar">Contarle mi reto a Proli</span>}
+          </span>
+        </motion.button>
       </div>
       <PieEmpresa modo={modo} />
     </div>

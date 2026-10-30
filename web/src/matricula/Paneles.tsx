@@ -12,7 +12,7 @@ import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
-import { Boton, Etapas, entrar, type Pantalla } from '../componentes/Recorrido'
+import { Boton, Etapas, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
 import { APP_NAME, EMPRESA, URL_CITA, urlCitaCon } from '../config'
 import { pedirAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
@@ -233,7 +233,7 @@ function DetalleLocalidad({ nombre, c }: { nombre: string; c: CifraLocalidad }) 
 
 // ---------------------------------------------------------------- 5. Cómo lo hicimos
 export function como({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
-  const f = datos.r.fuentes.datos
+  const f = datos.r.fuentes.datos, s = datos.r.simulacion
   const ejemplos = ['Oferta de cupos', 'Manzanas', 'Población'].map((x) => f.find((d) => d.dato.startsWith(x))?.dato).filter(Boolean)
   return {
     titular: (
@@ -245,11 +245,17 @@ export function como({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
     visual: (
       <Etapas etapas={[
         { icono: 'datos', titulo: 'Datos', detalle: ejemplos.join(' · ') },
-        { icono: 'modelo', titulo: 'Modelo', detalle: 'Cercanía, estrato, edad y hermanos, con los cupos de cada nivel' },
+        { icono: 'modelo', titulo: 'Modelo: programación lineal', detalle: 'Cercanía, estrato, edad y hermanos, y los cupos de cada nivel' },
         { icono: 'decision', titulo: 'Decisión', detalle: `${ESCENARIO_REFERENCIA} frente a ${APP_NAME}` },
       ]} />
     ),
-    conclusion: <p className="pp__remate">Esto es {EMPRESA}: convertimos datos en inteligencia que actúa.</p>,
+    conclusion: (
+      <>
+        <p className="pp__dato"><b>Más de {masDe(s.registros_publicos, 5_000)}</b> registros públicos analizados y <b>{millonesDe(s.distancias_calculadas)}</b> de distancias calculadas</p>
+        <p className="pp__texto">Y puede seguir aprendiendo con nuevos datos y algoritmos: <b>así se vuelve un sistema inteligente</b>.</p>
+        <p className="pp__remate">Esto es {EMPRESA}: convertimos datos en inteligencia que actúa.</p>
+      </>
+    ),
     accion: modo !== 'auto' && <Boton onClick={() => ir('reto')} proli="cap-reto">¿Y en tu entidad? →</Boton>,
     secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('metodologia')} data-proli="cap-metodologia">Consultar metodología</button>,
   }

@@ -48,6 +48,9 @@ NUEVOS_EIL = np.array([42_794, 36_891, 31_084, 11_981])   # EIL 2025, Tabla 7
 EDADES = [(3, 5), (6, 10), (11, 14), (15, 16)]
 PESO_ESTRATO, PESO_EDAD, PESO_HERMANO = 2.0, 1.0, 1.0
 K_CANDIDATOS = 60                           # colegios más cercanos de su nivel que se consideran por niño
+# Filas de las fuentes públicas que lee el motor (data/raw/real), contadas el 30-oct-2026 con
+# siniestros/validacion/conteo_registros.py: sedes, oferta, demanda, matrícula, manzanas, predios, población…
+REGISTROS_PUBLICOS = 96_112
 
 # Fuentes que se suman a las del simulador (FUENTES): nivel, prioridad y deserción
 FUENTES_V2 = [
@@ -285,7 +288,7 @@ def calcular():
             c[nombre] = {NIVELES[k]: int((lejos & mk & (nivel == k)).sum() * epf) for k in range(4)}
         out["por_localidad"][L] = c
     out["simulacion"] = {
-        "fuentes_publicas": len(FUENTES), "sedes_con_cupos_por_nivel": sedes_con_nivel,
+        "fuentes_publicas": len(FUENTES), "registros_publicos": REGISTROS_PUBLICOS, "sedes_con_cupos_por_nivel": sedes_con_nivel,
         "colegios_con_solicitudes_por_nivel": colegios_con_solicitudes, "cupos_revisados": cupos_revisados,
         "manzanas_residenciales": int(len(base.manzanas)), "upz": int(base.upz.shape[0]), "localidades": len(locs),
         "sedes_con_cupos_de_nuevos": int(S), "grupos": int(n), "ninos": int(n * epf),

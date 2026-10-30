@@ -24,6 +24,9 @@ export interface Pantalla {
 /** Una línea de la leyenda del mapa: `clase` pinta la muestra (k-pp--…) */
 export interface ItemLeyenda { clase: string; texto: string }
 
+/** «Más de N»: la cifra redondeada hacia abajo a `paso` (655.087 con paso 50.000 → «650.000») */
+export const masDe = (n: number, paso: number) => new Intl.NumberFormat('es-CO').format(Math.floor(n / paso) * paso)
+
 export const entrar = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 + 0.12 * k, duration: 0.35 } })
 
 export const Boton = ({ children, onClick, proli }: { children: ReactNode; onClick: () => void; proli?: string }) => (

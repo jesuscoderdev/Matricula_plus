@@ -20,7 +20,7 @@ import { informarPantalla, registrar, useReto } from '../proli/ordenes'
 import { recordado, recordar } from '../recordar'
 import MapaMovilidad from './MapaMovilidad'
 import {
-  CAPITULOS_MOV, HojaDosAnios, HojaMetodologia, PANTALLAS, etiquetasMapa, pasoDe, tamanoHex,
+  CAPITULOS_MOV, HojaMetodologia, PANTALLAS, etiquetasMapa, pasoDe, tamanoHex,
   type CapituloMov, type Hoja, type PropsMov, type VistaMov,
 } from './Paneles'
 import { guionDe } from './guion'
@@ -274,7 +274,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       </footer>
 
       <HojaRecorrido abierta={hoja != null} cerrar={() => setHoja(null)}>
-        {hoja === 'metodologia' ? <HojaMetodologia datos={datos} modo={modo} /> : <HojaDosAnios datos={datos} />}
+        <HojaMetodologia datos={datos} modo={modo} />
       </HojaRecorrido>
       {entrada}
     </div>

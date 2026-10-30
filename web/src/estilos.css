@@ -1934,3 +1934,63 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='celular'] .pp__conclusion { padding-top: 0.65rem; }
 :root:is([data-modo='stand'], [data-modo='auto']) .inicio__contenido { gap: 1.1rem; padding-bottom: 1rem; }
 :root:is([data-modo='stand'], [data-modo='auto']) .proyecto__texto { padding: 0.95rem 1.1rem 1rem; gap: 0.4rem; }
+
+/* =========================================================
+   Reunión del 30 oct
+   ========================================================= */
+/* Presupuesto+ · La solución: la mirada de un solo año (lente) que se abre a la historia */
+.miope { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 0.8rem; padding: 1rem 1.2rem; }
+.miope__tabla { position: relative; display: grid; grid-template-columns: auto 1fr 1fr; align-items: center; row-gap: 0.6rem; column-gap: 0.4rem; }
+.miope__fila { display: contents; }
+.miope__anio { font-family: var(--f-mono); font-size: 0.85rem; font-weight: 600; color: var(--suave); text-align: center; position: relative; z-index: 1; transition: opacity 0.6s; }
+.miope__nombre { font-size: 1rem; color: var(--tinta); padding-right: 0.6rem; }
+.miope__celda { position: relative; z-index: 1; min-height: 3.2rem; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 0.3rem; padding: 0.5rem; transition: opacity 0.6s; }
+.miope__celda i { width: 1.15rem; height: 1.15rem; border-radius: 50%; background: var(--violeta); }
+.miope__fila--b .miope__celda i { background: var(--verde); }
+.miope:not(.miope--abierta) .miope__celda--vieja, .miope:not(.miope--abierta) .miope__anio--viejo { opacity: 0.12; }
+/* La lente: primero solo la última columna; luego, las dos */
+.miope__lente {
+  grid-row: 1 / 4; grid-column: 3; align-self: stretch; z-index: 0; border-radius: var(--r);
+  border: 2px solid var(--violeta); background: var(--violeta-suave);
+}
+.miope--abierta .miope__lente { grid-column: 2 / 4; border-color: var(--verde); background: rgb(123 198 137 / 0.14); }
+.miope__dice { min-height: 2.8em; text-align: center; font-size: 1rem; line-height: 1.35; color: var(--tinta); }
+.miope__dice b { color: var(--violeta); }
+.miope--abierta .miope__dice b { color: var(--verde-texto); }
+.miope__nota { text-align: center; font-size: 0.7rem; line-height: 1.3; color: var(--tenue); }
+.miope__otra { align-self: center; }
+:root[data-tema='oscuro'] .miope__dice b { color: #a598ff; }
+
+/* Cifra destacada en «Cómo lo hicimos» */
+.pp__dato { font-size: 0.95rem; line-height: 1.35; color: var(--suave); }
+.pp__dato b { font-family: var(--f-display); font-size: 1.35rem; color: var(--violeta); }
+:root[data-tema='oscuro'] .pp__dato b { color: #a598ff; }
+
+/* Antes y después: tres tarjetas (sin la de las 166) */
+.pp__conteo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+:root[data-modo='celular'] .pp__conteo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Elige un reto: la tercera opción, compacta */
+.proyecto--tuyo { flex: none; display: grid; grid-template-columns: 6.5rem 1fr; border-style: dashed; border-color: var(--violeta); background: var(--violeta-suave); }
+.proyecto__arte--proli { display: grid; place-items: center; height: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--linea); background: transparent; }
+.proyecto--tuyo .proyecto__texto { padding-block: 0.8rem; gap: 0.3rem; }
+:root[data-modo='celular'] .proyecto--tuyo { grid-template-columns: 5rem 1fr; }
+:root[data-modo='escritorio'] .proyecto--tuyo { grid-template-columns: 9rem 1fr; }
+:root[data-tema='oscuro'] .proyecto--tuyo { background: rgb(90 68 221 / 0.18); }
+
+/* Horizontal (tablets y computador): el tamaño también depende del alto, y la columna de texto se
+   desplaza si no cabe (antes se cortaba: «73 %… aquí no se ve») */
+:root[data-modo='escritorio'] { font-size: clamp(13px, min(calc(0.5vw + 8px), 1.95dvh), 18px); }
+:root[data-modo='escritorio'] .pp { grid-template-rows: auto auto 1fr; overflow-y: auto; overscroll-behavior: contain; }
+/* Elige un reto con tres opciones: tarjetas más compactas en vertical para que quepan sin scroll */
+:root:not([data-modo='escritorio']) .inicio .display--xl { font-size: 2.5rem; }
+:root:not([data-modo='escritorio']) .inicio__contenido { gap: 0.9rem; }
+:root:not([data-modo='escritorio']) .inicio__tarjetas { gap: 0.7rem; }
+:root:not([data-modo='escritorio']) .proyecto__texto { padding: 0.75rem 1rem 0.8rem; gap: 0.3rem; }
+:root:not([data-modo='escritorio']) .proyecto__pregunta { font-size: 1.22rem; }
+:root:not([data-modo='escritorio']) .proyecto__bajada { font-size: 0.88rem; }
+:root:not([data-modo='escritorio']) .proyecto__nombre { font-size: 1rem; }
+:root:not([data-modo='escritorio']) .proyecto__entrar { padding: 0.45rem 1.3rem; font-size: 0.9rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .pie-empresa__marca > span:not(.logo-empresa) { display: none; }
+/* En vertical no caben los detalles de cada etapa: quedan el ícono y el título */
+:root:not([data-modo='escritorio']) .etapas__modulo small { display: none; }

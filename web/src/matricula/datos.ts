@@ -41,7 +41,7 @@ export interface Resultados {
   en_sus_opciones_antes: number
   por_localidad: Record<string, CifraLocalidad>
   simulacion: {
-    fuentes_publicas: number; colegios_con_solicitudes_por_nivel: number; manzanas_residenciales: number; upz: number
+    fuentes_publicas: number; registros_publicos: number; colegios_con_solicitudes_por_nivel: number; manzanas_residenciales: number; upz: number
     localidades: number; sedes_con_cupos_de_nuevos: number; grupos: number; ninos: number; nuevos_oficial: number
     distancias_calculadas: number; combinaciones_nino_colegio: number; restricciones: number; segundos: number
     por_nivel_ninos: Record<Nivel, number>; edades_por_nivel: Record<Nivel, [number, number]>
