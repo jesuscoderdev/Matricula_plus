@@ -106,7 +106,7 @@ export function usePantalla(): string {
 }
 
 // --- El reto del visitante: un resumen corto, sin datos personales, que va en el mensaje de la cita ---
-const MAX_RETO = 400
+const MAX_RETO = 500
 let reto = ''
 const oyentesReto = new Set<() => void>()
 export function fijarReto(texto: string) {

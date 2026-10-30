@@ -272,7 +272,7 @@ export default function Matricula({ alSalir, alInactivo, alTerminarVuelta, alPor
     <div className={`app app--matricula app--pp app--pp-${vista}`}>
       <CabeceraRecorrido paso={paso} total={CAPITULOS_MAT.length} modo={modo} nombre={APP_NAME} reiniciar={reiniciar}
                          alSalir={alSalir} alPortada={alPortada} />
-      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda} atras={vista !== 'portada' && modo !== 'auto' ? atras : undefined}
+      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda} fondoVivo={modo === 'escritorio' && vista !== 'como'} atras={vista !== 'portada' && modo !== 'auto' ? atras : undefined}
                        alTocar={vista === 'portada' && modo === 'stand' ? () => ir('problema') : undefined}
                        mapa={<MapaMatricula datos={datos} {...propsMapa}>{!p.visual && p.sobreMapa}</MapaMatricula>} />
 

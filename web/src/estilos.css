@@ -1934,3 +1934,184 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='celular'] .pp__conclusion { padding-top: 0.65rem; }
 :root:is([data-modo='stand'], [data-modo='auto']) .inicio__contenido { gap: 1.1rem; padding-bottom: 1rem; }
 :root:is([data-modo='stand'], [data-modo='auto']) .proyecto__texto { padding: 0.95rem 1.1rem 1rem; gap: 0.4rem; }
+
+/* =========================================================
+   Reunión del 30 oct
+   ========================================================= */
+/* Cifra destacada en «Cómo lo hicimos» */
+.pp__dato { font-size: 0.95rem; line-height: 1.35; color: var(--suave); }
+.pp__dato b { font-family: var(--f-display); font-size: 1.35rem; color: var(--violeta); }
+:root[data-tema='oscuro'] .pp__dato b { color: #a598ff; }
+
+/* Antes y después: tres tarjetas (sin la de las 166) */
+.pp__conteo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+:root[data-modo='celular'] .pp__conteo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Elige un reto: la tercera opción, compacta */
+.proyecto--tuyo { flex: none; display: grid; grid-template-columns: 6.5rem 1fr; border-style: dashed; border-color: var(--violeta); background: var(--violeta-suave); }
+.proyecto__arte--proli { display: grid; place-items: center; height: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--linea); background: transparent; }
+.proyecto--tuyo .proyecto__texto { padding-block: 0.8rem; gap: 0.3rem; }
+:root[data-modo='celular'] .proyecto--tuyo { grid-template-columns: 5rem 1fr; }
+:root[data-modo='escritorio'] .proyecto--tuyo { grid-template-columns: 9rem 1fr; }
+:root[data-tema='oscuro'] .proyecto--tuyo { background: rgb(90 68 221 / 0.18); }
+
+/* Horizontal (tablets y computador): el tamaño también depende del alto, y la columna de texto se
+   desplaza si no cabe (antes se cortaba: «73 %… aquí no se ve») */
+:root[data-modo='escritorio'] { font-size: clamp(13px, min(calc(0.5vw + 8px), 1.95dvh), 18px); }
+:root[data-modo='escritorio'] .pp { grid-template-rows: auto auto 1fr; overflow-y: auto; overscroll-behavior: contain; }
+/* Elige un reto con tres opciones: tarjetas más compactas en vertical para que quepan sin scroll */
+:root:not([data-modo='escritorio']) .inicio .display--xl { font-size: 2.5rem; }
+:root:not([data-modo='escritorio']) .inicio__contenido { gap: 0.9rem; }
+:root:not([data-modo='escritorio']) .inicio__tarjetas { gap: 0.7rem; }
+:root:not([data-modo='escritorio']) .proyecto__texto { padding: 0.75rem 1rem 0.8rem; gap: 0.3rem; }
+:root:not([data-modo='escritorio']) .proyecto__pregunta { font-size: 1.22rem; }
+:root:not([data-modo='escritorio']) .proyecto__bajada { font-size: 0.88rem; }
+:root:not([data-modo='escritorio']) .proyecto__nombre { font-size: 1rem; }
+:root:not([data-modo='escritorio']) .proyecto__entrar { padding: 0.45rem 1.3rem; font-size: 0.9rem; }
+:root:is([data-modo='stand'], [data-modo='auto']) .pie-empresa__marca > span:not(.logo-empresa) { display: none; }
+/* En vertical no caben los detalles de cada etapa: quedan el ícono y el título */
+:root:not([data-modo='escritorio']) .etapas__modulo small { display: none; }
+
+/* Matrícula+ · Cómo lo hicimos: datos que vuelan al centro, explotan y se vuelven el mapa; Proli saluda */
+.sistema {
+  flex: 1; position: relative; overflow: hidden; container-type: size; display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 46%, var(--violeta-suave), var(--papel) 72%);
+}
+.sistema__nube, .sistema__explosion { position: absolute; inset: 0 0 1.8rem; display: grid; place-items: center; pointer-events: none; }
+.sistema__frag {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; white-space: nowrap; pointer-events: none;
+  font-family: var(--f-mono); font-size: 0.76rem; line-height: 1.2; padding: 0.22rem 0.5rem; border-radius: 0.4rem;
+}
+.sistema__frag--codigo { background: var(--p-navy); color: var(--p-verde); }
+.sistema__frag--mate { background: var(--blanco); color: var(--violeta); font-style: italic; border: 1px solid var(--violeta-suave); }
+.sistema__frag--dato { background: rgb(123 198 137 / 0.18); color: var(--verde-texto); font-weight: 600; }
+.sistema__nucleo { width: 3.4rem; height: 3.4rem; border-radius: 50%; background: radial-gradient(circle, var(--violeta) 0%, rgb(90 68 221 / 0.35) 45%, transparent 70%); }
+.sistema__onda { width: 4rem; height: 4rem; border-radius: 50%; border: 3px solid var(--verde); background: rgb(123 198 137 / 0.28); }
+.sistema__chispa { position: absolute; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--violeta); }
+.sistema__chispa:nth-child(odd) { background: var(--verde); }
+.sistema__mapa-caja { position: absolute; inset: 0.6rem 0.6rem 2rem; display: grid; place-items: center; }
+.sistema__mapa { width: 100%; height: 100%; }
+.sistema__loc { fill: var(--blanco); stroke: var(--linea-2); stroke-width: 0.18; }
+.sistema__punto { fill: var(--verde); opacity: 0.9; transform-box: fill-box; transform-origin: center; animation: aparece-nino 0.5s ease-out both; }
+.sistema__punto--lejos { fill: var(--violeta); }
+.sistema__punto--tenue { fill: #a8bcd8; opacity: 0.7; }
+:root[data-tema='oscuro'] .sistema__punto--tenue { fill: #3e605e; }
+.sistema__punto--elegida { fill: var(--verde); stroke: #ffffff; stroke-width: 0.2; }
+@keyframes aparece-nino { from { opacity: 0; transform: scale(0); } to { opacity: 0.9; transform: scale(1); } }
+.sistema__proli { position: absolute; right: 0.8rem; bottom: 2rem; filter: drop-shadow(0 0.4rem 0.8rem rgba(22, 43, 42, 0.25)); }
+.sistema__leyenda { position: absolute; left: 0.5rem; right: 0.5rem; bottom: 0.45rem; text-align: center; font-size: 0.85rem; color: var(--suave); }
+.sistema__leyenda b { color: var(--violeta); }
+:root[data-tema='oscuro'] .sistema__leyenda b { color: #a598ff; }
+.sistema__otra { position: absolute; top: 0.4rem; right: 0.6rem; }
+@media (prefers-reduced-motion: reduce) { .sistema__punto { animation: none; } }
+.sistema__destello { position: absolute; width: 70cqmin; height: 70cqmin; border-radius: 50%; background: radial-gradient(circle, #ffffff 0%, rgb(123 198 137 / 0.75) 35%, rgb(90 68 221 / 0.35) 60%, transparent 72%); }
+.sistema__onda--2 { border-color: var(--violeta); background: rgb(90 68 221 / 0.18); }
+.sistema__chispa { width: 0.7rem; height: 0.7rem; }
+.sistema__leyenda { z-index: 2; background: linear-gradient(transparent, var(--papel) 35%); padding-top: 0.6rem; }
+/* Proli sale en el centro de Bogotá y crece poco a poco mientras saluda; la leyenda, legible a distancia */
+.sistema__proli { right: auto; bottom: auto; left: 50%; top: 46%; height: 52cqh; width: max-content; translate: -50% -50%; display: block; }
+.sistema__proli .proli-animado { height: 100% !important; }
+.sistema__leyenda { font-size: 1.2rem; font-weight: 500; color: var(--tinta); }
+:root[data-modo='celular'] .sistema__leyenda { font-size: 1.05rem; }
+/* En horizontal, la leyenda de la animación va arriba a la izquierda, más visible */
+:root[data-modo='escritorio'] .sistema__leyenda {
+  top: 1rem; left: 1.2rem; right: auto; bottom: auto; max-width: 60%; text-align: left; padding: 0.55rem 0.9rem;
+  font-size: 1.35rem; border-radius: var(--r); background: var(--flotante); box-shadow: var(--sombra);
+}
+:root[data-modo='escritorio'] .sistema__nube, :root[data-modo='escritorio'] .sistema__explosion { inset: 0; }
+:root[data-modo='escritorio'] .sistema__mapa-caja { inset: 0.6rem; }
+:root[data-modo='escritorio'] .sistema__frag { font-size: 1rem; }
+
+/* Proli haciendo algo de la pantalla: solo en horizontal, en el espacio libre de la columna de texto */
+.pp__escena { display: none; }
+:root[data-modo='escritorio'] .pp {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: 'titular visual' 'conclusion visual' 'escena visual' 'accion visual';
+}
+:root[data-modo='escritorio'] .pp__escena { grid-area: escena; display: flex; align-items: center; justify-content: center; min-height: 0; container-type: size; padding: 0.6rem 2rem; }
+.actividad { height: min(88cqh, 70cqw, 17rem); max-width: 100%; display: flex; align-items: center; justify-content: center; }
+.actividad__objeto { height: 100%; width: auto; aspect-ratio: 120 / 104; flex: none; overflow: visible; }
+@container (max-height: 130px) { .actividad { display: none; } }
+:root[data-modo='escritorio'] .pp__accion { justify-content: flex-start; }
+
+/* Marca de agua viva de Proliferante detrás del cuadrante derecho (solo en horizontal) */
+.marca-viva { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+:root[data-modo='escritorio'] .pp__visual { background: var(--mapa-fondo); }
+:root[data-modo='escritorio'] .pp__mapa { z-index: 1; }
+:root[data-modo='escritorio'] .app--pp :is(.mapa--movilidad, .mapa--matricula) { background: transparent; }
+:root[data-modo='escritorio'] .pp--visual-propio .pp__mapa { visibility: hidden; }
+:root[data-modo='escritorio'] .pp__visual-propio { background: transparent; }
+:root[data-modo='escritorio'] .sistema { background: radial-gradient(circle at 50% 46%, rgb(90 68 221 / 0.08), transparent 72%); }
+
+/* Presupuesto+ · Antes y después: las dos selecciones en barras del mismo tamaño */
+.compara { display: flex; flex-direction: column; gap: 0.45rem; }
+.compara__fila { display: grid; grid-template-columns: 8.5rem 1fr; align-items: center; gap: 0.6rem; }
+.compara__nombre { font-size: 0.85rem; font-weight: 600; color: var(--tinta); line-height: 1.2; }
+.compara__barra { display: flex; height: 1.9rem; border-radius: 0.45rem; overflow: hidden; gap: 2px; }
+.compara__seg { display: flex; align-items: center; justify-content: center; flex-basis: 0; min-width: 2.2rem; transition: background 0.5s; }
+.compara__seg b { font-family: var(--f-display); font-size: 1rem; color: #ffffff; }
+.compara__seg--comun { background: #505b7d; }
+.compara__seg--salen { background: var(--violeta); }
+.compara__seg--entran { background: #3e8e52; }
+.compara__clave { list-style: none; margin: 0.2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.compara__clave li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; line-height: 1.3; color: var(--suave); }
+.compara__clave b { color: var(--tinta); }
+.compara__muestra { flex: none; width: 0.85rem; height: 0.85rem; border-radius: 0.2rem; }
+.compara__muestra--comun { background: #505b7d; }
+.compara__muestra--salen { background: var(--violeta); }
+.compara__muestra--entran { background: #3e8e52; }
+.compara__pista { font-size: 0.85rem; line-height: 1.35; color: var(--suave); }
+:root[data-modo='celular'] .compara__fila { grid-template-columns: 6.8rem 1fr; }
+
+/* 30-oct (Paola) · Presupuesto+ paso 2: pregunta y respuesta en grande, y una escena en el cuadro */
+.pp__pregunta { font-size: 2.15rem; line-height: 1.12; color: var(--tinta); }
+.pp__pregunta em { font-style: normal; color: var(--violeta); }
+.pp__respuesta { font-size: 1.3rem; line-height: 1.4; color: var(--tinta); background: rgb(123 198 137 / 0.14); border-left: 4px solid var(--verde); border-radius: 0 0.8rem 0.8rem 0; padding: 0.9rem 1.1rem; }
+.pp__respuesta b { color: var(--verde-texto); }
+:root[data-modo='celular'] .pp__pregunta { font-size: 1.75rem; }
+:root[data-modo='celular'] .pp__respuesta { font-size: 1.12rem; }
+:root[data-modo='escritorio'] .pp__pregunta { font-size: 2.5rem; }
+:root[data-modo='escritorio'] .pp__respuesta { font-size: 1.45rem; }
+:root[data-tema='oscuro'] .pp__pregunta em { color: #a598ff; }
+.pp__ilustracion { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 1rem; container-type: size; }
+.pp__ilustracion .actividad { height: min(92cqh, 64cqw, 30rem); }
+.actividad--historia .actividad__objeto { aspect-ratio: 200 / 150; }
+
+/* 30-oct (Paola) · Cómo lo hicimos: la cifra de cálculos, muy notoria */
+.cifra-grande { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; margin-top: 0.3rem; }
+.cifra-grande__mas { font-size: 1rem; font-weight: 600; color: var(--suave); text-transform: uppercase; letter-spacing: 0.08em; }
+.cifra-grande__numero { font-family: var(--f-display); font-size: 3.4rem; font-weight: 700; color: var(--violeta); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cifra-grande__numero span { font-size: 0.6em; }
+.cifra-grande__de { font-family: var(--f-display); font-size: 1.5rem; font-weight: 600; color: var(--tinta); }
+.cifra-grande__detalle { margin-top: 0.45rem; font-size: 0.9rem; line-height: 1.38; color: var(--suave); }
+:root[data-modo='celular'] .cifra-grande__numero { font-size: 2.7rem; }
+:root[data-modo='celular'] .cifra-grande__de { font-size: 1.25rem; }
+:root[data-modo='escritorio'] .cifra-grande__numero { font-size: 4.2rem; }
+:root[data-tema='oscuro'] .cifra-grande__numero { color: #a598ff; }
+
+/* 30-oct (Paola) · Vertical: cuando el cuadro sobra, su contenido crece en vez de dejar espacio vacío */
+:root:not([data-modo='escritorio']) .pp__visual { container: cuadro / size; }
+@container cuadro (min-height: 400px) { .asigna { zoom: 1.15; } }
+@container cuadro (min-height: 460px) { .asigna { zoom: 1.3; } }
+/* Tu reto en vertical: el globo arriba, ancho y legible, y Proli más grande debajo */
+@container cuadro (min-height: 380px) {
+  .pp__reto > .proli { flex-direction: column; align-items: center; gap: 0.9rem; }
+  .pp__reto > .proli > .proli__globo { order: -1; max-width: 19rem; font-size: 1rem; line-height: 1.4; padding: 0.8rem 1rem; margin-bottom: 0; border-radius: var(--r); }
+  .pp__reto > .proli > .proli__img { zoom: 1.4; }
+}
+:root:not([data-modo='escritorio']) .pp__ilustracion .actividad { height: min(94cqh, 74cqw, 30rem); }
+:root:not([data-modo='escritorio']) .pp__ilustracion { padding: 0.4rem; }
+@container cuadro (min-height: 400px) {
+  .asigna__colegios { gap: 0.3rem; }
+  .asigna__colegio { padding: 0.5rem 0.25rem; }
+  .asigna__colegio b { white-space: nowrap; font-size: 0.82rem; }
+}
+:root[data-modo='celular'] .pp__pregunta { font-size: 1.95rem; }
+:root[data-modo='celular'] .pp__respuesta { font-size: 1.22rem; }
+:root[data-modo='escritorio'] .pp__pregunta { font-size: 2.85rem; }
+:root[data-modo='escritorio'] .pp__respuesta { font-size: 1.6rem; padding: 1.1rem 1.3rem; }
+
+/* Presupuesto+ paso 2 en vertical: la respuesta va justo debajo de la pregunta, encima de la escena */
+:root:not([data-modo='escritorio']) .pp:has(.pp__respuesta) { grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: 'titular' 'conclusion' 'visual' 'accion'; }
+:root[data-modo='celular'] .pp:has(.pp__respuesta) { grid-template-rows: auto auto minmax(13rem, 1fr) auto; }
+:root:not([data-modo='escritorio']) .pp:has(.pp__respuesta) .pp__conclusion { padding-top: 0; padding-bottom: 0.9rem; }

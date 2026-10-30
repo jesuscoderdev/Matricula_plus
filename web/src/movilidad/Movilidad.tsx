@@ -20,7 +20,7 @@ import { informarPantalla, registrar, useReto } from '../proli/ordenes'
 import { recordado, recordar } from '../recordar'
 import MapaMovilidad from './MapaMovilidad'
 import {
-  CAPITULOS_MOV, HojaDosAnios, HojaMetodologia, PANTALLAS, etiquetasMapa, pasoDe, tamanoHex,
+  CAPITULOS_MOV, HojaMetodologia, PANTALLAS, etiquetasMapa, pasoDe, tamanoHex,
   type CapituloMov, type Hoja, type PropsMov, type VistaMov,
 } from './Paneles'
 import { guionDe } from './guion'
@@ -262,7 +262,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
     <div className={`app app--movilidad app--pp app--pp-${vista}`}>
       <CabeceraRecorrido paso={paso} total={CAPITULOS_MOV.length} modo={modo} nombre={NOMBRE_MOVILIDAD} reiniciar={reiniciar}
                          alSalir={alSalir} alPortada={alPortada} />
-      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda} atras={vista !== 'portada' && modo !== 'auto' ? atras : undefined}
+      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda} fondoVivo={modo === 'escritorio' && vista !== 'como'} atras={vista !== 'portada' && modo !== 'auto' ? atras : undefined}
                        alTocar={vista === 'portada' && modo === 'stand' ? () => ir('problema') : undefined}
                        mapa={<MapaMovilidad datos={datos} {...propsMapa}>{!p.visual && p.sobreMapa}</MapaMovilidad>} />
 
@@ -274,7 +274,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       </footer>
 
       <HojaRecorrido abierta={hoja != null} cerrar={() => setHoja(null)}>
-        {hoja === 'metodologia' ? <HojaMetodologia datos={datos} modo={modo} /> : <HojaDosAnios datos={datos} />}
+        <HojaMetodologia datos={datos} modo={modo} />
       </HojaRecorrido>
       {entrada}
     </div>

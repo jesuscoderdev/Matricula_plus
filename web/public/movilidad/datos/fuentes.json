@@ -40,5 +40,26 @@
   ],
   "cruces": "Cada siniestro se ubicó en un hexágono de 115 m y se clasificó como de avenida o de barrio según la vía de OpenStreetMap más cercana. El riesgo de cada hexágono se corrigió con el método de Bayes empírico (Hauer, 1997) comparándolo con hexágonos parecidos.",
   "metodo_validacion": "Se estimó con 2023–2024 y se verificó con 2025, un año que el modelo no vio. 2022 se excluyó porque sus coordenadas se publicaron redondeadas.",
-  "advertencia": "Las efectividades provienen de estudios internacionales y los costos son referencias de orden de magnitud: las cifras de presupuesto son estimaciones, no compromisos."
+  "advertencia": "Las efectividades provienen de estudios internacionales y los costos son referencias de orden de magnitud: las cifras de presupuesto son estimaciones, no compromisos.",
+  "registros_analizados": {
+    "total": 655087,
+    "detalle": {
+      "siniestros_y_actores_viales_2023_2025": 134336,
+      "vias_openstreetmap": 71244,
+      "nodos_openstreetmap": 407275,
+      "zonas_de_115_m": 42232
+    },
+    "fuente": "Siniestros y actores viales de 2023 a 2025 (Secretaría Distrital de Movilidad), vías y nodos de la red de OpenStreetMap y zonas de 115 m de Bogotá."
+  },
+  "calculos_realizados": {
+    "total": 814041786,
+    "detalle": {
+      "tramos_de_via_ubicados": 868515,
+      "siniestros_ubicados": 65078,
+      "estimaciones_de_riesgo": 126696,
+      "comparaciones_de_validacion": 168928,
+      "combinaciones_de_presupuesto": 812812569
+    },
+    "fuente": "Contados con el mismo código del modelo: la red vial partida en tramos de 10 m y cada tramo ubicado en su zona, cada siniestro ubicado en su zona, el riesgo y su intervalo por zona, la verificación con 2025 zona por zona y cada combinación de lugares y montos que evalúa la optimización exacta del presupuesto (mochila)."
+  }
 }

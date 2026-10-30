@@ -12,7 +12,8 @@ import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 import Proli, { ProliMarca } from '../componentes/Proli'
 import QrCita from '../componentes/QrCita'
-import { Boton, Etapas, entrar, type Pantalla } from '../componentes/Recorrido'
+import { Boton, CifraGrande, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import AnimacionSistema from './AnimacionSistema'
 import { APP_NAME, EMPRESA, URL_CITA, urlCitaCon } from '../config'
 import { pedirAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
@@ -65,6 +66,7 @@ const lista = (xs: string[]) => (xs.length < 2 ? xs.join('') : `${xs.slice(0, -1
 // ---------------------------------------------------------------- portada
 export function portada({ modo, ir }: PropsMat): Pantalla {
   return {
+    actividad: 'telescopio',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--xl" {...entrar(0)}>
@@ -82,6 +84,7 @@ export function portada({ modo, ir }: PropsMat): Pantalla {
 export function problema({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
   const b = datos.r.grupos.bogota
   return {
+    actividad: 'ruta',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>Tener un cupo no siempre significa estudiar <em>cerca de casa</em>.</motion.h1>
@@ -137,6 +140,7 @@ function Asignacion() {
 
 export function solucion({ modo, ir, abrirHoja }: PropsMat): Pantalla {
   return {
+    actividad: 'puzzle',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los mismos cupos. <em>Más información para decidir.</em></motion.h1>
@@ -154,6 +158,7 @@ export function antes({ datos, modo, ir, reparto, setReparto }: PropsMat): Panta
   const b = datos.r.grupos.bogota
   const visto = reparto === 'despues'
   return {
+    actividad: 'acerca',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Una decisión diferente. <em>Un resultado diferente.</em></motion.h1>
@@ -202,6 +207,7 @@ export function resultados({ datos, modo, ir, abrirHoja, localidad }: PropsMat):
   ]
   const c = localidad ? datos.r.por_localidad[localidad] : null
   return {
+    actividad: 'construye',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>No solo podemos asignar mejor. <em>También descubrir dónde hace falta invertir.</em></motion.h1>
@@ -233,23 +239,19 @@ function DetalleLocalidad({ nombre, c }: { nombre: string; c: CifraLocalidad }) 
 
 // ---------------------------------------------------------------- 5. Cómo lo hicimos
 export function como({ datos, modo, ir, abrirHoja }: PropsMat): Pantalla {
-  const f = datos.r.fuentes.datos
-  const ejemplos = ['Oferta de cupos', 'Manzanas', 'Población'].map((x) => f.find((d) => d.dato.startsWith(x))?.dato).filter(Boolean)
+  const s = datos.r.simulacion
   return {
+    actividad: 'calculos',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los datos estaban ahí. <em>Había que ponerlos a trabajar.</em></motion.h1>
-        <motion.p className="pp__bajada" {...entrar(1)}>Conectamos distintas fuentes públicas, incorporamos criterios, construimos un modelo matemático y comparamos alternativas.</motion.p>
+        <CifraGrande total={s.calculos_realizados} paso={1} de="de cálculos"
+                     detalle={<>con más de {masDe(s.registros_publicos, 5_000)} registros públicos: {millonesDe(s.distancias_calculadas)} de distancias y {entero(s.combinaciones_nino_colegio)} combinaciones de estudiante y colegio</>} />
+        <motion.p className="pp__texto" {...entrar(2)}>Y puede seguir aprendiendo con nuevos datos y algoritmos: <b>así se vuelve un sistema inteligente</b>.</motion.p>
+        <motion.p className="pp__remate" {...entrar(3)}>Esto es {EMPRESA}: convertimos datos en inteligencia que actúa.</motion.p>
       </>
     ),
-    visual: (
-      <Etapas etapas={[
-        { icono: 'datos', titulo: 'Datos', detalle: ejemplos.join(' · ') },
-        { icono: 'modelo', titulo: 'Modelo', detalle: 'Cercanía, estrato, edad y hermanos, con los cupos de cada nivel' },
-        { icono: 'decision', titulo: 'Decisión', detalle: `${ESCENARIO_REFERENCIA} frente a ${APP_NAME}` },
-      ]} />
-    ),
-    conclusion: <p className="pp__remate">Esto es {EMPRESA}: convertimos datos en inteligencia que actúa.</p>,
+    visual: <AnimacionSistema datos={datos} auto={modo === 'auto'} />,
     accion: modo !== 'auto' && <Boton onClick={() => ir('reto')} proli="cap-reto">¿Y en tu entidad? →</Boton>,
     secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('metodologia')} data-proli="cap-metodologia">Consultar metodología</button>,
   }
@@ -260,6 +262,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
   const totem = esTotem(modo)
   const agendar = () => (totem || !URL_CITA ? setVerQr(!verQr) : window.open(urlCitaCon(suReto), '_blank', 'noopener'))
   return {
+    actividad: 'idea',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>Ahora imagina lo que podríamos lograr con <em>los datos de tu entidad</em>.</motion.h1>

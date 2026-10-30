@@ -5,9 +5,11 @@
  * detalles (metodología, tablas) se abren en una hoja aparte. Lo usan Matrícula+ y Presupuesto+.
  */
 import { AnimatePresence, motion } from 'framer-motion'
-import type { ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { BotonInicio, BotonTema, LogoEmpresa, LogoReinicio, NombreApp } from './Marca'
 import { ProliMarca } from './Proli'
+import ProliActividad, { type Actividad } from './ProliActividad'
+import MarcaDeAguaViva from './MarcaDeAguaViva'
 import type { Modo } from '../modo'
 
 /** Las piezas de una pantalla. Sin `visual`, en su lugar va el mapa. */
@@ -20,9 +22,43 @@ export interface Pantalla {
   accion?: ReactNode
   /** botones de texto, discretos, debajo del principal */
   secundarias?: ReactNode
+  /** en horizontal, Proli haciendo algo de la pantalla en el espacio libre de la columna de texto */
+  actividad?: Actividad
 }
 /** Una línea de la leyenda del mapa: `clase` pinta la muestra (k-pp--…) */
 export interface ItemLeyenda { clase: string; texto: string }
+
+/** «Más de N»: la cifra redondeada hacia abajo a `paso` (655.087 con paso 50.000 → «650.000») */
+export const masDe = (n: number, paso: number) => new Intl.NumberFormat('es-CO').format(Math.floor(n / paso) * paso)
+
+/**
+ * Cómo lo hicimos: la cifra de cálculos, bien grande (sorprende la cantidad de información que se maneja).
+ * Cuenta de 0 hasta «más de N millones» (N = el total redondeado hacia abajo a `paso` millones).
+ */
+export function CifraGrande({ total, paso, de, detalle }: { total: number; paso: number; de: string; detalle: ReactNode }) {
+  const meta = Math.floor(total / 1e6 / paso) * paso
+  const [n, setN] = useState(0)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setN(meta); return }
+    let raf = 0
+    const t0 = performance.now() + 500
+    const paso = (ahora: number) => {
+      const u = Math.max(0, Math.min(1, (ahora - t0) / 1800))
+      setN(Math.round(meta * (1 - Math.pow(1 - u, 3))))
+      if (u < 1) raf = requestAnimationFrame(paso)
+    }
+    raf = requestAnimationFrame(paso)
+    return () => cancelAnimationFrame(raf)
+  }, [meta])
+  return (
+    <motion.div className="cifra-grande" {...entrar(1)}>
+      <span className="cifra-grande__mas">Más de</span>
+      <b className="cifra-grande__numero">{new Intl.NumberFormat('es-CO').format(n)} <span>millones</span></b>
+      <span className="cifra-grande__de">{de}</span>
+      <span className="cifra-grande__detalle">{detalle}</span>
+    </motion.div>
+  )
+}
 
 export const entrar = (k: number) => ({ initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.1 + 0.12 * k, duration: 0.35 } })
 
@@ -66,13 +102,15 @@ export function CabeceraRecorrido({ paso, total, modo, nombre, reiniciar, alSali
 }
 
 /** Titular, visual (el mapa, con su leyenda debajo, u otro), conclusión y acción */
-export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
+export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar, fondoVivo }: {
   vista: string
   p: Pantalla
   mapa: ReactNode
   leyenda?: ItemLeyenda[]
   /** el botón de atrás, al lado del principal (sin él, solo el principal) */
   atras?: () => void
+  /** en horizontal: la marca de agua viva de Proliferante detrás del visual */
+  fondoVivo?: boolean
   /** tocar cualquier parte (la portada del stand) */
   alTocar?: () => void
 }) {
@@ -84,6 +122,7 @@ export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
         </motion.div>
       </AnimatePresence>
       <div className="pp__visual">
+        {fondoVivo && <MarcaDeAguaViva />}
         <div className="pp__mapa">{mapa}</div>
         {!p.visual && leyenda && leyenda.length > 0 && (
           <div className="pp__leyenda">
@@ -104,6 +143,7 @@ export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
           {p.conclusion}
         </motion.div>
       </AnimatePresence>
+      <div className="pp__escena">{p.actividad && <ProliActividad key={vista} tipo={p.actividad} />}</div>
       <div className="pp__accion">
         {atras ? (
           <div className="pp__fila">
@@ -135,28 +175,5 @@ export function HojaRecorrido({ abierta, cerrar, children }: { abierta: boolean;
         </motion.div>
       )}
     </AnimatePresence>
-  )
-}
-
-const ICONOS = {
-  datos: <><ellipse cx="12" cy="5.5" rx="7" ry="2.6" /><path d="M5 5.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6M5 11.5v6c0 1.4 3.1 2.6 7 2.6s7-1.2 7-2.6v-6" /></>,
-  riesgo: <><path d="M4 19V5M4 19h16" /><path d="M7 15l4-4 3 3 5-6" /><circle cx="19" cy="8" r="1.3" /></>,
-  modelo: <><circle cx="6" cy="6" r="2.2" /><circle cx="18" cy="6" r="2.2" /><circle cx="12" cy="18" r="2.2" /><path d="M8 7l2.6 9M16 7l-2.6 9M8.2 6h7.6" /></>,
-  decision: <><path d="M12 21s-6.5-5.6-6.5-10.5a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z" /><path d="M9.3 10.6l2 2 3.5-3.6" /></>,
-}
-/** Etapas conectadas con flechas, una debajo de otra (la última, destacada) */
-export function Etapas({ etapas }: { etapas: { icono: keyof typeof ICONOS; titulo: string; detalle?: ReactNode }[] }) {
-  return (
-    <div className="etapas" aria-label={etapas.map((x) => x.titulo).join(', luego ')}>
-      {etapas.map((x, k) => (
-        <motion.div key={x.titulo} className="etapas__paso" {...entrar(k * 2)}>
-          {k > 0 && <span className="etapas__flecha" aria-hidden>↓</span>}
-          <div className="etapas__modulo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{ICONOS[x.icono]}</svg>
-            <span><b>{x.titulo}</b>{x.detalle && <small>{x.detalle}</small>}</span>
-          </div>
-        </motion.div>
-      ))}
-    </div>
   )
 }

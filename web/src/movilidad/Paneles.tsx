@@ -5,7 +5,7 @@
  * de otra; en horizontal, el texto a la izquierda y el visual a la derecha.
  *
  * Recorrido: Portada → 1 Problema → 2 Solución → 3 Antes y después → 4 Resultados → 5 Cómo lo hicimos
- * → 6 Tu reto. Los detalles (metodología, dos años) se abren aparte, en una hoja.
+ * → 6 Tu reto. La metodología se abre aparte, en una hoja.
  *
  * Ninguna cifra se escribe a mano: salen de los datos (experiencia.json, fuentes.json, resumen.json,
  * sitios.geojson), casi todas a través de guion.ts. El mensaje: con el mismo presupuesto, analizar más
@@ -14,7 +14,9 @@
  */
 import { motion } from 'framer-motion'
 import Proli from '../componentes/Proli'
-import { Boton, Etapas, entrar, type Pantalla } from '../componentes/Recorrido'
+import { Boton, CifraGrande, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
+import ProliActividad from '../componentes/ProliActividad'
+import AnimacionSistema from './AnimacionSistema'
 import QrCita from '../componentes/QrCita'
 import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
 import { pedirAProli } from '../proli/ordenes'
@@ -35,7 +37,7 @@ export const CAPITULOS_MOV: { id: CapituloMov; nombre: string }[] = [
 ]
 export const pasoDe = (c: CapituloMov) => CAPITULOS_MOV.findIndex((x) => x.id === c) + 1
 /** Detalles opcionales: se abren en una hoja encima de la pantalla */
-export type Hoja = 'metodologia' | 'dosAnios'
+export type Hoja = 'metodologia'
 
 export interface PropsMov {
   datos: DatosMovilidad
@@ -91,92 +93,91 @@ export function portada({ modo, ir }: PropsMov): Pantalla {
 
 // ---------------------------------------------------------------- 1. El problema
 export function problema({ datos, modo, ir }: PropsMov): Pantalla {
-  const g = guionDe(datos)
   const esc = escenario(datos)
   return {
+    actividad: 'monedas',
     titular: (
-      <>
-        <h1 className="pp__cifras">
-          <motion.span {...entrar(0)}><b>{entero(g.conGraves)}</b> lugares para intervenir.</motion.span>
-          <motion.span {...entrar(1)}>Recursos para <b className="pp__morado">{entero(esc.esquinas)}</b> esquinas.</motion.span>
-        </h1>
-        <motion.span className="pp__etiqueta" {...entrar(2)}>Escenario ilustrativo; costo supuesto de {millones(costo(datos))} por intervención</motion.span>
-      </>
+      <motion.h1 className="display pp__titulo" {...entrar(0)}>
+        Con un presupuesto limitado, la pregunta no es solo cuánto invertir. <em>Es dónde hacerlo primero.</em>
+      </motion.h1>
     ),
     conclusion: (
-      <>
-        <p className="pp__texto">En nuestro escenario de Bogotá, un presupuesto de {millones(esc.presupuesto_millones)} permite intervenir aproximadamente {entero(esc.esquinas)} zonas de barrio.</p>
-        <p className="pp__remate">La pregunta no es solo cuánto invertir. Es dónde hacerlo primero.</p>
-      </>
+      <span className="pp__etiqueta pp__etiqueta--centro">
+        Escenario ilustrativo: {millones(esc.presupuesto_millones)}, con un costo supuesto de {millones(costo(datos))} por intervención
+      </span>
     ),
     accion: modo !== 'auto' && <Boton onClick={() => ir('solucion')} proli="cap-solucion">Descubrir cómo se eligen →</Boton>,
   }
 }
 
 // ---------------------------------------------------------------- 2. La solución
-/** Dos grupos de barras: los siniestros graves de cada año en las 46 que salen y en las 46 que entran */
-function DosPeriodos({ datos }: { datos: DatosMovilidad }) {
-  const c = guionDe(datos).cambiosPresupuesto
-  const a0 = anioBase(datos)
-  const max = Math.max(c.salen.k23, c.salen.k24, c.entran.k23, c.entran.k24, 1)
-  const grupos = [
-    { clave: 'salen', titulo: <><b>{entero(c.salen.n)} zonas</b> seleccionadas únicamente por {a0}</>, v: [c.salen.k23, c.salen.k24] },
-    { clave: 'entran', titulo: <><b>{entero(c.entran.n)} zonas</b> incorporadas por {NOMBRE_MOVILIDAD}</>, v: [c.entran.k23, c.entran.k24] },
-  ]
-  return (
-    <div className="periodos">
-      <div className="periodos__grupos">
-        {grupos.map((gr, k) => (
-          <figure key={gr.clave} className={`periodos__grupo periodos__grupo--${gr.clave}`}>
-            <div className="periodos__barras">
-              {gr.v.map((v, j) => (
-                <div key={j} className="periodos__col">
-                  <motion.b className="periodos__valor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 + 0.5 * j + 0.15 * k }}>{entero(v)}</motion.b>
-                  <motion.i className={`periodos__barra periodos__barra--${j}`} style={{ height: `calc((100% - 2.2em) * ${v / max})` }}
-                            initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: 0.3 + 0.5 * j + 0.15 * k, duration: 0.6, ease: 'easeOut' }} />
-                </div>
-              ))}
-            </div>
-            <div className="periodos__anios">{gr.v.map((_, j) => <span key={j}>{a0 - 1 + j}</span>)}</div>
-            <figcaption>{gr.titulo}</figcaption>
-          </figure>
-        ))}
-      </div>
-      <p className="periodos__unidad">Siniestros graves por año</p>
-      <p className="periodos__nota">Estos números corresponden a los grupos que difieren entre selecciones, no a las {entero(escenario(datos).esquinas)} zonas completas.</p>
-    </div>
-  )
-}
-
-export function solucion({ datos, modo, ir }: PropsMov): Pantalla {
-  const [e0, e1] = datos.resumen.periodo_estimacion
+/** Una pregunta y su respuesta, grandes; al lado, una escena: la lupa recorre los años anteriores y aparece la esquina que se escapaba */
+export function solucion({ modo, ir }: PropsMov): Pantalla {
   return {
     titular: (
-      <>
-        <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
-          ¿Y si las esquinas más peligrosas no fueran simplemente las que tuvieron más accidentes <em>el último año</em>?
-        </motion.h1>
-        <motion.p className="pp__bajada" {...entrar(1)}>Mirar un solo período puede ocultar patrones importantes.</motion.p>
-      </>
+      <motion.h1 className="display pp__pregunta" {...entrar(0)}>
+        ¿Y si las esquinas más peligrosas no fueran simplemente las que tuvieron más accidentes <em>el último año</em>?
+      </motion.h1>
     ),
-    visual: <DosPeriodos datos={datos} />,
+    visual: <div className="pp__ilustracion"><ProliActividad tipo="historia" /></div>,
     conclusion: (
-      <>
-        <p className="pp__remate">Una sola cifra no cuenta toda la historia.</p>
-        <p className="pp__texto">{NOMBRE_MOVILIDAD} analiza los registros de {e0} y {e1} y compara lugares con comportamientos similares para estimar su riesgo.</p>
-      </>
+      <motion.p className="pp__respuesta" {...entrar(2)}>
+        <b>{NOMBRE_MOVILIDAD}</b> analiza los registros históricos y compara lugares con comportamientos similares para estimar su riesgo.
+      </motion.p>
     ),
     accion: modo !== 'auto' && <Boton onClick={() => ir('antes')} proli="cap-antes">Ver qué cambia →</Boton>,
   }
 }
 
 // ---------------------------------------------------------------- 3. Antes y después
+/**
+ * Las dos selecciones, una barra cada una y del mismo tamaño (mismo presupuesto, mismos lugares): la
+ * parte gris es la misma en las dos (los lugares que coinciden) y la de color es lo que cambia: los que
+ * solo escoge «mirando solo un año» (salen) y los que solo escoge Presupuesto+ (entran).
+ */
+function ComparaSelecciones({ datos, visto }: { datos: DatosMovilidad; visto: boolean }) {
+  const g = guionDe(datos)
+  const a0 = anioBase(datos)
+  const comun = g.comunesPresupuesto.length, salen = g.salenPresupuesto.length, entran = g.entranPresupuesto.length
+  const Seg = ({ n, clase, cifra }: { n: number; clase: string; cifra: boolean }) => (
+    <i className={`compara__seg compara__seg--${clase}`} style={{ flexGrow: n }}>{cifra && <b>{entero(n)}</b>}</i>
+  )
+  return (
+    <div className="compara">
+      <div className="compara__fila">
+        <span className="compara__nombre">Mirando solo {a0}</span>
+        <div className="compara__barra">
+          {visto ? <><Seg n={comun} clase="comun" cifra /><Seg n={salen} clase="salen" cifra /></> : <Seg n={comun + salen} clase="salen" cifra={false} />}
+        </div>
+      </div>
+      {visto && (
+        <motion.div className="compara__fila" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
+          <span className="compara__nombre">Con {NOMBRE_MOVILIDAD}</span>
+          <div className="compara__barra">
+            <Seg n={comun} clase="comun" cifra />
+            <Seg n={entran} clase="entran" cifra />
+          </div>
+        </motion.div>
+      )}
+      {visto ? (
+        <motion.ul className="compara__clave" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35, duration: 0.4 }}>
+          <li><i className="compara__muestra compara__muestra--comun" /><span><b>{entero(comun)}</b> lugares los escogen las dos formas</span></li>
+          <li><i className="compara__muestra compara__muestra--salen" /><span><b>{entero(salen)}</b> solo los escoge mirando solo {a0}: <b>salen</b></span></li>
+          <li><i className="compara__muestra compara__muestra--entran" /><span><b>{entero(entran)}</b> solo los escoge {NOMBRE_MOVILIDAD}: <b>entran</b></span></li>
+        </motion.ul>
+      ) : (
+        <p className="compara__pista">Estos son los lugares que se escogen mirando solo {a0}. Toca «Ver {NOMBRE_MOVILIDAD}» para comparar.</p>
+      )}
+    </div>
+  )
+}
+
 export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla {
   const g = guionDe(datos)
-  const n = g.comparacionPresupuesto.esquinas
   const visto = lista === 'modelo'
   const a0 = anioBase(datos)
   return {
+    actividad: 'intercambio',
     titular: (
       <motion.h1 className="display pp__titulo" {...entrar(0)}>
         Con el mismo presupuesto, cambian <em>{entero(g.entranPresupuesto.length)}</em> decisiones de inversión.
@@ -199,12 +200,7 @@ export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla 
           {entero(g.entranPresupuesto.length)} decisiones diferentes
         </motion.div>
       )}
-      <div className="pp__conteo">
-        <div><b>{entero(n)}</b><span>intervenciones posibles con ambos métodos</span></div>
-        <div className={visto ? '' : 'pp__oculto'}><b>{entero(g.comunesPresupuesto.length)}</b><span>lugares coinciden</span></div>
-        <div className={`pp__conteo--salen ${visto ? '' : 'pp__oculto'}`}><b>{entero(g.salenPresupuesto.length)}</b><span>salen de la selección</span></div>
-        <div className={`pp__conteo--entran ${visto ? '' : 'pp__oculto'}`}><b>{entero(g.entranPresupuesto.length)}</b><span>lugares diferentes entran con {NOMBRE_MOVILIDAD}</span></div>
-      </div>
+      <ComparaSelecciones datos={datos} visto={visto} />
       </>
     ),
     accion: modo !== 'auto' && (visto
@@ -214,11 +210,12 @@ export function antes({ datos, modo, ir, lista, setLista }: PropsMov): Pantalla 
 }
 
 // ---------------------------------------------------------------- 4. Resultados
-export function resultados({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
+export function resultados({ datos, modo, ir }: PropsMov): Pantalla {
   const p = guionDe(datos).comparacionPresupuesto
   const [e0, e1] = datos.resumen.periodo_estimacion
   const a0 = anioBase(datos), a1 = anioVal(datos)
   return {
+    actividad: 'grafica',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>¿Qué pasó después en los lugares seleccionados?</motion.h1>
@@ -240,27 +237,29 @@ export function resultados({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
             <small>siniestros graves registrados en {a1}</small>
           </div>
         </div>
-        <p className="pp__remate">Identificamos lugares con mayor siniestralidad posterior.</p>
-        <p className="pp__texto"><b>¿Qué significa?</b> En esta comparación retrospectiva, {NOMBRE_MOVILIDAD} identificó un conjunto de lugares donde posteriormente se
-          registraron más siniestros graves. Eso es relevante para priorizar el análisis del riesgo.</p>
+        <p className="pp__remate">Con nuestro método, el mismo presupuesto llega a más lugares de mayor siniestralidad.</p>
+        <p className="pp__texto"><b>¿Qué significa?</b> Con los mismos {millones(escenario(datos).presupuesto_millones)}, los lugares que escogió {NOMBRE_MOVILIDAD} registraron
+          después más siniestros graves que los escogidos mirando solo {a0}. Ahí es donde conviene priorizar la inversión.</p>
       </>
     ),
     accion: modo !== 'auto' && <Boton onClick={() => ir('como')} proli="cap-como">Descubrir cómo lo hicimos →</Boton>,
-    secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('dosAnios')}>¿Y si se miran dos años?</button>,
   }
 }
 
 // ---------------------------------------------------------------- 5. Cómo lo hicimos
-export function como({ modo, ir, abrirHoja }: PropsMov): Pantalla {
+export function como({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
   return {
+    actividad: 'calculos',
     titular: (
       <>
         <motion.h1 className="display pp__titulo" {...entrar(0)}>Los datos estaban ahí. <em>Había que ponerlos a trabajar.</em></motion.h1>
-        <motion.p className="pp__bajada" {...entrar(1)}>Conectamos información histórica, características de las vías y patrones de lugares similares.</motion.p>
+        <CifraGrande total={datos.fuentes.calculos_realizados.total} paso={100} de="de cálculos"
+                     detalle={<>con más de {masDe(datos.fuentes.registros_analizados.total, 50_000)} registros: cada tramo de vía y cada siniestro en su lugar, el riesgo de cada zona y cada combinación posible del presupuesto</>} />
+        <motion.p className="pp__texto" {...entrar(2)}>Y puede seguir aprendiendo con nuevos datos y algoritmos: <b>así se vuelve un sistema inteligente</b>.</motion.p>
+        <motion.p className="pp__remate" {...entrar(3)}>Esto es {EMPRESA}: convertimos datos en inteligencia que actúa.</motion.p>
       </>
     ),
-    visual: <Etapas etapas={[{ icono: 'datos', titulo: 'Datos conectados' }, { icono: 'riesgo', titulo: 'Riesgo estimado' }, { icono: 'decision', titulo: 'Decisiones mejor informadas' }]} />,
-    conclusion: <p className="pp__texto">Construimos un modelo matemático que permite estimar el riesgo y apoyar la priorización del presupuesto.</p>,
+    visual: <AnimacionSistema datos={datos} auto={modo === 'auto'} />,
     accion: modo !== 'auto' && <Boton onClick={() => ir('reto')} proli="cap-reto">¿Y en tu entidad? →</Boton>,
     secundarias: modo !== 'auto' && <button className="boton-texto" onClick={() => abrirHoja('metodologia')} data-proli="cap-metodologia">Consultar metodología</button>,
   }
@@ -271,6 +270,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
   const totem = esTotem(modo)
   const agendar = () => (totem || !URL_CITA ? setVerQr(!verQr) : window.open(urlCitaCon(suReto), '_blank', 'noopener'))
   return {
+    actividad: 'idea',
     titular: (
       <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
         ¿Qué decisiones de tu entidad podrían mejorar si pusieras <em>todos tus datos a trabajar</em>?
@@ -300,26 +300,6 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
 export const PANTALLAS: Record<VistaMov, (p: PropsMov) => Pantalla> = { portada, problema, solucion, antes, resultados, como, reto }
 
 // ---------------------------------------------------------------- hojas (detalles opcionales)
-export function HojaDosAnios({ datos }: { datos: DatosMovilidad }) {
-  const p = guionDe(datos).comparacionPresupuesto
-  const a0 = anioBase(datos), a1 = anioVal(datos)
-  return (
-    <>
-      <h2 className="display display--m">¿Y si se miran dos años?</h2>
-      <ul className="pruebas-mov">
-        <li>Mirando {a0 - 1} y {a0} se escogen casi las mismas zonas que con {NOMBRE_MOVILIDAD} ({entero(p.contar2.comun)} de {entero(p.esquinas)}), y en {a1} tuvieron
-          {' '}{entero(p.contar2.hubo)} siniestros graves. Mirar más de un año ya es sumar información.</li>
-        <li>La diferencia está en cuánto se espera. Mirando los dos años, se esperaría que en {a1} se repitiera su promedio:
-          {' '}{entero(p.contar2.espera)} siniestros graves en esas zonas, y hubo {entero(p.contar2.hubo)}. {NOMBRE_MOVILIDAD}, que suma los lugares
-          parecidos, esperaba ≈ {entero(p.modelo.espera)} y hubo {entero(p.modelo.hubo)}.</li>
-        <li>Muchas zonas empatan en el corte. En la selección basada en {a0}, los empates se rompen por los siniestros de {a0 - 1} y luego por el
-          código de la zona; en {NOMBRE_MOVILIDAD}, por el código de la zona. Con otras reglas de desempate cambia cuántas zonas entran y salen, pero
-          en todas las pruebas las de {NOMBRE_MOVILIDAD} registran más siniestros graves en {a1}.</li>
-      </ul>
-    </>
-  )
-}
-
 export function HojaMetodologia({ datos, modo }: { datos: DatosMovilidad; modo: Modo }) {
   const r = datos.resumen
   const f = datos.fuentes
