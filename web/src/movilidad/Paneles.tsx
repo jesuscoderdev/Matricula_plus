@@ -98,7 +98,7 @@ export function problema({ datos, modo, ir }: PropsMov): Pantalla {
       <>
         <h1 className="pp__cifras">
           <motion.span {...entrar(0)}><b>{entero(g.conGraves)}</b> lugares para intervenir.</motion.span>
-          <motion.span {...entrar(1)}>Recursos para <b className="pp__morado">{entero(esc.esquinas)}</b>.</motion.span>
+          <motion.span {...entrar(1)}>Recursos para <b className="pp__morado">{entero(esc.esquinas)}</b> esquinas.</motion.span>
         </h1>
         <motion.span className="pp__etiqueta" {...entrar(2)}>Escenario ilustrativo; costo supuesto de {millones(costo(datos))} por intervención</motion.span>
       </>

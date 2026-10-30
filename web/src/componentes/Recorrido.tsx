@@ -1,7 +1,7 @@
 /**
  * El formato vertical de los demos (revisión de Paola, 29 oct): una sola columna, sin scroll. Cada
  * pantalla trae titular, visual (el mapa u otro), conclusión y un botón principal; en horizontal, el
- * texto va a la izquierda y el visual a la derecha. Arriba, la marca, atrás y «Paso N de 6». Los
+ * texto va a la izquierda y el visual a la derecha. Arriba, la marca y «Paso N de 6»; atrás va junto al botón principal. Los
  * detalles (metodología, tablas) se abren en una hoja aparte. Lo usan Matrícula+ y Presupuesto+.
  */
 import { AnimatePresence, motion } from 'framer-motion'
@@ -30,13 +30,12 @@ export const Boton = ({ children, onClick, proli }: { children: ReactNode; onCli
   <button className="boton boton--violeta boton--ancho pp__boton" onClick={onClick} data-proli={proli}>{children}</button>
 )
 
-export function CabeceraRecorrido({ paso, total, modo, nombre, atras, reiniciar, alSalir, alPortada }: {
+export function CabeceraRecorrido({ paso, total, modo, nombre, reiniciar, alSalir, alPortada }: {
   /** 0 = portada (logos en lugar de los pasos) */
   paso: number
   total: number
   modo: Modo
   nombre: string
-  atras: () => void
   reiniciar: () => void
   alSalir?: () => void
   alPortada?: () => void
@@ -52,13 +51,6 @@ export function CabeceraRecorrido({ paso, total, modo, nombre, atras, reiniciar,
         </div>
       ) : (
         <>
-          {modo !== 'auto' && (
-            <button type="button" className="boton-tema boton-atras" onClick={atras} title="Atrás" aria-label="Atrás">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <path d="M19 12H5M11 6l-6 6 6 6" />
-              </svg>
-            </button>
-          )}
           <LogoReinicio alReiniciar={reiniciar} alReiniciarTodo={alSalir} nombre={nombre} />
           <div className="pasos" aria-label={`Paso ${paso} de ${total}`}>
             <span className="pasos__texto">Paso {paso} de {total}</span>
@@ -74,11 +66,13 @@ export function CabeceraRecorrido({ paso, total, modo, nombre, atras, reiniciar,
 }
 
 /** Titular, visual (el mapa, con su leyenda debajo, u otro), conclusión y acción */
-export function EscenaRecorrido({ vista, p, mapa, leyenda, alTocar }: {
+export function EscenaRecorrido({ vista, p, mapa, leyenda, atras, alTocar }: {
   vista: string
   p: Pantalla
   mapa: ReactNode
   leyenda?: ItemLeyenda[]
+  /** el botón de atrás, al lado del principal (sin él, solo el principal) */
+  atras?: () => void
   /** tocar cualquier parte (la portada del stand) */
   alTocar?: () => void
 }) {
@@ -111,7 +105,16 @@ export function EscenaRecorrido({ vista, p, mapa, leyenda, alTocar }: {
         </motion.div>
       </AnimatePresence>
       <div className="pp__accion">
-        {p.accion}
+        {atras ? (
+          <div className="pp__fila">
+            <button type="button" className="boton boton--claro pp__atras" onClick={atras} title="Atrás" aria-label="Atrás">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M19 12H5M11 6l-6 6 6 6" />
+              </svg>
+            </button>
+            {p.accion}
+          </div>
+        ) : p.accion}
         {p.secundarias}
       </div>
     </main>

@@ -260,9 +260,9 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
 
   return (
     <div className={`app app--movilidad app--pp app--pp-${vista}`}>
-      <CabeceraRecorrido paso={paso} total={CAPITULOS_MOV.length} modo={modo} nombre={NOMBRE_MOVILIDAD} atras={atras} reiniciar={reiniciar}
+      <CabeceraRecorrido paso={paso} total={CAPITULOS_MOV.length} modo={modo} nombre={NOMBRE_MOVILIDAD} reiniciar={reiniciar}
                          alSalir={alSalir} alPortada={alPortada} />
-      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda}
+      <EscenaRecorrido vista={vista} p={p} leyenda={leyenda} atras={vista !== 'portada' && modo !== 'auto' ? atras : undefined}
                        alTocar={vista === 'portada' && modo === 'stand' ? () => ir('problema') : undefined}
                        mapa={<MapaMovilidad datos={datos} {...propsMapa}>{!p.visual && p.sobreMapa}</MapaMovilidad>} />
 
