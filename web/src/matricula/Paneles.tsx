@@ -262,6 +262,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
   const totem = esTotem(modo)
   const agendar = () => (totem || !URL_CITA ? setVerQr(!verQr) : window.open(urlCitaCon(suReto), '_blank', 'noopener'))
   return {
+    actividad: 'idea',
     titular: (
       <>
         <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>Ahora imagina lo que podríamos lograr con <em>los datos de tu entidad</em>.</motion.h1>

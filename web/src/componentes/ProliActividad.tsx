@@ -7,7 +7,7 @@
 import { motion } from 'framer-motion'
 import type { ReactNode } from 'react'
 
-export type Actividad = 'historia' | 'monedas' | 'lupa' | 'intercambio' | 'grafica' | 'calculos' | 'telescopio' | 'ruta' | 'puzzle' | 'acerca' | 'construye'
+export type Actividad = 'idea' | 'historia' | 'monedas' | 'lupa' | 'intercambio' | 'grafica' | 'calculos' | 'telescopio' | 'ruta' | 'puzzle' | 'acerca' | 'construye'
 
 const V = '#5a44dd', VERDE = '#7bc689', VERDE_OSC = '#3e8e52', NAVY = '#162b2a', AZUL = '#c7d7ec', PIZARRA = '#505b7d'
 const siempre = (duracion: number, extra: object = {}) => ({ duration: duracion, repeat: Infinity, ease: 'easeInOut' as const, ...extra })
@@ -21,6 +21,36 @@ const Pin = ({ color, x = 0, y = 0 }: { color: string; x?: number; y?: number })
 )
 
 const ESCENAS: Record<Actividad, () => ReactNode> = {
+  // Tu reto: alguien cuenta su reto (el globo escribe), los datos viajan y se enciende la idea
+  idea: () => {
+    const ciclo = (times: number[], extra: object = {}) => siempre(4.2, { times, ...extra })
+    return (
+      <>
+        <path d="M6 22 Q6 14 14 14 L50 14 Q58 14 58 22 L58 44 Q58 52 50 52 L22 52 L12 62 L14 52 Q6 52 6 44 Z" fill={AZUL} />
+        {[20, 32, 44].map((x, k) => (
+          <motion.circle key={x} cx={x} cy={33} r={3.6} fill={PIZARRA} animate={{ opacity: [0.25, 1, 0.25], y: [0, -3, 0] }} transition={siempre(0.9, { delay: k * 0.18 })} />
+        ))}
+        {[0, 1, 2].map((k) => (
+          <motion.rect key={k} width={6} height={6} rx={1.5} fill={k === 1 ? VERDE : V}
+                       animate={{ x: [56, 72, 84], y: [44 + k * 6, 64 - k * 4, 50], opacity: [0, 1, 0] }}
+                       transition={ciclo([0, 0.5, 1], { delay: k * 0.35, ease: 'easeInOut' })} />
+        ))}
+        <motion.circle cx={94} cy={44} r={22} fill="#f2c94c" animate={{ opacity: [0, 0, 0.35, 0.35, 0], scale: [0.6, 0.6, 1.1, 1.1, 0.6] }}
+                       style={{ originX: '94px', originY: '44px' }} transition={ciclo([0, 0.45, 0.6, 0.9, 1])} />
+        <motion.path d="M94 26 C 82 26 76 36 80 46 C 82 51 86 53 86 59 L102 59 C 102 53 106 51 108 46 C 112 36 106 26 94 26 Z"
+                     stroke={NAVY} strokeWidth={2.5} animate={{ fill: ['#ffffff', '#ffffff', '#f2c94c', '#f2c94c', '#ffffff'] }} transition={ciclo([0, 0.45, 0.6, 0.9, 1])} />
+        <rect x={86} y={61} width={16} height={5} rx={1.5} fill={PIZARRA} /><rect x={88} y={68} width={12} height={4} rx={1.5} fill={PIZARRA} />
+        {[[94, 14, 94, 8], [72, 26, 67, 21], [116, 26, 121, 21], [70, 46, 64, 46], [118, 46, 124, 46]].map(([x1, y1, x2, y2], k) => (
+          <motion.line key={k} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#c99a1e" strokeWidth={2.5} strokeLinecap="round"
+                       animate={{ opacity: [0, 0, 1, 1, 0] }} transition={ciclo([0, 0.5, 0.62, 0.9, 1])} />
+        ))}
+        <motion.path d="M10 84 L36 84 M10 94 L52 94" stroke={V} strokeWidth={4} strokeLinecap="round" pathLength={1} strokeDasharray="1 1"
+                     animate={{ strokeDashoffset: [1, 1, 0, 0, 1] }} transition={ciclo([0, 0.6, 0.8, 0.92, 1])} />
+        <motion.path d="M62 88 L68 94 L80 82" fill="none" stroke={VERDE_OSC} strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round"
+                     animate={{ opacity: [0, 0, 1, 1, 0] }} transition={ciclo([0, 0.75, 0.82, 0.92, 1])} />
+      </>
+    )
+  },
   // La solución (Presupuesto+), en grande: tres años de la misma calle. El último año solo muestra la esquina
   // de la izquierda; la lupa recorre los años anteriores, aparecen los siniestros de la esquina de la derecha
   // y abajo esa esquina se enciende: mirando un solo año se escapaba.

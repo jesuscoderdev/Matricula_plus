@@ -270,6 +270,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
   const totem = esTotem(modo)
   const agendar = () => (totem || !URL_CITA ? setVerQr(!verQr) : window.open(urlCitaCon(suReto), '_blank', 'noopener'))
   return {
+    actividad: 'idea',
     titular: (
       <motion.h1 className="display pp__titulo pp__titulo--m" {...entrar(0)}>
         ¿Qué decisiones de tu entidad podrían mejorar si pusieras <em>todos tus datos a trabajar</em>?
