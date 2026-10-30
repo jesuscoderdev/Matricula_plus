@@ -1,13 +1,14 @@
 /**
  * Marca de agua viva (fondo del cuadrante derecho, en horizontal): varios logos de Proliferante (la «o»)
- * en transparencia. Cada tanto, uno suelta puntos que viajan en curva hasta un lugar libre y se
+ * (el ícono en alta resolución) en transparencia. Cada tanto, uno suelta puntos que viajan en curva hasta un lugar libre y se
  * acomodan, uno por uno, sobre la silueta exacta de la «o» (sacada de la imagen del logo); cuando el
  * dibujo está completo, el logo aparece encima y los puntos se apagan. Los logos más viejos se van
  * desvaneciendo, así nunca se llena. Es un canvas: no tapa clics ni se ve en lectores de pantalla.
  * Con «reducir movimiento», solo los logos quietos.
  */
 import { useEffect, useRef } from 'react'
-import logoO from '../assets/logo-proliferante-o.webp'
+// El ícono de Proliferante en alta resolución (640 × 640), el mismo de la marca de agua de «Conoce a Proli»
+import iconoProliferante from '../assets/icono-proliferante.webp'
 
 const ALFA_LOGO = 0.13          // transparencia de la marca de agua
 const MAX_LOGOS = 6
@@ -16,6 +17,7 @@ const VUELO_MS = 2300           // lo que tardan los puntos en llegar a su lugar
 const APARECE_MS = 700          // lo que tarda el logo en aparecer sobre los puntos
 const APAGA_MS = 1600           // lo que tarda en desvanecerse un logo viejo
 const COLORES = ['#7bc689', '#5a44dd', '#3e8e52', '#8c7cee']
+const TINTE = '#7bc689'          // color de los logos (el verde de la «o»)
 
 interface Logo { x: number; y: number; t: number; nace: number; muere: number | null }
 interface Punto { x0: number; y0: number; cx: number; cy: number; dx: number; dy: number; color: string; demora: number }
@@ -54,6 +56,7 @@ export default function MarcaDeAguaViva() {
     const quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     let ancho = 0, alto = 0, raf = 0, ultimo = 0
     let forma: ReturnType<typeof silueta> | null = null
+    let sprite: HTMLCanvasElement | null = null   // el logo recortado y teñido, listo para dibujar sin pixelarse
     const img = new Image()
     const logos: Logo[] = []
     const vuelos: Vuelo[] = []
@@ -96,11 +99,11 @@ export default function MarcaDeAguaViva() {
     }
 
     const dibujarLogo = (l: Logo, alfa: number) => {
-      if (!forma || alfa <= 0) return
-      const [sx, sy, sw, sh] = forma.recorte
+      if (!forma || !sprite || alfa <= 0) return
       const w = forma.proporcion * l.t, h = forma.alto * l.t
       ctx.globalAlpha = alfa
-      ctx.drawImage(img, sx, sy, sw, sh, l.x - w / 2, l.y - h / 2, w, h)
+      ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'
+      ctx.drawImage(sprite, l.x - w / 2, l.y - h / 2, w, h)
     }
     const cuadro = (ahora: number) => {
       raf = requestAnimationFrame(cuadro)
@@ -142,6 +145,12 @@ export default function MarcaDeAguaViva() {
     let reloj = 0
     img.onload = () => {
       forma = silueta(img)
+      // Recorte teñido a resolución completa: se reduce al dibujarlo, así se ve nítido
+      const [sx, sy, sw, sh] = forma.recorte
+      sprite = document.createElement('canvas'); sprite.width = sw; sprite.height = sh
+      const sg = sprite.getContext('2d')!
+      sg.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh)
+      sg.globalCompositeOperation = 'source-in'; sg.fillStyle = TINTE; sg.fillRect(0, 0, sw, sh)
       const ahora = performance.now()
       // Para empezar, tres logos ya puestos
       for (let k = 0; k < 3; k++) { const l = lugarLibre(tamano()); l.nace = ahora - APARECE_MS; logos.push(l) }
@@ -150,7 +159,7 @@ export default function MarcaDeAguaViva() {
       soltar(ahora)
       reloj = window.setInterval(() => { if (!document.hidden) soltar(performance.now()) }, CADA_MS)
     }
-    img.src = logoO
+    img.src = iconoProliferante
     return () => { cancelAnimationFrame(raf); window.clearInterval(reloj); ro.disconnect() }
   }, [])
   return <canvas ref={ref} className="marca-viva" aria-hidden />
