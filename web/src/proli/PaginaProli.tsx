@@ -98,9 +98,11 @@ export default function PaginaProli({ enApp }: {
   const reducir = useReducedMotion()
   const reto = useReto()
   const { lineas, ocupado, sinConexion, cita, preguntar, reiniciar } = useConversacion()
+  // Solo letras, números y puntuación simple (sin «:», «;» ni «/»): el servidor rechaza otro contexto
+  // de pantalla (CONTEXTO en api/proli.ts) y Proli quedaría sin conexión
   const pantalla = enApp
-    ? `${PANTALLA_PROLI}${desde ? `, después de ver ${DEMOS[desde].nombre}` : ''}: aquí no hay demos a la vista; si el visitante quiere ver uno, ábrelo`
-    : `${PANTALLA_PROLI} (govtech.proliferante.com/proli): aquí no hay demos a la vista`
+    ? `${PANTALLA_PROLI}${desde ? `, después de ver ${DEMOS[desde].nombre}` : ''}. Aquí no hay demos a la vista. Si el visitante quiere ver uno, ábrelo`
+    : `${PANTALLA_PROLI}, en su página propia. Aquí no hay demos a la vista`
   const demo = useOrdenesDePagina(totem, !!enApp, pantalla)
   const [texto, setTexto] = useState('')
   const refLista = useRef<HTMLDivElement>(null)
