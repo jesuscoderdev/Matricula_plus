@@ -123,7 +123,7 @@ export default function PaginaProli({ enApp }: {
 
   const hablar = () => {
     callar.current()
-    callar.current = decir(desde ? `¡Hola! ${PROLI_PAGINA.despues}` : `Hola, soy Proli. ${PROLI_PAGINA.saludo}`, {
+    callar.current = decir(`Hola, soy Proli. ${desde ? PROLI_PAGINA.despues : PROLI_PAGINA.saludo}`, {
       audio: desde ? PROLI_PAGINA.audioDespues : PROLI_PAGINA.audioSaludo,
       alEmpezar: () => setVoz('hablando'),
       alTerminar: () => setVoz((v) => (v === 'bloqueada' ? v : 'lista')),

@@ -11,6 +11,7 @@
  * Uso (desde web/, con la clave en .env.local):
  *   npm run build && npm run proli:local      (en otra terminal)
  *   npm run proli:pruebas > pruebas-proli.txt
+ *   npm run proli:pruebas -- R1     (solo los escenarios cuyo nombre contiene «R1»)
  * Cada corrida gasta créditos de la API (unas 20 llamadas).
  */
 const URL = 'http://localhost:4174/api/proli'
@@ -42,6 +43,14 @@ const escenarios = [
     'Sí, eso es.',
     'Sí, autorizo. Soy Carlos Ruiz, de la Secretaría de Educación de Chía. Prefiero WhatsApp.',
     'Pensándolo bien, no quiero que me contacten. Borra mis datos.',
+  ]],
+  // Reunión del 31-oct: con un reto fuera de los demos, Proli se fue a cupos escolares y seguridad vial
+  ['R1 · Reto fuera de los demos (lotes)', 'la conversación con Proli, después de ver Matrícula+. Aquí no hay demos a la vista. Si el visitante quiere ver uno, ábrelo', [
+    'Tengo un reto en mi entidad',
+    'Necesito hacer un estudio de mercado para unos lotes.',
+    'Quiero desarrollar un proyecto y saber cuál sería la mejor opción.',
+    'Así es.',
+    'Hay mucha información, tanta que al final no sé qué decidir.',
   ]],
   // Tuteo: aunque el visitante hable de usted
   ['T1 · El visitante habla de usted', 'Presupuesto+, capítulo La solución', ['Buenos días. ¿Usted me podría explicar qué estoy viendo, por favor?']],
@@ -82,7 +91,11 @@ async function llamar(mensajes) {
   return { texto, fin }
 }
 
-for (const [nombre, pantalla, turnos] of escenarios) {
+// Mientras el visitante cuenta su reto, Proli no debe mover la pantalla (solo agendar o borrar sus datos)
+const DEL_RETO = new Set(['abrir_agenda', 'agendar_con_reto', 'borrar_reto'])
+const filtro = process.argv[2]
+
+for (const [nombre, pantalla, turnos] of escenarios.filter(([n]) => !filtro || n.includes(filtro))) {
   console.log(`\n=== ${nombre}  [${pantalla}]`)
   const mensajes = []
   for (const dice of turnos) {
@@ -98,7 +111,11 @@ for (const [nombre, pantalla, turnos] of escenarios) {
         respuestas++; if (a.length) conAlerta++
         console.log(`  Proli (${palabras} pal.)${a.length ? ` ⚠ ${a.join(' ')}` : ''}: ${texto}`)
       }
-      if (acciones.length) console.log(`    [acciones: ${acciones.map((a) => `${a.name} ${JSON.stringify(a.input)}`).join(' · ')}]`)
+      if (acciones.length) {
+        const desvio = nombre.startsWith('R') && acciones.some((a) => !DEL_RETO.has(a.name))
+        if (desvio) conAlerta++
+        console.log(`    [acciones: ${acciones.map((a) => `${a.name} ${JSON.stringify(a.input)}`).join(' · ')}]${desvio ? ' ⚠ DESVÍO (movió la pantalla durante el reto)' : ''}`)
+      }
       mensajes.push({ role: 'assistant', content: r.fin.contenido })
       if (!acciones.length) break
       mensajes.push({ role: 'user', content: acciones.map((a) => ({ type: 'tool_result', tool_use_id: a.id, content: `Listo: se ejecutó ${a.name}.` })) })

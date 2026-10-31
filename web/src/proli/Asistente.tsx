@@ -276,7 +276,7 @@ export default function Asistente() {
             </header>
             <div className="proli-panel__lista" ref={refLista} aria-live="polite">
               {lineas.length === 0 && (
-                <p className="proli-panel__linea proli-panel__linea--proli">Hola, soy Proli, el asistente virtual de Proliferante. Aquí mostramos lo que pasa cuando los datos se convierten en decisiones. ¿Quieres ver un ejemplo o tienes algún reto en mente?</p>
+                <p className="proli-panel__linea proli-panel__linea--proli">Hola, soy Proli, un sistema inteligente que trabaja para lograr resultados. Aquí mostramos lo que pasa cuando los datos se convierten en decisiones. ¿Quieres ver un ejemplo o tienes algún reto en mente?</p>
               )}
               {lineas.filter((l) => l.texto).map((l, i) => (
                 <p key={i} className={`proli-panel__linea proli-panel__linea--${l.quien}`}>{l.quien === 'accion' ? `↳ ${l.texto}` : l.texto}</p>
