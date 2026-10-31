@@ -29,6 +29,7 @@ import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
 import { NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
 import QrCita from '../componentes/QrCita'
+import AvisoPrivacidad from '../componentes/AvisoPrivacidad'
 
 type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
 type Bloque = Anthropic.Beta.Messages.BetaContentBlock
@@ -436,7 +437,7 @@ export default function Asistente() {
               {cita && !ocupado && (
                 <div className="proli-panel__cita">
                   {esTotem(modo) || !URL_CITA ? <QrCita />
-                    : <a className="boton boton--violeta" href={urlCitaCon(reto)} target="_blank" rel="noopener noreferrer">{BOTON_WHATSAPP(!!reto)} →</a>}
+                    : <div className="qr-cita"><a className="boton boton--violeta" href={urlCitaCon(reto)} target="_blank" rel="noopener noreferrer">{BOTON_WHATSAPP(!!reto)} →</a><AvisoPrivacidad /></div>}
                 </div>
               )}
               {ocupado && <span className="proli-panel__puntos" aria-hidden><i /><i /><i /></span>}

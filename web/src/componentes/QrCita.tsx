@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Qr from './Qr'
 import { MOSTRAR_QR_GENERADO, QR_IMAGEN, urlCitaCon } from '../config'
-import { URL_AVISO_PRIVACIDAD } from '../../api/_proli/privacidad'
+import AvisoPrivacidad from './AvisoPrivacidad'
 import { useReto } from '../proli/ordenes'
 
 /**
@@ -14,17 +14,20 @@ export default function QrCita() {
   // Si Proli ya conoce el reto, el QR generado lo lleva escrito (la imagen fija no puede)
   if (!sinImagen && !reto) {
     return (
-      <figure className="qr">
-        <img className="qr__img" src={QR_IMAGEN} alt="Código QR para agendar una cita" onError={() => setSinImagen(true)} />
-        <figcaption>Escanea para agendar una cita</figcaption>
-      </figure>
+      <div className="qr-cita">
+        <figure className="qr">
+          <img className="qr__img" src={QR_IMAGEN} alt="Código QR para agendar una cita" onError={() => setSinImagen(true)} />
+          <figcaption>Escanea para agendar una cita</figcaption>
+        </figure>
+        <AvisoPrivacidad />
+      </div>
     )
   }
   if (MOSTRAR_QR_GENERADO) return (
-    <>
+    <div className="qr-cita">
       <Qr texto={urlCitaCon(reto)} etiqueta={reto ? 'Escanea: el mensaje ya lleva tu reto' : 'Escanea para agendar una cita'} />
-      {URL_AVISO_PRIVACIDAD && <p className="qr__aviso">Aviso de privacidad: {URL_AVISO_PRIVACIDAD.replace(/^https?:\/\//, '')}</p>}
-    </>
+      <AvisoPrivacidad />
+    </div>
   )
   return (
     <figure className="qr">

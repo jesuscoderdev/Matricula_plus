@@ -40,7 +40,7 @@ Todo está en el repositorio `jesuscoderdev/Matricula_plus`, carpeta `web/`.
 | `api/_proli/instrucciones.ts` | **Las instrucciones de Proli**, escritas a mano y revisadas: identidad, misión, voz, flujo de conversación, consentimiento, objeciones y reglas sobre cifras. |
 | `api/_proli/conocimiento.ts` | **Lo que Proli sabe de los demos** (cifras, método, fuentes, tablas por localidad). **Es un archivo generado: no se edita a mano.** |
 | `api/_proli/herramientas.ts` | **Las herramientas** (acciones sobre la pantalla) con su esquema JSON (`strict`, listas cerradas `enum`). |
-| `api/_proli/privacidad.ts` | **Enlace del aviso de privacidad** (`URL_AVISO_PRIVACIDAD`, hoy vacío: lo confirma Paola). `api/proli.ts` arma con él la regla `{{AVISO_PRIVACIDAD}}` de las instrucciones, y `QrCita.tsx` lo muestra junto al código QR. |
+| `api/_proli/privacidad.ts` | **Texto del aviso de privacidad** (`AVISO_PRIVACIDAD`, borrador: lo aprueba Paola). Se lee en un modal dentro de la página (`src/componentes/AvisoPrivacidad.tsx`), con el enlace «Aviso de privacidad» junto al QR y al botón de WhatsApp: en el tótem no se sale del sitio. `api/proli.ts` arma con él la regla `{{AVISO_PRIVACIDAD}}` de las instrucciones. |
 | `api/tsconfig.json` | Configuración de TypeScript de la función (Node, ESM). |
 
 Los archivos que empiezan por `_` dentro de `api/` **no** son funciones de Vercel; solo los importa `api/proli.ts`. Los imports relativos llevan `.js` (por ejemplo `./_proli/instrucciones.js`) porque el paquete es `"type": "module"`.

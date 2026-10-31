@@ -2116,8 +2116,14 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='celular'] .pp:has(.pp__respuesta) { grid-template-rows: auto auto minmax(13rem, 1fr) auto; }
 :root:not([data-modo='escritorio']) .pp:has(.pp__respuesta) .pp__conclusion { padding-top: 0; padding-bottom: 0.9rem; }
 
-/* Aviso de privacidad junto al QR de la cita (cuando está configurado) */
-.qr__aviso { margin-top: 0.4rem; font-size: 0.72rem; line-height: 1.3; color: var(--suave); text-align: center; word-break: break-all; }
+/* Aviso de privacidad junto al QR o al botón de la cita: se abre en una hoja, sin salir de la página */
+.qr-cita { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+.pie-empresa .qr-cita { margin-left: auto; }
+.pie-empresa .qr-cita .qr { margin-left: 0; }
+.proli-panel__cita .qr-cita { width: 100%; }
+.qr__aviso { border: 0; background: none; padding: 0.3rem 0.5rem; font: inherit; font-size: 0.72rem; line-height: 1.3; color: var(--suave); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.qr__aviso:hover { color: var(--tinta); }
+.aviso__titulo { margin: 0; font-size: 1.3rem; color: var(--tinta); }
 
 /* Chat de Proli: después de abrir la agenda, el QR (tótem) o el botón a WhatsApp, dentro del panel */
 .proli-panel__cita { display: flex; justify-content: center; padding: 0.4rem 0 0.6rem; }

@@ -14,6 +14,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { INSTRUCCIONES } from '../api/_proli/instrucciones.ts'
 import { PROLI_INTRO, PORTADA_STAND } from '../src/config.ts'
+import { AVISO_PRIVACIDAD } from '../api/_proli/privacidad.ts'
 
 const leer = (ruta: string) => fs.readFileSync(new URL(ruta, import.meta.url), 'utf-8')
 
@@ -114,6 +115,13 @@ test('la guía de Proli (preguntas y respuestas) tutea', () => {
 
 test('los saludos de Proli en pantalla tutean', () => {
   for (const t of [PROLI_INTRO.saludo, PROLI_INTRO.texto, PORTADA_STAND.proli]) revisar('config.ts', t)
+})
+
+test('el aviso de privacidad tutea y nombra la ley y cómo retirar el permiso', () => {
+  for (const s of AVISO_PRIVACIDAD) { revisar('privacidad.ts', s.titulo); revisar('privacidad.ts', s.texto) }
+  const todo = AVISO_PRIVACIDAD.map((s) => s.texto).join(' ')
+  assert.match(todo, /Ley 1581 de 2012/)
+  assert.match(todo, /retirar tu permiso/)
 })
 
 test('el detector encuentra usted, plural y jerga (control)', () => {
