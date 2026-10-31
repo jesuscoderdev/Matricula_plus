@@ -1,6 +1,7 @@
 /**
  * El CRM de Proli V9: Supabase (tablas en supabase/001_proli_v9.sql) por su API REST, con la clave
- * service_role, que solo vive en el servidor (variables SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY).
+ * secreta (la nueva «sb_secret_…» o la antigua service_role), que solo vive en el servidor (variables
+ * SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY).
  *
  * Sin Supabase configurado: en el servidor local (PROLI_ALMACEN_LOCAL=ruta) se escribe un JSONL para
  * probar de punta a punta; en Vercel, guardar falla con «sin_almacen» y el navegador conserva la
@@ -29,7 +30,8 @@ async function rest(tabla: string, filas: Fila[], opciones: { conflicto?: string
   const prefer = [opciones.conflicto ? 'resolution=merge-duplicates' : '', opciones.devolver ? 'return=representation' : 'return=minimal'].filter(Boolean).join(',')
   const r = await fetch(`${url()}/rest/v1/${tabla}${q}`, {
     method: 'POST',
-    headers: { apikey: clave()!, Authorization: `Bearer ${clave()}`, 'Content-Type': 'application/json', Prefer: prefer },
+    // Clave nueva (sb_secret_…): solo en «apikey». Clave antigua (service_role, un JWT): también como Bearer
+    headers: { apikey: clave()!, ...(clave()!.startsWith('sb_') ? {} : { Authorization: `Bearer ${clave()}` }), 'Content-Type': 'application/json', Prefer: prefer },
     body: JSON.stringify(filas),
   })
   if (!r.ok) throw new Error(`supabase ${tabla} ${r.status} ${(await r.text()).slice(0, 300)}`)
