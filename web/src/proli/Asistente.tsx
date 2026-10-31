@@ -249,7 +249,7 @@ export default function Asistente() {
       for (const o of s.ordenes ?? []) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
       agregar({ quien: 'proli', texto: s.sinConexion })
     } else {
-      agregar({ quien: 'proli', texto: 'Ahora no tengo conexión para conversar, pero puedo llevarlo a donde quiera con estas opciones.' })
+      agregar({ quien: 'proli', texto: 'Ahora no tengo conexión para conversar, pero puedo llevarte a donde quieras con estas opciones.' })
     }
   }, [])
 
@@ -443,7 +443,7 @@ export default function Asistente() {
             </div>
             <form className="proli-panel__escribir" onSubmit={enviar}>
               <input value={texto} onChange={(e) => { setTexto(e.target.value); avisarActividad() }} maxLength={500} placeholder="Escribe tu pregunta…"
-                     disabled={ocupado} aria-label="Su pregunta para Proli" enterKeyHint="send" />
+                     disabled={ocupado} aria-label="Tu pregunta para Proli" enterKeyHint="send" />
               <button type="submit" className="boton boton--violeta" disabled={ocupado || !texto.trim()}>Enviar</button>
             </form>
           </motion.section>
