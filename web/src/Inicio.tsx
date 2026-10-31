@@ -110,7 +110,8 @@ export default function Inicio() {
 
   // Tótem táctil: si nadie toca la pantalla (Proli o elegir proyecto), vuelve a la portada
   useEffect(() => {
-    if (modo !== 'stand' || fijo || proyecto || etapa === 'portada') return
+    // (en la página de Proli, su conversación avisa y limpia por su cuenta: ConversaV9)
+    if (modo !== 'stand' || fijo || proyecto || etapa === 'portada' || etapa === 'conversar') return
     let id = window.setTimeout(aPortada, SEGUNDOS_INACTIVIDAD * 1000)
     const alTocar = () => { window.clearTimeout(id); id = window.setTimeout(aPortada, SEGUNDOS_INACTIVIDAD * 1000) }
     window.addEventListener('pointerdown', alTocar)
@@ -136,7 +137,8 @@ export default function Inicio() {
   // «Contarle mi reto a Proli» (al final de cada demo o al elegir reto): a la página de Proli
   const refProyecto = useRef(proyecto)
   refProyecto.current = proyecto
-  useEffect(() => alIrAProli(() => { setDesde(refProyecto.current); setProyecto(null); setEtapa('conversar') }), [])
+  const [conAgenda, setConAgenda] = useState(false)
+  useEffect(() => alIrAProli((o) => { setDesde(refProyecto.current); setConAgenda(!!o.agenda); setProyecto(null); setEtapa('conversar') }), [])
   // Qué está viendo el visitante fuera de los demos (dentro, lo informa cada demo; en la de Proli, ella misma)
   useEffect(() => {
     if (proyecto || etapa === 'conversar') return
@@ -161,7 +163,7 @@ export default function Inicio() {
     )
   }
   if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aProli} />
-  if (etapa === 'conversar') return <PaginaProli modo={modo} desde={desde} alVolver={aElegir} alPortada={modo === 'auto' ? undefined : aPortada} />
+  if (etapa === 'conversar') return <PaginaProli key={conAgenda ? 'agenda' : 'chat'} modo={modo} desde={desde} agenda={conAgenda} alVolver={aElegir} alPortada={modo === 'auto' ? undefined : aPortada} />
   if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alVolver={aPortada} />
   return <Hub modo={modo} entrar={setProyecto} alPortada={aPortada} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }

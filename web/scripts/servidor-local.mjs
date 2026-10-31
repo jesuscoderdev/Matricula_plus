@@ -1,6 +1,8 @@
 /**
  * Servidor local para probar Proli de punta a punta sin Vercel: sirve el sitio compilado (dist/)
- * y la función /api/proli (api/proli.ts) en http://localhost:4174.
+ * y las funciones /api/proli (api/proli.ts), /api/conversa y /api/registro (Proli V9) en http://localhost:4174.
+ *
+ * Sin Supabase en .env.local, lo que guarda Proli V9 va a web/.datos-locales/registros.jsonl (Git lo ignora).
  *
  * Uso (desde web/):
  *   npm run build
@@ -10,7 +12,7 @@
  * responde 503 y Proli funciona con sus respuestas sin conexión.
  */
 import { createServer } from 'node:http'
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs'
 import { extname, join, normalize } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { registerHooks } from 'node:module'
@@ -33,7 +35,16 @@ registerHooks({
 const env = join(WEB, '.env.local')
 if (existsSync(env)) process.loadEnvFile(env)
 console.log(process.env.ANTHROPIC_API_KEY ? 'Clave de la API: encontrada en .env.local' : 'Sin clave: Proli funcionará sin conexión')
-const { POST } = await import(pathToFileURL(join(WEB, 'api', 'proli.ts')).href)
+if (!process.env.SUPABASE_URL && !process.env.PROLI_ALMACEN_LOCAL) {
+  mkdirSync(join(WEB, '.datos-locales'), { recursive: true })
+  process.env.PROLI_ALMACEN_LOCAL = join(WEB, '.datos-locales', 'registros.jsonl')
+  console.log(`Sin Supabase: los registros de Proli V9 van a ${process.env.PROLI_ALMACEN_LOCAL}`)
+}
+const FUNCIONES = {
+  '/api/proli': (await import(pathToFileURL(join(WEB, 'api', 'proli.ts')).href)).POST,
+  '/api/conversa': (await import(pathToFileURL(join(WEB, 'api', 'conversa.ts')).href)).POST,
+  '/api/registro': (await import(pathToFileURL(join(WEB, 'api', 'registro.ts')).href)).POST,
+}
 
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
   '.geojson': 'application/json', '.webp': 'image/webp', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2',
@@ -41,7 +52,8 @@ const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '
 
 createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', `http://localhost:${PUERTO}`)
-  if (url.pathname === '/api/proli' && req.method === 'POST') {
+  const POST = FUNCIONES[url.pathname]
+  if (POST && req.method === 'POST') {
     const trozos = []
     for await (const t of req) trozos.push(t)
     const control = new AbortController()

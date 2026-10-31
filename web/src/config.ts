@@ -87,17 +87,17 @@ export const PROLI_INTRO = {
 }
 /** La página propia de Proli (govtech.proliferante.com/proli): lo que escribe y dice en voz alta al saludar */
 export const PROLI_PAGINA = {
-  // Reunión del 31-oct: Proli no es un «asistente virtual»; es un sistema inteligente que trabaja para lograr resultados
-  saludo: 'Un sistema inteligente que trabaja para lograr resultados: uno datos, modelos matemáticos, personas e inteligencia artificial. Cuéntame, ¿qué problema quieres resolver?',
-  // Al llegar desde el final de un demo («Contarle mi reto a Proli»)
-  despues: 'Un sistema inteligente que trabaja para lograr resultados. Ya que conoces una pequeña parte de lo que podemos crear, hablemos de tu reto: ¿qué problema quieres resolver?',
-  placeholder: 'Escribe tu pregunta o tu reto…',
-  // La voz: apagada hasta tener los MP3 de ElevenLabs (con `true`, Proli saluda en voz alta y aparece
-  // el botón «Escuchar a Proli»). Los MP3 deben decir exactamente el texto de arriba; si no están,
-  // Proli habla con la voz del navegador
+  // Proli V9: la apertura literal de la especificación (api/_proli/v9/literales.ts), aquí sin el emoji
+  // para la voz. Lo que se escribe en pantalla lo pone ConversaV9
+  saludo: '¡Hola! Soy Proli. ¡Qué gusto conocerte! ¿De qué entidad u organización vienes?',
+  despues: '¡Hola! Soy Proli. ¡Qué gusto conocerte! ¿De qué entidad u organización vienes?',
+  placeholder: 'Escribe tu respuesta…',
+  // La voz: apagada hasta tener el MP3 de ElevenLabs (con `true`, Proli saluda en voz alta y aparece
+  // el botón «Escuchar a Proli»). El MP3 debe decir exactamente el saludo; si no está, Proli habla con
+  // la voz del navegador
   voz: false,
-  audioSaludo: './voz/proli-saludo.mp3',     // «Hola, soy Proli. » + saludo
-  audioDespues: './voz/proli-despues.mp3',   // «Hola, soy Proli. » + despues
+  audioSaludo: './voz/proli-saludo.mp3',
+  audioDespues: './voz/proli-saludo.mp3',
 }
 // Modo automático: segundos con Proli antes de pasar a elegir proyecto
 export const SEGUNDOS_PROLI_AUTO = 9

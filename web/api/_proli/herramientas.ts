@@ -28,9 +28,9 @@ export const HERRAMIENTAS: Herramienta[] = [
     objeto({ pantalla: { type: 'string', enum: ['portada', 'conozca_a_proli', 'elegir_demo'] } })),
   h('abrir_demo', 'Abre uno de los dos demos desde su inicio.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
-  h('abrir_agenda', 'Lleva al paso «Tu reto» del demo indicado y muestra el código QR para que el visitante envíe una solicitud de conversación al equipo de Proliferante. No reserva ninguna cita: el equipo confirma el horario después.',
+  h('abrir_agenda', 'Abre el formulario para agendar 20 minutos con el equipo de Proliferante (pantalla de Proli). El visitante deja ahí sus datos y elige cuándo le queda mejor; el equipo le confirma el horario por correo. No confirma ninguna cita.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] } })),
-  h('agendar_con_reto', 'Cuando el visitante ya contó su reto y acepta hablar con el equipo: guarda un resumen para que el mensaje de WhatsApp y el código QR de la solicitud ya lo lleven escrito, y lo lleva al paso «Tu reto» del demo indicado (el más parecido a su reto). No reserva ninguna cita: el visitante envía el mensaje él mismo. El resumen (máximo unos 480 caracteres), en frases cortas: «[Nombre] — [entidad / cargo]» (solo si los dio y autorizó dejarlos), «Reto: …» (en sus palabras), «Resultado: …», «Responsable: …», «Información: …», «Siguiente paso: conversación de 30 minutos; canal: WhatsApp o [correo de trabajo, si lo dio]». Lo que no sepas, «por validar». NUNCA cédulas, documentos, datos de salud o de menores, contraseñas ni información sensible o de terceros.',
+  h('agendar_con_reto', 'Cuando el visitante tiene un reto o una meta y quiere contarla: lo lleva a la conversación de Proli, donde cuenta su meta en pocas preguntas, recibe un resumen con una hipótesis por validar y puede agendar 20 minutos. No escribas datos personales en resumen.',
     objeto({ demo: { type: 'string', enum: ['matricula', 'movilidad'] }, resumen: { type: 'string' } })),
 
   h('borrar_reto', 'Cuando el visitante retira su permiso, pide que no lo contacten o que borres sus datos: quita su nombre, su entidad y su reto del mensaje de WhatsApp y del código QR (vuelven al mensaje genérico). Úsala de inmediato, sin insistir.',

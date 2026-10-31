@@ -66,23 +66,20 @@ export async function ejecutar(orden: Orden): Promise<string> {
 
 /** Aplica la orden. Si el demo no está abierto, lo abre y espera a que cargue para responder con el resultado real. */
 function aplicarOrden(orden: Orden): Promise<string> {
-  // El reto del visitante: se guarda para el mensaje de la cita y se lleva a la agenda
+  // Proli V9: el reto se cuenta y la cita se agenda en la página de Proli (descubrimiento breve, ficha y
+  // formulario), no en el panel. El panel solo lleva al visitante allá
   if (orden.nombre === 'agendar_con_reto') {
-    fijarReto(String(orden.entrada.resumen ?? ''))
-    return aplicarOrden({ nombre: 'abrir_agenda', entrada: { demo: orden.entrada.demo } })
+    irAProli()
+    return Promise.resolve('Listo: abrí la conversación de Proli para que cuentes tu meta. | La conversación sigue en esa pantalla, que hace sus propias preguntas: no hagas más preguntas aquí ni pidas datos.')
   }
   // El visitante retiró su permiso: el mensaje y el QR de la cita vuelven a ser genéricos
   if (orden.nombre === 'borrar_reto') {
     fijarReto('')
     return Promise.resolve('Listo: se borraron el nombre, la entidad y el reto del mensaje de WhatsApp y del código QR; ahora son genéricos.')
   }
-  // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
-    if (agendaEnPagina) return Promise.resolve(agendaEnPagina())
-    // Si el visitante ya está en un demo, la agenda se abre ahí (no se le cambia de demo al final)
-    const enDemo = pantalla.startsWith(NOMBRE_MOVILIDAD) ? 'movilidad' : pantalla.startsWith('Matrícula+') ? 'matricula' : null
-    const demo = enDemo ?? (orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad')
-    return aplicarOrden({ nombre: `${demo}_capitulo`, entrada: { capitulo: 'agenda' } })
+    irAProli({ agenda: true })
+    return Promise.resolve('Listo: abrí el formulario para agendar 20 minutos con el equipo. | El visitante llena ahí sus datos y elige cuándo le queda mejor; el equipo le confirma el horario por correo. No pidas datos en este chat ni digas que la cita quedó confirmada.')
   }
   const ambito = ambitoDe(orden.nombre)
   const manejador = manejadores.get(ambito)
@@ -149,9 +146,11 @@ export function useReto(): string {
 }
 
 // --- «Contarle mi reto a Proli» (al final de cada demo y al elegir reto): lleva a la página de Proli ---
-const pedidos = new Set<() => void>()
-export function irAProli() { pedidos.forEach((f) => f()) }
-export function alIrAProli(f: () => void): () => void {
+export interface IrAProli { agenda?: boolean }
+const pedidos = new Set<(o: IrAProli) => void>()
+/** A la página de Proli; con `agenda`, directo al formulario de la cita (V9, caso C11) */
+export function irAProli(o: IrAProli = {}) { pedidos.forEach((f) => f(o)) }
+export function alIrAProli(f: (o: IrAProli) => void): () => void {
   pedidos.add(f)
   return () => { pedidos.delete(f) }
 }
