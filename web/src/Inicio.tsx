@@ -98,7 +98,7 @@ export default function Inicio() {
       const destino = { portada: 'portada', conozca_a_proli: 'proli', elegir_demo: 'elegir' }[String(o.entrada.pantalla)] as Etapa | undefined
       if (!destino) return 'Pantalla no reconocida.'
       setProyecto(null); setEtapa(destino)
-      return `Listo: el visitante está en ${destino === 'proli' ? 'Conoce a Proli' : destino === 'elegir' ? 'la página para elegir demo' : 'la portada'}.`
+      return `Listo: ahora en pantalla, ${destino === 'proli' ? '«Conoce a Proli»' : destino === 'elegir' ? 'la página para elegir demo' : 'la portada'}.`
     }
     if (o.nombre === 'abrir_demo') {
       const demo = o.entrada.demo === 'matricula' ? 'educacion' : o.entrada.demo === 'movilidad' ? 'movilidad' : null
