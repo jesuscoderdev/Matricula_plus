@@ -10,8 +10,8 @@
  * la IA no puede mover nada que no exista. Solo se mueven pantallas y controles; nada sale de aquí.
  *
  * También guarda «qué está viendo el visitante» (informarPantalla), que Proli recibe como contexto,
- * el resumen del reto del visitante (para que la cita lo lleve escrito) y los pedidos a Proli desde
- * otras pantallas («Cuéntale tu reto a Proli»).
+ * el resumen del reto del visitante (para que la cita lo lleve escrito) y el paso a la página de
+ * Proli desde otras pantallas («Contarle mi reto a Proli»).
  */
 import { useSyncExternalStore } from 'react'
 import { selectorDe, senalar, visible } from './cursor'
@@ -78,6 +78,7 @@ function aplicarOrden(orden: Orden): Promise<string> {
   }
   // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
+    if (agendaEnPagina) return Promise.resolve(agendaEnPagina())
     // Si el visitante ya está en un demo, la agenda se abre ahí (no se le cambia de demo al final)
     const enDemo = pantalla.startsWith(NOMBRE_MOVILIDAD) ? 'movilidad' : pantalla.startsWith('Matrícula+') ? 'matricula' : null
     const demo = enDemo ?? (orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad')
@@ -147,10 +148,18 @@ export function useReto(): string {
   return useSyncExternalStore((f) => { oyentesReto.add(f); return () => { oyentesReto.delete(f) } }, leerReto, leerReto)
 }
 
-// --- Pedidos a Proli desde otras pantallas: abre la conversación con ese mensaje ---
-const pedidos = new Set<(texto: string) => void>()
-export function pedirAProli(texto: string) { pedidos.forEach((f) => f(texto)) }
-export function alPedirAProli(f: (texto: string) => void): () => void {
+// --- «Contarle mi reto a Proli» (al final de cada demo y al elegir reto): lleva a la página de Proli ---
+const pedidos = new Set<() => void>()
+export function irAProli() { pedidos.forEach((f) => f()) }
+export function alIrAProli(f: () => void): () => void {
   pedidos.add(f)
   return () => { pedidos.delete(f) }
+}
+
+// --- La agenda dentro de la página de Proli: mientras está abierta, la cita (QR o botón de WhatsApp)
+// aparece en su chat y Proli no saca al visitante a un demo para agendar ---
+let agendaEnPagina: (() => string) | null = null
+export function fijarAgendaEnPagina(f: () => string): () => void {
+  agendaEnPagina = f
+  return () => { if (agendaEnPagina === f) agendaEnPagina = null }
 }

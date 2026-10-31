@@ -13,7 +13,7 @@ export interface Pose {
   mirada: { x: number; y: number }
   /** alto y ancho del ojo (1 = normal; casi 0 = cerrado) */
   ojo: { alto: number; ancho: number }
-  /** brillo de los ojos, de 0 a 1 (al sonreír con los ojos se apaga) */
+  /** brillo de los ojos, de 0 a 1 (se apaga al parpadear) */
   brillo: number
   atento: boolean
   boca: { tipo: 'linea' } | { tipo: 'sonrisa' } | { tipo: 'abierta'; alto: number; ancho: number }
@@ -76,9 +76,9 @@ const bocaHablando = (t: number) => {
   const c = t % HABLA_S
   return { tipo: 'abierta' as const, alto: claves(HABLA.alto, HABLA_S, c), ancho: claves(HABLA.ancho, HABLA_S, c) }
 }
-// Al saludar sonríe con los ojos (más bajitos y sin brillo), como en la app
+// Al saludar los ojos se achinan apenas y conservan su brillo, como en la app
 const saludando = (t: number) => t < SALUDO_S
-const ojosFelices = { ojo: { alto: 0.62, ancho: 1 }, brillo: 0 }
+const ojosFelices = { ojo: { alto: 0.92, ancho: 1 }, brillo: 0.95 }
 
 export const ANIMACIONES: Animacion[] = [
   {

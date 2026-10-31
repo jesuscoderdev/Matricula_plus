@@ -17,6 +17,10 @@ import './estilos.css'
 import './tema'  // aplica el tema (claro/oscuro) antes del primer render
 import Inicio from './Inicio'
 import Asistente from './proli/Asistente'
+import PaginaProli from './proli/PaginaProli'
+
+// govtech.proliferante.com/proli: la página propia de Proli (solo la conversación, sin los demos)
+const paginaProli = /^\/proli\/?$/i.test(window.location.pathname)
 
 // Versión nueva publicada: el service worker nuevo toma el control y la página se recarga para
 // mostrarla ya, sin esperar a una segunda visita. El visitante sigue en la misma pantalla
@@ -31,7 +35,6 @@ if ('serviceWorker' in navigator) {
 // Proli vive fuera de las pantallas: la conversación sigue aunque el visitante cambie de pantalla o de demo
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Inicio />
-    <Asistente />
+    {paginaProli ? <PaginaProli /> : <><Inicio /><Asistente /></>}
   </StrictMode>,
 )
