@@ -87,16 +87,17 @@ export const PROLI_INTRO = {
 }
 /** La página propia de Proli (govtech.proliferante.com/proli): lo que escribe y dice en voz alta al saludar */
 export const PROLI_PAGINA = {
-  saludo: 'Soy el asistente virtual de Proliferante. Me encanta conversar sobre cómo los datos se convierten en mejores decisiones. Cuéntame tu reto o pregúntame lo que quieras.',
+  // Reunión del 31-oct: Proli no es un «asistente virtual»; es un sistema inteligente que trabaja para lograr resultados
+  saludo: 'Un sistema inteligente que trabaja para lograr resultados: uno datos, modelos matemáticos, personas e inteligencia artificial. Cuéntame, ¿qué problema quieres resolver?',
   // Al llegar desde el final de un demo («Contarle mi reto a Proli»)
-  despues: '¡Qué bueno que llegaste hasta aquí! Ahora cuéntame el reto de tu entidad y pensamos juntos cómo resolverlo con los datos que ya tiene.',
+  despues: 'Un sistema inteligente que trabaja para lograr resultados. Ya que conoces una pequeña parte de lo que podemos crear, hablemos de tu reto: ¿qué problema quieres resolver?',
   placeholder: 'Escribe tu pregunta o tu reto…',
   // La voz: apagada hasta tener los MP3 de ElevenLabs (con `true`, Proli saluda en voz alta y aparece
   // el botón «Escuchar a Proli»). Los MP3 deben decir exactamente el texto de arriba; si no están,
   // Proli habla con la voz del navegador
   voz: false,
   audioSaludo: './voz/proli-saludo.mp3',     // «Hola, soy Proli. » + saludo
-  audioDespues: './voz/proli-despues.mp3',   // «¡Hola! » + despues
+  audioDespues: './voz/proli-despues.mp3',   // «Hola, soy Proli. » + despues
 }
 // Modo automático: segundos con Proli antes de pasar a elegir proyecto
 export const SEGUNDOS_PROLI_AUTO = 9
