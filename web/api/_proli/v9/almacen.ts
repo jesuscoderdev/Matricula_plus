@@ -12,7 +12,8 @@ import { randomUUID } from 'node:crypto'
 
 declare const process: { env: Record<string, string | undefined> }
 
-const url = () => process.env.SUPABASE_URL?.replace(/\/+$/, '')
+// Acepta la Project URL o la URL de «Data API» (que termina en /rest/v1)
+const url = () => process.env.SUPABASE_URL?.trim().replace(/\/+$/, '').replace(/\/rest\/v1$/, '')
 const clave = () => process.env.SUPABASE_SERVICE_ROLE_KEY
 export const hayAlmacen = () => !!(url() && clave()) || !!process.env.PROLI_ALMACEN_LOCAL
 
@@ -38,6 +39,17 @@ async function rest(tabla: string, filas: Fila[], opciones: { conflicto?: string
   return opciones.devolver ? ((await r.json()) as Fila[]) : []
 }
 
+/** Una solicitud ya registrada con esta clave de idempotencia (el mismo envío repetido no escribe nada) */
+async function yaRegistrada(idempotencia: string): Promise<{ contacto: string; reserva: string } | null> {
+  if (!(url() && clave())) return null
+  const r = await fetch(`${url()}/rest/v1/bookings?idempotency_key=eq.${encodeURIComponent(idempotencia)}&select=booking_id,contact_id`, {
+    headers: { apikey: clave()!, ...(clave()!.startsWith('sb_') ? {} : { Authorization: `Bearer ${clave()}` }) },
+  })
+  if (!r.ok) throw new Error(`supabase bookings ${r.status}`)
+  const [b] = (await r.json()) as { booking_id: string; contact_id: string }[]
+  return b ? { contacto: b.contact_id, reserva: b.booking_id } : null
+}
+
 /** Estado de la sesión (sin la conversación): contadores, estado y asesor */
 export async function guardarSesion(s: { id: string; canal: string; estado: string; preguntas: number; desvios: number; asesor: string | null; creada: number; ultima: number }, cierre?: string) {
   await rest('sessions', [{
@@ -61,6 +73,10 @@ export interface Registro {
 
 /** Contacto (deduplicado por correo), consentimientos, ficha (si autorizó conservarla), solicitud de cita e interacción */
 export async function guardarRegistro(r: Registro): Promise<{ contacto: string; reserva: string | null }> {
+  if (r.agenda) {
+    const previa = await yaRegistrada(r.clave)
+    if (previa) return previa
+  }
   if (r.sesion) await guardarSesion(r.sesion, r.agenda ? 'solicitud_de_cita' : 'ficha_guardada')
   const [c] = await rest('contacts', [{
     full_name: r.contacto.nombre, organization: r.contacto.organizacion, email: r.contacto.email.toLowerCase(),
