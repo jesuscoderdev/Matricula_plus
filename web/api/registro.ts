@@ -15,6 +15,8 @@ import { abrir } from './_proli/v9/sesion.js'
 import { asesorPorId, POR_ASIGNAR } from './_proli/v9/asesores.js'
 import { guardarRegistro, hayAlmacen, type Registro } from './_proli/v9/almacen.js'
 
+declare const process: { env: Record<string, string | undefined> }
+
 const POLITICA = 'politica-datos-2026-09-23+aviso-govtech-borrador'
 const CANALES = new Set(['stand', 'celular', 'escritorio', 'qr'])
 const CORREO = /^[^\s@<>()[\],;:"]{1,64}@[^\s@<>()[\],;:"]{1,190}\.[a-z]{2,24}$/i
@@ -81,7 +83,12 @@ export async function POST(request: Request): Promise<Response> {
   const s = b.token ? abrir(b.token, 180) : null
   const canal = s?.canal ?? (CANALES.has(String(b.canal)) ? String(b.canal) : 'celular')
 
-  if (!hayAlmacen()) return json(503, { error: 'sin_almacen' })
+  if (!hayAlmacen()) {
+    // Diagnóstico de configuración: qué variable falta y qué nombres parecidos hay (solo nombres, nunca valores)
+    const falta = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'].filter((k) => !process.env[k]?.trim())
+    const parecidas = Object.keys(process.env).filter((k) => /supabase/i.test(k)).sort()
+    return json(503, { error: 'sin_almacen', falta, parecidas })
+  }
   const registro: Registro = {
     sesion: s ? { id: s.id, canal: s.canal, estado: agenda ? 'AGENDA' : 'TERMINADO', preguntas: s.preguntas, desvios: s.desvios, asesor: asesor ?? s.asesor, creada: s.creada, ultima: Date.now() } : null,
     canal, contacto, consentimientos, asesor: asesor ?? s?.asesor ?? null, ficha, agenda, clave, politica: POLITICA,
