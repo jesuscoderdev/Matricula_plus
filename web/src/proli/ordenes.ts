@@ -16,6 +16,7 @@
 import { useSyncExternalStore } from 'react'
 import { selectorDe, senalar, visible } from './cursor'
 import { NOMBRE_MOVILIDAD } from '../config'
+import { esTotem, leerModo } from '../modo'
 
 export type Ambito = 'inicio' | 'movilidad' | 'matricula'
 export interface Orden { nombre: string; entrada: Record<string, unknown> }
@@ -69,7 +70,6 @@ function aplicarOrden(orden: Orden): Promise<string> {
   if (orden.nombre === 'agendar_con_reto') {
     fijarReto(String(orden.entrada.resumen ?? ''))
     return aplicarOrden({ nombre: 'abrir_agenda', entrada: { demo: orden.entrada.demo } })
-      .then((r) => `Listo: el mensaje de la cita ya lleva el reto escrito. ${r}`)
   }
   // El visitante retiró su permiso: el mensaje y el QR de la cita vuelven a ser genéricos
   if (orden.nombre === 'borrar_reto') {
@@ -78,7 +78,9 @@ function aplicarOrden(orden: Orden): Promise<string> {
   }
   // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
-    const demo = orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad'
+    // Si el visitante ya está en un demo, la agenda se abre ahí (no se le cambia de demo al final)
+    const enDemo = pantalla.startsWith(NOMBRE_MOVILIDAD) ? 'movilidad' : pantalla.startsWith('Matrícula+') ? 'matricula' : null
+    const demo = enDemo ?? (orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad')
     return aplicarOrden({ nombre: `${demo}_capitulo`, entrada: { capitulo: 'agenda' } })
   }
   const ambito = ambitoDe(orden.nombre)
@@ -110,6 +112,26 @@ export function usePantalla(): string {
   return useSyncExternalStore((f) => { oyentes.add(f); return () => { oyentes.delete(f) } }, leerPantalla, leerPantalla)
 }
 
+/**
+ * Lo que cada demo responde cuando abre la agenda («resumen | detalle»): el resumen lo ve el visitante
+ * en el chat; el detalle le dice a Proli qué hay de verdad en pantalla para enviar la solicitud, que
+ * cambia según el modo. En el tótem solo sirve el código QR (nadie escanea su propia pantalla en el
+ * celular); en celular y computador, el botón abre WhatsApp con el mensaje ya escrito.
+ */
+export function agendaAbierta(): string {
+  const resumen = reto ? 'Listo: tu reto quedó escrito en el mensaje para el equipo.' : 'Listo: en pantalla, cómo escribirle al equipo.'
+  const modo = leerModo()
+  const boton = `En la pantalla y en este chat está el botón «${BOTON_WHATSAPP(!!reto)}», que abre WhatsApp con el mensaje ya escrito.`
+  const como = esTotem(modo)
+    ? 'Es el tótem: el visitante envía la solicitud escaneando con su celular el código QR, que está en la pantalla y en este chat. No hay botón para enviarla desde aquí: no menciones ningún botón.'
+    : modo === 'celular'
+      ? `${boton} Está en su celular: dile que toque ese botón (no menciones el código QR).`
+      : `${boton} Está en un computador: también puede escanear el código QR de la pantalla con su celular.`
+  return `${resumen} | ${como} El visitante envía el mensaje él mismo y el equipo le responde para confirmar un horario: todavía no es una cita.`
+}
+/** El botón que abre WhatsApp (celular y computador): con el reto ya escrito o para escribir desde cero. */
+export const BOTON_WHATSAPP = (conReto: boolean) => (conReto ? 'Enviar mi reto por WhatsApp' : 'Agendar conversación')
+
 // --- El reto del visitante: un resumen corto, sin datos personales, que va en el mensaje de la cita ---
 const MAX_RETO = 500
 let reto = ''
@@ -120,7 +142,7 @@ export function fijarReto(texto: string) {
   reto = limpio
   oyentesReto.forEach((f) => f())
 }
-const leerReto = () => reto
+export const leerReto = () => reto
 export function useReto(): string {
   return useSyncExternalStore((f) => { oyentesReto.add(f); return () => { oyentesReto.delete(f) } }, leerReto, leerReto)
 }

@@ -23,11 +23,12 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type Anthropic from '@anthropic-ai/sdk'
 import ProliAnimado from '../componentes/ProliAnimado'
-import { leerModo } from '../modo'
-import { alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, type Orden } from './ordenes'
+import { esTotem, leerModo } from '../modo'
+import { BOTON_WHATSAPP, alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, useReto, type Orden } from './ordenes'
 import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
-import { NOMBRE_MOVILIDAD } from '../config'
+import { NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
+import QrCita from '../componentes/QrCita'
 
 type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
 type Bloque = Anthropic.Beta.Messages.BetaContentBlock
@@ -82,6 +83,8 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
 const URL = './api/proli'
 
 interface Linea { quien: 'visitante' | 'proli' | 'accion' | 'aviso'; texto: string }
+/** Después de abrir la agenda, el chat muestra al final cómo enviar la solicitud (el panel tapa la pantalla) */
+const ES_AGENDA = new Set(['abrir_agenda', 'agendar_con_reto'])
 /** `conversar`: en vez de responder con algo guardado, abre la conversación con la IA (sin conexión, usa `sinConexion`). */
 interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string; conversar?: boolean }
 
@@ -100,7 +103,9 @@ function esPropuesta(texto: string) {
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
     texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
-    sinConexion: '¡Qué bueno! Ahora no puedo conversar, pero el equipo sí y le encantará escucharte. Escanea el código o toca «Agendar conversación» para enviar tu solicitud: te confirmarán un horario.',
+    sinConexion: esTotem(leerModo())
+      ? '¡Qué bueno! Ahora no puedo conversar, pero el equipo sí y le encantará escucharte. Escanea el código con tu celular para enviarle tu solicitud: te confirmarán un horario.'
+      : '¡Qué bueno! Ahora no puedo conversar, pero el equipo sí y le encantará escucharte. Toca «Agendar conversación» para escribirle por WhatsApp: te confirmarán un horario.',
   })
   if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
     { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },
@@ -180,6 +185,8 @@ async function llamar(mensajes: Mensaje[], alTexto: (d: string) => void, senal: 
 export default function Asistente() {
   const pantalla = usePantalla()
   const modo = leerModo()
+  const reto = useReto()
+  const [cita, setCita] = useState(false)
   const [abierto, setAbierto] = useState(false)
   const [lineas, setLineas] = useState<Linea[]>([])
   const [ocupado, setOcupado] = useState(false)
@@ -222,11 +229,11 @@ export default function Asistente() {
   const reiniciar = useCallback(() => {
     cancelar.current?.abort()
     historial.current = []; contextoEnviado.current = ''; preguntas.current = 0
-    setLineas([]); setOcupado(false); setTexto('')
+    setLineas([]); setOcupado(false); setTexto(''); setCita(false)
   }, [])
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
   useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); fijarReto(''); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
-  useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas])
+  useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas, cita, ocupado])
   // Tiempo de lectura: cuando Proli termina de responder con el panel abierto, se da un margen
   // antes de que el tótem vuelva a la portada por inactividad. Si el visitante se fue, el tótem
   // vuelve igual, un poco más tarde.
@@ -248,6 +255,7 @@ export default function Asistente() {
     if (s) {
       for (const o of s.ordenes ?? []) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
       agregar({ quien: 'proli', texto: s.sinConexion })
+      if (s.ordenes?.some((o) => ES_AGENDA.has(o.nombre))) setCita(true)
     } else {
       agregar({ quien: 'proli', texto: 'Ahora no tengo conexión para conversar, pero puedo llevarte a donde quieras con estas opciones.' })
     }
@@ -316,6 +324,7 @@ export default function Asistente() {
           // El visitante ve qué hizo Proli en la pantalla (y por qué cambió). Las consultas de cifras
           // traen «resumen | detalle»: en el panel va solo el resumen; Proli recibe todo
           agregar({ quien: 'accion', texto: resultado.split(' | ')[0].replace(/^Listo: /, '').replace(/ Listo: /, ' ') })
+          if (ES_AGENDA.has(a.name)) setCita(true)
           await dormir(PAUSA_ACCION_MS)
           if (control.signal.aborted || historial.current !== h) return
         }
@@ -423,9 +432,16 @@ export default function Asistente() {
               {lineas.filter((l) => l.texto).map((l, i) => (
                 <p key={i} className={`proli-panel__linea proli-panel__linea--${l.quien}`}>{l.quien === 'accion' ? `↳ ${l.texto}` : l.texto}</p>
               ))}
+              {/* En el tótem, el código QR (se escanea con el celular); en celular y computador, el botón a WhatsApp */}
+              {cita && !ocupado && (
+                <div className="proli-panel__cita">
+                  {esTotem(modo) || !URL_CITA ? <QrCita />
+                    : <a className="boton boton--violeta" href={urlCitaCon(reto)} target="_blank" rel="noopener noreferrer">{BOTON_WHATSAPP(!!reto)} →</a>}
+                </div>
+              )}
               {ocupado && <span className="proli-panel__puntos" aria-hidden><i /><i /><i /></span>}
             </div>
-            {pasoGuia && (
+            {pasoGuia && !cita && (
               <div className="proli-panel__guia">
                 <span>{pasoGuia.pregunta}</span>
                 <div className="proli-panel__sugerencias">

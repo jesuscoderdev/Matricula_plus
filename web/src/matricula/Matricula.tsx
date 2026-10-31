@@ -14,7 +14,7 @@ import { pulsoLogo } from '../componentes/Marca'
 import { CabeceraRecorrido, EscenaRecorrido, HojaRecorrido, type ItemLeyenda } from '../componentes/Recorrido'
 import Intro from '../componentes/Intro'
 import Esqueleto from '../componentes/Esqueleto'
-import { informarPantalla, registrar, useReto } from '../proli/ordenes'
+import { agendaAbierta, informarPantalla, registrar, useReto } from '../proli/ordenes'
 import { recordado, recordar } from '../recordar'
 import { cargarMatricula, entero, type DatosMatricula } from './datos'
 import MapaMatricula from './MapaMatricula'
@@ -132,7 +132,7 @@ export default function Matricula({ alSalir, alInactivo, alTerminarVuelta, alPor
         case 'matricula_capitulo': {
           const h = String(e.capitulo) as HojaMat
           if (HOJAS.includes(h)) { refIr.current(PASO_DE_HOJA[h]); setHoja(h); return `Listo: ${APP_NAME} muestra el detalle «${h}».` }
-          if (e.capitulo === 'agenda') { refIr.current('reto'); setVerQr(true); return 'Listo: el visitante ve el código QR para enviar su solicitud al equipo (todavía no es una cita).' }
+          if (e.capitulo === 'agenda') { refIr.current('reto'); setVerQr(true); return agendaAbierta() }
           const v = String(e.capitulo) as VistaMat
           if (!ORDEN.includes(v)) return 'Capítulo no reconocido.'
           refIr.current(v)

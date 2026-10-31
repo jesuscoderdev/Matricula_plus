@@ -16,7 +16,7 @@ import { CabeceraRecorrido, EscenaRecorrido, HojaRecorrido } from '../componente
 import Intro from '../componentes/Intro'
 import Esqueleto from '../componentes/Esqueleto'
 import { cargarMovilidad, type DatosMovilidad } from './datos'
-import { informarPantalla, registrar, useReto } from '../proli/ordenes'
+import { agendaAbierta, informarPantalla, registrar, useReto } from '../proli/ordenes'
 import { recordado, recordar } from '../recordar'
 import MapaMovilidad from './MapaMovilidad'
 import {
@@ -129,7 +129,7 @@ export default function Movilidad({ alSalir, alInactivo, alTerminarVuelta, alPor
       switch (o.nombre) {
         case 'movilidad_capitulo': {
           if (e.capitulo === 'metodologia') { refIr.current('como'); setHoja('metodologia'); return `Listo: ${NOMBRE_MOVILIDAD} muestra la metodología.` }
-          if (e.capitulo === 'agenda') { refIr.current('reto'); setVerQr(true); return 'Listo: el visitante ve el código QR para enviar su solicitud al equipo (todavía no es una cita).' }
+          if (e.capitulo === 'agenda') { refIr.current('reto'); setVerQr(true); return agendaAbierta() }
           const v = String(e.capitulo) as VistaMov
           if (!ORDEN.includes(v)) return 'Capítulo no reconocido.'
           refIr.current(v)
