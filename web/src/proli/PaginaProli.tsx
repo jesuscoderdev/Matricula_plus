@@ -75,7 +75,9 @@ export default function PaginaProli({ modo, desde: desdeProyecto, alVolver, alPo
   const reducir = useReducedMotion()
   const reto = useReto()
   const { lineas, ocupado, sinConexion, cita, preguntar, reiniciar } = useConversacion()
-  useAgendaEnPagina(totem, `${PANTALLA_PROLI}${desde ? `, después de ver ${DEMOS[desde]}` : ''}: aquí no hay demos a la vista; si el visitante quiere ver uno, ábrelo`)
+  // Solo letras, números y puntuación simple (sin «:», «;» ni «/»): el servidor rechaza otro contexto
+  // de pantalla (CONTEXTO en api/proli.ts) y Proli quedaría sin conexión
+  useAgendaEnPagina(totem, `${PANTALLA_PROLI}${desde ? `, después de ver ${DEMOS[desde]}` : ''}. Aquí no hay demos a la vista. Si el visitante quiere ver uno, ábrelo`)
   const [texto, setTexto] = useState('')
   const refLista = useRef<HTMLDivElement>(null)
   // Si viene de un demo, Proli lo recibe con el reto; si no, se presenta
@@ -88,7 +90,7 @@ export default function PaginaProli({ modo, desde: desdeProyecto, alVolver, alPo
 
   const hablar = () => {
     callar.current()
-    callar.current = decir(desde ? `¡Hola! ${PROLI_PAGINA.despues}` : `Hola, soy Proli. ${PROLI_PAGINA.saludo}`, {
+    callar.current = decir(`Hola, soy Proli. ${desde ? PROLI_PAGINA.despues : PROLI_PAGINA.saludo}`, {
       audio: desde ? PROLI_PAGINA.audioDespues : PROLI_PAGINA.audioSaludo,
       alEmpezar: () => setVoz('hablando'),
       alTerminar: () => setVoz((v) => (v === 'bloqueada' ? v : 'lista')),

@@ -2190,7 +2190,7 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 .pagina-proli__privacidad { flex: none; margin: 0; padding: 0 1.1rem 0.7rem; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0.1rem; font-size: 0.75rem; color: var(--suave); }
 .pagina-proli__privacidad .qr__aviso { padding: 0.2rem 0.3rem; }
 
-/* Celular, pantallas angostas y verticales (el tótem): Proli arriba y el chat debajo; al conversar, Proli se hace pequeño */
+/* Celular, pantallas angostas y el tótem vertical: Proli arriba y el chat debajo; al conversar, Proli se hace pequeño */
 @media (max-width: 860px), (orientation: portrait) {
   .pagina-proli__marca { padding: 0.8rem 1rem; }
   .pagina-proli__cuerpo { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: 0.8rem; padding: 0 0.8rem 0.8rem; }
@@ -2207,10 +2207,12 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
   .pagina-proli__sugerencias { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
   .pagina-proli__sugerencias .proli-panel__chip { font-size: 0.8rem; }
 }
+/* En el tótem nadie descubre que las preguntas se deslizan: van en varias líneas (hay espacio de sobra) */
+:root:is([data-modo='stand'], [data-modo='auto']) .pagina-proli__sugerencias { flex-wrap: wrap; overflow-x: visible; }
 :root[data-tema='oscuro'] .pagina-proli__voz { background: transparent; color: var(--texto); }
 
 /* El tótem (1080 × 1920): la app ya agranda todo (rem más grande); aquí solo cambia la distribución:
-   Proli centrado arriba y las preguntas en una fila deslizable, para que el chat tenga espacio */
+   Proli centrado arriba y compacto, para que el chat tenga espacio */
 :root[data-modo='stand'] .pagina-proli:not(.pagina-proli--conversando) .pagina-proli__heroe { flex-direction: column; text-align: center; gap: 0.3rem; }
 :root[data-modo='stand'] .pagina-proli:not(.pagina-proli--conversando) .pagina-proli__presenta { align-items: center; gap: 0.4rem; }
 :root[data-modo='stand'] .pagina-proli__figura { width: 7rem; }
@@ -2223,7 +2225,6 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 :root[data-modo='stand'] .pagina-proli__chat-cabeza { padding: 0.5rem 0.9rem; }
 :root[data-modo='stand'] .pagina-proli__chat-cabeza b { font-size: 0.95rem; }
 :root[data-modo='stand'] .pagina-proli__chat-cabeza small { font-size: 0.65rem; }
-:root[data-modo='stand'] .pagina-proli__sugerencias { flex-wrap: nowrap; }
 /* ---------- Computador: lo que se veía diminuto en portátiles (ventanas bajitas) ----------
    Solo en computador: el tótem y el celular no cambian */
 :root[data-modo='escritorio'] .pasos__texto { font-size: 0.8rem; }
