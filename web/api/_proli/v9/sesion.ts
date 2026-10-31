@@ -11,7 +11,8 @@ import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto
 
 declare const process: { env: Record<string, string | undefined> }
 
-export type Estado = 'CONEXION' | 'OBJETIVO' | 'HIPOTESIS_Y_FICHA' | 'AGENDA' | 'TERMINADO'
+// Estados de negocio de V12 (sección 3): el campo esperado sale siempre de la etapa de ESTA sesión
+export type Estado = 'ESPERA_ORGANIZACION' | 'ESPERA_ROL' | 'ESPERA_OBJETIVO' | 'HIPOTESIS_Y_FICHA' | 'AGENDA' | 'TERMINADO'
 export type Canal = 'stand' | 'celular' | 'escritorio' | 'qr'
 
 export interface Ficha {
@@ -21,16 +22,20 @@ export interface Ficha {
   situacion: string
   hipotesis: string
   por_conocer: string
+  meta_corta: string     // la meta en infinitivo, para el correo de recordatorio
 }
 
 export interface Sesion {
-  v: 1
+  v: 2
   id: string
   canal: Canal
   asesor: string | null
   estado: Estado
+  seq: number             // último mensaje procesado (V12: se rechazan repetidos y fuera de orden)
   preguntas: number       // de descubrimiento, incluida la de la apertura (máximo 3)
-  desvios: number         // fuera de tema o abuso (al segundo se cierra)
+  invalidos: number       // respuestas ajenas o sin sentido SEGUIDAS (a la segunda se cierra)
+  desvios: number         // total de respuestas ajenas o sin sentido (para el CRM)
+  candidato: string | null  // nombre atípico de organización esperando confirmación
   respuestas: number      // mensajes de Proli en la sesión (máximo global)
   h: { r: 'v' | 'p'; t: string }[]   // la conversación, solo texto (se descarta al cerrar)
   datos: { organizacion: string; rol: string; objetivo: string; situacion: string }
@@ -51,7 +56,7 @@ const firmar = (cuerpo: string) => createHmac('sha256', secreto()).update(cuerpo
 export function nuevaSesion(canal: Canal, asesor: string | null): Sesion {
   const ahora = Date.now()
   return {
-    v: 1, id: randomUUID(), canal, asesor, estado: 'CONEXION', preguntas: 1, desvios: 0, respuestas: 1,
+    v: 2, id: randomUUID(), canal, asesor, estado: 'ESPERA_ORGANIZACION', seq: 0, preguntas: 1, invalidos: 0, desvios: 0, candidato: null, respuestas: 1,
     h: [], datos: { organizacion: '', rol: '', objetivo: '', situacion: '' }, ficha: null, creada: ahora, ultima: ahora,
   }
 }
@@ -71,7 +76,7 @@ export function abrir(token: unknown, minutos = MINUTOS_SESION): Sesion | null {
   if (esperada.length !== recibida.length || !timingSafeEqual(esperada, recibida)) return null
   try {
     const s = JSON.parse(Buffer.from(cuerpo, 'base64url').toString('utf-8')) as Sesion
-    if (s.v !== 1 || Date.now() - s.ultima > minutos * 60_000) return null
+    if (s.v !== 2 || Date.now() - s.ultima > minutos * 60_000) return null
     return s
   } catch { return null }
 }

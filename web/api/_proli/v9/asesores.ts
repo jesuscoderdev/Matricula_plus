@@ -21,3 +21,11 @@ export const BUZON_CENTRAL = 'hello@proliferante.com'
 export const POR_ASIGNAR = 'por_asignar'
 
 export const asesorPorId = (id: string | null | undefined) => ASESORES.find((a) => a.id === id) ?? null
+
+/**
+ * Pruebas en el servidor local: con PROLI_CORREO_PRUEBA, el calendario y la invitación del asesor usan ese
+ * correo, para probar reservas reales sin enviar invitaciones a los asesores. Nunca se define en Vercel.
+ */
+export function correoAsesor(a: Asesor, env: Record<string, string | undefined> = {}): string {
+  return env.PROLI_CORREO_PRUEBA?.trim() || a.correo
+}

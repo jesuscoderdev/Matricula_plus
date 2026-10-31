@@ -44,6 +44,8 @@ const FUNCIONES = {
   '/api/proli': (await import(pathToFileURL(join(WEB, 'api', 'proli.ts')).href)).POST,
   '/api/conversa': (await import(pathToFileURL(join(WEB, 'api', 'conversa.ts')).href)).POST,
   '/api/registro': (await import(pathToFileURL(join(WEB, 'api', 'registro.ts')).href)).POST,
+  '/api/disponibilidad': (await import(pathToFileURL(join(WEB, 'api', 'disponibilidad.ts')).href)).POST,
+  '/api/recordatorios': (await import(pathToFileURL(join(WEB, 'api', 'recordatorios.ts')).href)).POST,
 }
 
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
@@ -59,7 +61,7 @@ createServer(async (req, res) => {
     const control = new AbortController()
     res.on('close', () => { if (!res.writableEnded) control.abort() })
     const respuesta = await POST(new Request(url, {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': '127.0.0.1', ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}) },
       body: Buffer.concat(trozos), signal: control.signal,
     }))
     res.writeHead(respuesta.status, Object.fromEntries(respuesta.headers))

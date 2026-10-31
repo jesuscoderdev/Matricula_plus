@@ -51,9 +51,38 @@ En local (`npm run proli:local`), sin Supabase, los registros van a `web/.datos-
 - `npm test`: tono, más 12 pruebas del controlador con un modelo simulado (C02, C07–C11, C23, C24, sesgo y ficha cerrada).
 - `node scripts/proli-v9-pruebas.mjs`: los casos de conversación C02–C11 y C24 con el modelo real. Requiere el servidor local y gasta créditos. Resultado del 31 de octubre: **0 alertas**.
 
+## Actualización V12 (31 de octubre)
+
+La especificación V12 de Paola reemplaza partes de lo anterior. Lo vigente es lo que sigue.
+
+- **Etapas estrictas** (`controlador.ts`): ESPERA_ORGANIZACION → ESPERA_ROL → ESPERA_OBJETIVO.
+  - Cualquier nombre declarado es una organización. «Proliferante» lleva a «¿Y qué haces allí?».
+  - «No sé» se interpreta según la etapa.
+  - Ante texto aleatorio, Proli pide confirmar el nombre; si dice que sí, lo acepta.
+  - Ante una pregunta ajena, hace una aclaración.
+  - Con dos entradas inválidas seguidas, cierra sin crear un registro.
+  - El modelo solo clasifica y escribe el cierre: las preguntas son literales y las intenciones (agendar, salir, «¿qué es un Proli?») solo valen si el texto las expresa.
+- **Aislamiento de sesiones:**
+  - cada mensaje lleva `seq` y `request_id`, y un reintento devuelve la misma respuesta;
+  - «Reiniciar» anula la sesión en el servidor;
+  - en el navegador, cada visitante es un componente nuevo y las respuestas que llegan tarde se descartan;
+  - no se guarda nada del visitante en el navegador, y `/api` queda fuera del service worker.
+- **Agenda real** (`agenda.ts`, `google.ts`, `api/disponibilidad.ts`, `api/registro.ts`):
+  - horarios del 3 de noviembre al 3 de febrero de 2027, de 8:00 a 17:30, cada 20 minutos, de lunes a viernes y sin festivos;
+  - solo se ofrecen horarios libres en el calendario del asesor y en el CRM;
+  - el horario se bloquea por asesor (`bookings_asesor_horario`): dos asesores pueden coincidir, un mismo asesor no;
+  - se crea un solo evento en el calendario de hello@, con Google Meet e invitación al visitante y al asesor;
+  - Proli responde «confirmada» solo después de que existe el evento;
+  - sin asesor, la reunión es con Paola.
+- **Recordatorio** 24 horas antes, con el texto de Paola (`api/recordatorios.ts`). Lo dispara cada 15 minutos un trabajo de Supabase (pg_cron y pg_net) con el secreto `RECORDATORIOS_SECRETO`. El SQL está en `credenciales/proli-recordatorios.sql`, fuera del repositorio, porque contiene el secreto.
+- **Permiso de Google:** OAuth de hello@, sin clave de cuenta de servicio porque la organización las bloquea. Se configura con `scripts/google-autorizar.mjs`, que guarda `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` y `GOOGLE_REFRESH_TOKEN`.
+- **Migración:** `web/supabase/002_proli_v12.sql`.
+- **Pruebas en local sin molestar a los asesores:** `PROLI_CORREO_PRUEBA=correo npm run proli:local` envía la invitación y consulta el calendario de ese correo en lugar del asesor. Nunca se define en Vercel.
+
 ## Pendiente (fase 2 y dependencias de la especificación)
 
-- [ ] **Google Calendar:** disponibilidad real, un solo evento de 20 minutos con invitación al visitante, a hello@ y al asesor, reprogramación, cancelación y bloqueo de horario (C12, C15–C18). Requiere una cuenta de servicio con acceso al calendario de hello@ y al de los cinco asesores, y los horarios autorizados.
+- [x] **Google Calendar:** disponibilidad real, un solo evento, bloqueo de horario por asesor (V12).
+- [ ] **Reprogramar o cancelar desde Proli** (C18). Hoy se hace respondiendo a la invitación de Google o desde el calendario de hello@, y el CRM no se entera solo de esos cambios.
 - [ ] **Aviso a hello@** de cada solicitud (`notify_team`). Hasta entonces, el equipo revisa la vista `v_solicitudes` en Supabase.
 - [ ] **Política de privacidad completa.** La del 23 de septiembre tiene campos pendientes y el aviso de `web/api/_proli/privacidad.ts` sigue siendo un borrador.
 - [ ] **Confirmar que los seis correos existen** y reciben invitaciones.
