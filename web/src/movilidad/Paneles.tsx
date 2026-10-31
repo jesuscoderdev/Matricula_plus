@@ -19,7 +19,7 @@ import ProliActividad from '../componentes/ProliActividad'
 import AnimacionSistema from './AnimacionSistema'
 import QrCita from '../componentes/QrCita'
 import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
-import { pedirAProli } from '../proli/ordenes'
+import { BOTON_WHATSAPP, pedirAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
 import { entero, millones, pctFraccion, type DatosMovilidad } from './datos'
 import { guionDe } from './guion'
@@ -287,7 +287,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
     accion: modo !== 'auto' && <Boton onClick={() => pedirAProli('Tengo un reto en mi entidad')}>Contarle mi reto a Proli →</Boton>,
     secundarias: modo !== 'auto' && (
       <>
-        <button className="boton boton--claro boton--ancho pp__boton-2" onClick={agendar} data-proli="cap-reto">{verQr ? 'Volver a Proli' : 'Agendar una conversación →'}</button>
+        <button className="boton boton--claro boton--ancho pp__boton-2" onClick={agendar} data-proli="cap-reto">{totem ? (verQr ? 'Volver a Proli' : 'Agendar conversación →') : `${BOTON_WHATSAPP(!!suReto)} →`}</button>
         <div className="fila pp__fila">
           <button className="boton-texto" onClick={() => ir('portada')}>Ver de nuevo</button>
           {alInicio && <button className="boton-texto" onClick={alInicio}>Ver otros proyectos</button>}

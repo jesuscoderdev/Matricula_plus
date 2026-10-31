@@ -30,7 +30,7 @@ export function guia(pantalla: string, _paso: number): Paso | null {
   if (pantalla.startsWith('Matrícula+')) {
     const c = capituloDe(pantalla)
     const conLocalidad = pantalla.includes(', localidad ')
-    const reto: Opcion = { texto: 'Tengo un reto en mi entidad', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: '¡Con gusto! Agenda una conversación con el equipo con el código o el botón.' }
+    const reto: Opcion = { texto: 'Tengo un reto en mi entidad', ordenes: [o('abrir_agenda', { demo: 'matricula' })], respuesta: '¡Con gusto! Escríbele al equipo: aquí te muestro cómo enviarle tu solicitud.' }
     if (c === 'portada') return {
       pregunta: '¿Vemos por qué tantos estudiantes quedan lejos de casa?',
       opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('matricula', 'problema')], respuesta: 'Tener un cupo no siempre significa estudiar cerca.' }],
@@ -72,7 +72,7 @@ export function guia(pantalla: string, _paso: number): Paso | null {
 
   if (pantalla.startsWith(NOMBRE_MOVILIDAD)) {
     const c = capituloDe(pantalla)
-    const agenda: Opcion = { texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: '¡Con gusto! Agenda una conversación con el equipo con el código o el botón.' }
+    const agenda: Opcion = { texto: 'Sí, agendemos', ordenes: [o('abrir_agenda', { demo: 'movilidad' })], respuesta: '¡Con gusto! Escríbele al equipo: aquí te muestro cómo enviarle tu solicitud.' }
     if (c === 'portada') return {
       pregunta: '¿Te muestro dónde invertir primero?',
       opciones: [{ texto: 'Sí, empecemos', ordenes: [cap('movilidad', 'problema')], respuesta: 'Hay muchos más lugares que recursos: hay que escoger.' }],
