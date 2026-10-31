@@ -15,7 +15,7 @@ import QrCita from '../componentes/QrCita'
 import { Boton, CifraGrande, entrar, masDe, type Pantalla } from '../componentes/Recorrido'
 import AnimacionSistema from './AnimacionSistema'
 import { APP_NAME, EMPRESA, URL_CITA, urlCitaCon } from '../config'
-import { BOTON_WHATSAPP, pedirAProli } from '../proli/ordenes'
+import { BOTON_WHATSAPP, irAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
 import {
   NIVELES, decimal, deCada10, casiDeCada10, entero, localidadesOrdenadas, millonesDe, nivelesQueFaltan, pct,
@@ -274,7 +274,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
         {verQr ? <QrCita /> : <Proli tamano={9} globo={<>Cuéntame tu reto. Quiero entender qué está pasando y qué información tienes disponible.</>} />}
       </div>
     ),
-    accion: modo !== 'auto' && <Boton onClick={() => pedirAProli('Tengo un reto en mi entidad')}>Contarle mi reto a Proli →</Boton>,
+    accion: modo !== 'auto' && <Boton onClick={() => irAProli()}>Contarle mi reto a Proli →</Boton>,
     secundarias: modo !== 'auto' && (
       <>
         <button className="boton boton--claro boton--ancho pp__boton-2" onClick={agendar} data-proli="cap-reto">{totem ? (verQr ? 'Volver a Proli' : 'Agendar conversación →') : `${BOTON_WHATSAPP(!!suReto)} →`}</button>

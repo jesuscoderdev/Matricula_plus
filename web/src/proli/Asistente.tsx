@@ -7,13 +7,7 @@
  *  · una pregunta: Proli responde moviendo la boca mientras aparece el texto.
  * Las dos funcionan sin IA y sin conexión. «Escribir otra pregunta» abre la conversación con Claude.
  *
- * Conversación: el navegador guarda el historial y lo manda a /api/proli (api/proli.ts), que llama a
- * Claude. Cuando Proli pide acciones (tool_use), se ejecutan aquí con src/proli/ordenes.ts y se le
- * devuelve el resultado; así hasta que Proli responde sin acciones (máximo MAX_PASOS por pregunta).
- *
- * El historial es de solo agregar: se reenvía tal como lo devolvió la API (con sus bloques de
- * razonamiento), nunca se edita. Si una respuesta termina en negativa o cortada, la conversación
- * siguiente empieza de cero.
+ * La conversación con Claude está en conversacion.ts (la comparte la página propia de Proli, /proli).
  *
  * Sin conexión (o sin clave en el servidor), las preguntas sugeridas siguen funcionando con
  * respuestas preparadas y acciones locales. Esas respuestas no llevan cifras: toda cifra sale de
@@ -21,23 +15,16 @@
  */
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import type Anthropic from '@anthropic-ai/sdk'
 import ProliAnimado from '../componentes/ProliAnimado'
 import { esTotem, leerModo } from '../modo'
-import { BOTON_WHATSAPP, alPedirAProli, ejecutar, fijarReto, leerPantalla, usePantalla, useReto, type Orden } from './ordenes'
+import { BOTON_WHATSAPP, ejecutar, fijarReto, usePantalla, useReto } from './ordenes'
 import { CursorProli, useVolando } from './cursor'
 import { capituloDe, guia, type Opcion } from './guia'
+import { PANTALLA_PROLI, PAUSA_ACCION_MS, avisarActividad, dormir, esPropuesta, useConversacion, type Sugerencia } from './conversacion'
 import { NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
 import QrCita from '../componentes/QrCita'
 import AvisoPrivacidad from '../componentes/AvisoPrivacidad'
 
-type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
-type Bloque = Anthropic.Beta.Messages.BetaContentBlock
-
-const MAX_PASOS = 4            // vueltas de acciones por pregunta
-const MAX_PREGUNTAS = 12       // por conversación (en el stand, cada visitante tiene la suya)
-const MAX_MENSAJES_HISTORIAL = 44 // el servidor acepta 60; cada pregunta con acciones suma unos 6
-const PAUSA_ACCION_MS = 350    // entre acciones, para que la pantalla alcance a cambiar
 const SEGUNDOS_LECTURA = 20    // margen extra para leer la respuesta antes de la inactividad del tótem
 const ALTO_MINIMO_PX = 340     // si el mapa es más bajo, el panel cubre también la cabecera
 const MARGEN_PX = 8
@@ -81,25 +68,6 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
   }, [activo, pantalla])
   return zona
 }
-const URL = './api/proli'
-
-interface Linea { quien: 'visitante' | 'proli' | 'accion' | 'aviso'; texto: string }
-/** Después de abrir la agenda, el chat muestra al final cómo enviar la solicitud (el panel tapa la pantalla) */
-const ES_AGENDA = new Set(['abrir_agenda', 'agendar_con_reto'])
-/** `conversar`: en vez de responder con algo guardado, abre la conversación con la IA (sin conexión, usa `sinConexion`). */
-interface Sugerencia { texto: string; ordenes?: Orden[]; sinConexion: string; conversar?: boolean }
-
-/**
- * ¿Proli terminó proponiendo una acción de sí o no («¿Te llevo a Resultados?»)? Entonces va el botón
- * «Sí, muéstramelo». Una pregunta abierta («¿En qué secretaría trabajas?») no lo lleva.
- */
-function esPropuesta(texto: string) {
-  const t = texto.trim()
-  if (!t.endsWith('?')) return false
-  const pregunta = t.slice(t.lastIndexOf('¿') + 1).toLowerCase()
-  return !/^(qu[eé]|cu[aá]l(es)?|cu[aá]nt[oa]s?|d[oó]nde|c[oó]mo|cu[aá]ndo|qui[eé]n(es)?|por qu[eé]|para qu[eé]|en qu[eé]|de qu[eé]|a qu[eé]|con qu[eé])(?=[\s,?])/.test(pregunta)
-}
-
 /** Preguntas sugeridas según dónde está el visitante. */
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
@@ -133,12 +101,6 @@ function sugerencias(pantalla: string): Sugerencia[] {
   ]
 }
 
-const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms))
-/** Mantiene vivo el tótem mientras Proli habla o el visitante escribe (los temporizadores de inactividad escuchan pointerdown). */
-const avisarActividad = () => window.dispatchEvent(new Event('pointerdown'))
-
-class SinConexion extends Error {}
-
 /** El texto aparece letra por letra, como si Proli lo fuera diciendo. */
 function useEscribiendo(texto: string) {
   const [n, setN] = useState(0)
@@ -151,52 +113,14 @@ function useEscribiendo(texto: string) {
   return texto.slice(0, n)
 }
 
-/** Una llamada a /api/proli: transmite el texto mientras llega y devuelve el mensaje completo. */
-async function llamar(mensajes: Mensaje[], alTexto: (d: string) => void, senal: AbortSignal): Promise<{ contenido: Bloque[]; stop: string }> {
-  let r: Response
-  try {
-    r = await fetch(URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensajes }), signal: senal })
-  } catch (e) {
-    if ((e as Error).name === 'AbortError') throw e
-    throw new SinConexion('red')
-  }
-  if (!r.ok || !r.body) throw new SinConexion(String(r.status))
-  const lector = r.body.pipeThrough(new TextDecoderStream()).getReader()
-  let resto = ''
-  let fin: { contenido: Bloque[]; stop: string } | null = null
-  for (;;) {
-    const { value, done } = await lector.read()
-    if (done) break
-    resto += value
-    let i
-    while ((i = resto.indexOf('\n')) >= 0) {
-      const linea = resto.slice(0, i).trim()
-      resto = resto.slice(i + 1)
-      if (!linea) continue
-      const ev = JSON.parse(linea) as { t: string; d?: string; contenido?: Bloque[]; stop?: string }
-      if (ev.t === 'texto' && ev.d) alTexto(ev.d)
-      else if (ev.t === 'fin') fin = { contenido: ev.contenido ?? [], stop: ev.stop ?? 'end_turn' }
-      else if (ev.t === 'error') throw new SinConexion(ev.d ?? 'fallo')
-    }
-  }
-  if (!fin) throw new SinConexion('incompleto')
-  return fin
-}
-
 export default function Asistente() {
   const pantalla = usePantalla()
   const modo = leerModo()
   const reto = useReto()
-  const [cita, setCita] = useState(false)
+  const conversacion = useConversacion()
+  const { lineas, ocupado, sinConexion, cita, agregar, reiniciar: reiniciarConversacion } = conversacion
   const [abierto, setAbierto] = useState(false)
-  const [lineas, setLineas] = useState<Linea[]>([])
-  const [ocupado, setOcupado] = useState(false)
   const [texto, setTexto] = useState('')
-  const [sinConexion, setSinConexion] = useState(false)
-  const historial = useRef<Mensaje[]>([])
-  const contextoEnviado = useRef('')
-  const preguntas = useRef(0)
-  const cancelar = useRef<AbortController | null>(null)
   const refLista = useRef<HTMLDivElement>(null)
   const zona = useZonaSobreMapa(modo !== 'auto', pantalla)
   const volando = useVolando()
@@ -227,11 +151,7 @@ export default function Asistente() {
   useEffect(() => { setPaso(0); setMenu(false) }, [lugar])
   const pasoGuia = guia(pantalla, paso)
 
-  const reiniciar = useCallback(() => {
-    cancelar.current?.abort()
-    historial.current = []; contextoEnviado.current = ''; preguntas.current = 0
-    setLineas([]); setOcupado(false); setTexto(''); setCita(false)
-  }, [])
+  const reiniciar = useCallback(() => { reiniciarConversacion(); setTexto('') }, [reiniciarConversacion])
   // Volver a la portada es un visitante nuevo: conversación nueva y panel cerrado
   useEffect(() => { if (pantalla === 'portada del stand') { reiniciar(); fijarReto(''); setAbierto(false); setDicho(''); setSaludando(true); setGuiando(false); setMenu(false) } }, [pantalla, reiniciar])
   useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas, cita, ocupado])
@@ -243,24 +163,6 @@ export default function Asistente() {
     const id = window.setTimeout(avisarActividad, SEGUNDOS_LECTURA * 1000)
     return () => window.clearTimeout(id)
   }, [abierto, ocupado, lineas.length])
-
-  const agregar = (l: Linea) => setLineas((x) => [...x, l])
-  /** Agrega texto a la última línea de Proli (la que se está escribiendo). */
-  const escribir = (d: string) => setLineas((x) => {
-    const u = x[x.length - 1]
-    return u?.quien === 'proli' ? [...x.slice(0, -1), { ...u, texto: u.texto + d }] : [...x, { quien: 'proli', texto: d }]
-  })
-
-  const responderSinConexion = useCallback(async (s?: Sugerencia) => {
-    setSinConexion(true)
-    if (s) {
-      for (const o of s.ordenes ?? []) { await ejecutar(o); await dormir(PAUSA_ACCION_MS) }
-      agregar({ quien: 'proli', texto: s.sinConexion })
-      if (s.ordenes?.some((o) => ES_AGENDA.has(o.nombre))) setCita(true)
-    } else {
-      agregar({ quien: 'proli', texto: 'Ahora no tengo conexión para conversar, pero puedo llevarte a donde quieras con estas opciones.' })
-    }
-  }, [])
 
   /** Una opción de la guía: Proli lo dice, vuela a cada control, lo cambia y pasa a la pregunta siguiente. */
   const elegir = useCallback(async (op: Opcion) => {
@@ -282,77 +184,23 @@ export default function Asistente() {
     setGuiando(false)
   }, [guiando])
 
-  const preguntar = useCallback(async (pregunta: string, s?: Sugerencia) => {
-    if (ocupado || !pregunta.trim()) return
-    agregar({ quien: 'visitante', texto: pregunta })
-    setTexto('')
-    if (preguntas.current >= MAX_PREGUNTAS) {
-      agregar({ quien: 'aviso', texto: 'Esta conversación ya va larga. Toca «Reiniciar» y seguimos con gusto.' })
-      return
-    }
-    preguntas.current++
-    // El servidor acepta hasta 60 mensajes: antes de llegar, Proli empieza una conversación nueva
-    if (historial.current.length > MAX_MENSAJES_HISTORIAL) { historial.current = []; contextoEnviado.current = '' }
-    setOcupado(true)
-    const control = new AbortController()
-    cancelar.current = control
-    const h = historial.current          // si el visitante reinicia a mitad de camino, esta conversación se abandona
-    // Contexto de pantalla: va como mensaje de sistema solo cuando cambió (el historial no se edita)
-    const conContexto = () => {
-      const c = `Pantalla actual: ${leerPantalla()}`
-      if (c !== contextoEnviado.current) { h.push({ role: 'system', content: c }); contextoEnviado.current = c }
-    }
-    try {
-      h.push({ role: 'user', content: pregunta.slice(0, 500) })
-      conContexto()
-      for (let paso = 0; paso < MAX_PASOS; paso++) {
-        const { contenido, stop } = await llamar(h, (d) => { escribir(d); avisarActividad() }, control.signal)
-        if (control.signal.aborted || historial.current !== h) return
-        h.push({ role: 'assistant', content: contenido as unknown as Anthropic.Beta.Messages.BetaContentBlockParam[] })
-        setSinConexion(false)
-        if (stop === 'refusal' || stop === 'max_tokens') {
-          // No se ejecutan acciones a medias; la próxima pregunta empieza una conversación nueva
-          if (stop === 'refusal') agregar({ quien: 'proli', texto: 'Prefiero no meterme en ese tema, pero con gusto te muestro algo de los demos. ¿Te parece?' })
-          historial.current = []; contextoEnviado.current = ''
-          break
-        }
-        const acciones = contenido.filter((b): b is Anthropic.Beta.Messages.BetaToolUseBlock => b.type === 'tool_use')
-        if (!acciones.length) break
-        const resultados: Anthropic.Beta.Messages.BetaToolResultBlockParam[] = []
-        for (const a of acciones) {
-          const resultado = await ejecutar({ nombre: a.name, entrada: (a.input ?? {}) as Record<string, unknown> })
-          resultados.push({ type: 'tool_result', tool_use_id: a.id, content: resultado })
-          // El visitante ve qué hizo Proli en la pantalla (y por qué cambió). Las consultas de cifras
-          // traen «resumen | detalle»: en el panel va solo el resumen; Proli recibe todo
-          agregar({ quien: 'accion', texto: resultado.split(' | ')[0].replace(/^Listo: /, '').replace(/ Listo: /, ' ') })
-          if (ES_AGENDA.has(a.name)) setCita(true)
-          await dormir(PAUSA_ACCION_MS)
-          if (control.signal.aborted || historial.current !== h) return
-        }
-        h.push({ role: 'user', content: resultados })
-        conContexto()
-      }
-    } catch (e) {
-      if ((e as Error).name !== 'AbortError') {
-        // Se descarta el turno a medias para que el historial siga siendo válido
-        historial.current = []; contextoEnviado.current = ''
-        await responderSinConexion(s)
-      }
-    } finally {
-      setOcupado(false)
-      avisarActividad()
-    }
-  }, [ocupado, responderSinConexion])
+  const preguntar = (pregunta: string, s?: Sugerencia) => { if (!ocupado && pregunta.trim()) setTexto(''); conversacion.preguntar(pregunta, s) }
 
-  /** Abre la conversación y le pregunta a Proli (desde el menú o desde otra pantalla). */
+  /** Abre la conversación y le pregunta a Proli (desde el menú). */
   const conversar = (pregunta: string, s?: Sugerencia) => { setMenu(false); setDicho(''); setSaludando(false); setAbierto(true); preguntar(pregunta, s) }
-  const refConversar = useRef(conversar)
-  refConversar.current = conversar
-  // «Cuéntale tu reto a Proli» (página para elegir un reto) y otros pedidos desde fuera del panel
-  useEffect(() => alPedirAProli((t) => refConversar.current(t)), [])
 
-  // Ni en la portada del stand ni en «Conoce a Proli»: ahí Proli ya es el protagonista de la pantalla
-  if (modo === 'auto' || pantalla === 'portada del stand' || pantalla === 'Conoce a Proli') return null
+  // La conversación es la misma de la página de Proli: si Proli lleva al visitante de allí a un demo,
+  // el panel se abre con la conversación en curso
+  const enPaginaProli = pantalla.startsWith(PANTALLA_PROLI)
+  const enDemo = pantalla.startsWith('Matrícula+') || pantalla.startsWith(NOMBRE_MOVILIDAD)
+  const veniaDeProli = useRef(false)
+  useEffect(() => {
+    if (veniaDeProli.current && enDemo && lineas.length) { setAbierto(true); setDicho(''); setSaludando(false) }
+    veniaDeProli.current = enPaginaProli
+  }, [enPaginaProli, enDemo, lineas.length])
+
+  // Ni en la portada del stand, ni en «Conoce a Proli», ni en su página: ahí Proli ya es el protagonista
+  if (modo === 'auto' || pantalla === 'portada del stand' || pantalla === 'Conoce a Proli' || enPaginaProli) return null
   // Si Proli terminó proponiendo algo («¿Lo llevo a Resultados?»), se acepta con un toque
   const ultima = lineas[lineas.length - 1]
   const propuso = !ocupado && ultima?.quien === 'proli' && !sinConexion && esPropuesta(ultima.texto)

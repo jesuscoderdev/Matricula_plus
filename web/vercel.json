@@ -10,6 +10,13 @@
     "api/proli.ts": { "maxDuration": 60 }
   },
   "cleanUrls": false,
+  "redirects": [
+    { "source": "/(proli|Proli|PROLI)/", "destination": "/proli", "permanent": true },
+    { "source": "/(Proli|PROLI)", "destination": "/proli", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/proli", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

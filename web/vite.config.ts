@@ -95,7 +95,7 @@ export default defineConfig(({ mode }) => {
             ],
           },
           workbox: {
-            globPatterns: ['**/*.{js,css,html,woff2,png,svg,webp,json,geojson}'],
+            globPatterns: ['**/*.{js,css,html,woff2,png,svg,webp,json,geojson,mp3}'],
             // El geojson original de movilidad no se precachea: la app usa el derivado compacto
             globIgnores: ['movilidad/datos/sitios.geojson'],
             maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,

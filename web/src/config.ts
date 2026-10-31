@@ -85,6 +85,19 @@ export const PROLI_INTRO = {
   texto: 'Te voy a mostrar cómo cambian las decisiones cuando ponemos los datos a trabajar.',
   boton: 'Ver los retos',
 }
+/** La página propia de Proli (govtech.proliferante.com/proli): lo que escribe y dice en voz alta al saludar */
+export const PROLI_PAGINA = {
+  saludo: 'Soy el asistente virtual de Proliferante. Me encanta conversar sobre cómo los datos se convierten en mejores decisiones. Cuéntame tu reto o pregúntame lo que quieras.',
+  // Al llegar desde el final de un demo («Contarle mi reto a Proli»)
+  despues: '¡Qué bueno que llegaste hasta aquí! Ahora cuéntame el reto de tu entidad y pensamos juntos cómo resolverlo con los datos que ya tiene.',
+  placeholder: 'Escribe tu pregunta o tu reto…',
+  // La voz: apagada hasta tener los MP3 de ElevenLabs (con `true`, Proli saluda en voz alta y aparece
+  // el botón «Escuchar a Proli»). Los MP3 deben decir exactamente el texto de arriba; si no están,
+  // Proli habla con la voz del navegador
+  voz: false,
+  audioSaludo: './voz/proli-saludo.mp3',     // «Hola, soy Proli. » + saludo
+  audioDespues: './voz/proli-despues.mp3',   // «¡Hola! » + despues
+}
 // Modo automático: segundos con Proli antes de pasar a elegir proyecto
 export const SEGUNDOS_PROLI_AUTO = 9
 

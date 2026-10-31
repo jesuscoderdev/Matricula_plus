@@ -13,7 +13,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import { INSTRUCCIONES } from '../api/_proli/instrucciones.ts'
-import { PROLI_INTRO, PORTADA_STAND } from '../src/config.ts'
+import { PROLI_INTRO, PROLI_PAGINA, PORTADA_STAND } from '../src/config.ts'
 import { AVISO_PRIVACIDAD } from '../api/_proli/privacidad.ts'
 
 const leer = (ruta: string) => fs.readFileSync(new URL(ruta, import.meta.url), 'utf-8')
@@ -97,7 +97,7 @@ test('la bienvenida de Proli es cálida y de tú', () => {
 })
 
 test('las respuestas sin conexión de Proli tutean', () => {
-  const fuente = leer('../src/proli/Asistente.tsx')
+  const fuente = leer('../src/proli/Asistente.tsx') + leer('../src/proli/conversacion.ts') + leer('../src/proli/PaginaProli.tsx')
   const textos = [
     ...valores(fuente, 'sinConexion'),
     ...[...fuente.matchAll(/quien: '(?:proli|aviso)', texto: (['`])((?:\\.|(?!\1).)*)\1/g)].map((m) => m[2]),
@@ -114,7 +114,7 @@ test('la guía de Proli (preguntas y respuestas) tutea', () => {
 })
 
 test('los saludos de Proli en pantalla tutean', () => {
-  for (const t of [PROLI_INTRO.saludo, PROLI_INTRO.texto, PORTADA_STAND.proli]) revisar('config.ts', t)
+  for (const t of [PROLI_INTRO.saludo, PROLI_INTRO.texto, PORTADA_STAND.proli, PROLI_PAGINA.saludo, PROLI_PAGINA.despues, PROLI_PAGINA.placeholder]) revisar('config.ts', t)
 })
 
 test('el aviso de privacidad tutea y nombra la ley y cómo retirar el permiso', () => {

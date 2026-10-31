@@ -9,7 +9,7 @@
  *
  * Los datos de cada proyecto solo se cargan al entrar a él (cada proyecto es su propio módulo).
  */
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { EMPRESA, LEMA_EMPRESA, NOMBRE_MOVILIDAD, PROYECTOS, SEGUNDOS_INACTIVIDAD, SEGUNDOS_INICIO_AUTO, URL_EMPRESA, type IdProyecto } from './config'
 import { esTotem, leerModo, modoAutomatico, type Modo } from './modo'
@@ -19,7 +19,8 @@ import { ProliMarca } from './componentes/Proli'
 import App from './App'
 import PortadaStand from './PortadaStand'
 import ConozcaProli from './ConozcaProli'
-import { informarPantalla, pedirAProli, registrar } from './proli/ordenes'
+import { alIrAProli, informarPantalla, irAProli, registrar } from './proli/ordenes'
+import PaginaProli from './proli/PaginaProli'
 import { recordado, recordar } from './recordar'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
@@ -37,7 +38,7 @@ const pedido = (): IdProyecto | null => {
   return activos.some((x) => x.id === p) ? (p as IdProyecto) : null
 }
 
-type Etapa = 'portada' | 'proli' | 'elegir'
+type Etapa = 'portada' | 'proli' | 'elegir' | 'conversar'
 
 export default function Inicio() {
   const fijo = useMemo(pedido, [])
@@ -50,6 +51,8 @@ export default function Inicio() {
   useEffect(() => { if (!fijo) recordar('inicio', { etapa, proyecto }) }, [fijo, etapa, proyecto])
   const [modo, setModo] = useState<Modo>(leerModo)
   const [turno, setTurno] = useState(0)   // auto: qué proyecto sigue
+  // La página de Proli: de qué demo venía el visitante al tocar «Contarle mi reto a Proli»
+  const [desde, setDesde] = useState<IdProyecto | null>(null)
 
   useEffect(() => { if (!proyecto) document.documentElement.dataset.modo = modo }, [modo, proyecto])
   // La pestaña dice dónde estás: la «o» de Proliferante en el inicio y el icono de cada proyecto dentro
@@ -108,9 +111,13 @@ export default function Inicio() {
     }
     return 'Acción no reconocida.'
   }), [aProyecto])
-  // Qué está viendo el visitante fuera de los demos (dentro, lo informa cada demo)
+  // «Contarle mi reto a Proli» (al final de cada demo o al elegir reto): a la página de Proli
+  const refProyecto = useRef(proyecto)
+  refProyecto.current = proyecto
+  useEffect(() => alIrAProli(() => { setDesde(refProyecto.current); setProyecto(null); setEtapa('conversar') }), [])
+  // Qué está viendo el visitante fuera de los demos (dentro, lo informa cada demo; en la de Proli, ella misma)
   useEffect(() => {
-    if (proyecto) return
+    if (proyecto || etapa === 'conversar') return
     informarPantalla(etapa === 'portada' ? 'portada del stand' : etapa === 'proli' ? 'Conoce a Proli' : 'página para elegir demo')
   }, [proyecto, etapa])
 
@@ -132,6 +139,7 @@ export default function Inicio() {
     )
   }
   if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aProli} />
+  if (etapa === 'conversar') return <PaginaProli enApp={{ modo, desde, alVolver: aElegir, alPortada: modo === 'auto' ? undefined : aPortada }} />
   if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alVolver={aPortada} />
   return <Hub modo={modo} entrar={setProyecto} alPortada={aPortada} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }
@@ -187,7 +195,7 @@ function Hub({ modo, entrar: alEntrar, alPortada, siguiente }: { modo: Modo; ent
         </div>
         {/* Paola, 30-oct: «entrégale a Proli el tuyo» */}
         <motion.button type="button" className="proyecto proyecto--tuyo" data-proli="demo-tuyo" disabled={modo === 'auto'}
-                       onClick={() => pedirAProli('Tengo un reto en mi entidad')}
+                       onClick={() => irAProli()}
                        initial={{ opacity: 0, y: 28, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
                        transition={{ delay: 0.6, type: 'spring', stiffness: 170, damping: 20 }}>
           <span className="proyecto__arte proyecto__arte--proli" aria-hidden><ProliMarca tamano={3.6} /></span>
