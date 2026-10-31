@@ -71,6 +71,11 @@ function aplicarOrden(orden: Orden): Promise<string> {
     return aplicarOrden({ nombre: 'abrir_agenda', entrada: { demo: orden.entrada.demo } })
       .then((r) => `Listo: el mensaje de la cita ya lleva el reto escrito. ${r}`)
   }
+  // El visitante retiró su permiso: el mensaje y el QR de la cita vuelven a ser genéricos
+  if (orden.nombre === 'borrar_reto') {
+    fijarReto('')
+    return Promise.resolve('Listo: se borraron el nombre, la entidad y el reto del mensaje de WhatsApp y del código QR; ahora son genéricos.')
+  }
   // La agenda vive dentro de cada demo
   if (orden.nombre === 'abrir_agenda') {
     const demo = orden.entrada.demo === 'matricula' ? 'matricula' : 'movilidad'
@@ -79,7 +84,7 @@ function aplicarOrden(orden: Orden): Promise<string> {
   const ambito = ambitoDe(orden.nombre)
   const manejador = manejadores.get(ambito)
   if (manejador) return Promise.resolve(aplicar(manejador, orden))
-  if (ambito === 'inicio') return Promise.resolve('La pantalla todavía no está lista; intente de nuevo en un momento.')
+  if (ambito === 'inicio') return Promise.resolve('La pantalla todavía no está lista; intenta de nuevo en un momento.')
   const nombreDemo = ambito === 'movilidad' ? NOMBRE_MOVILIDAD : 'Matrícula+'
   return new Promise((resolver) => {
     const pendiente = { orden, responder: (r: string) => { window.clearTimeout(id); resolver(`Se abrió ${nombreDemo}. ${r}`) } }

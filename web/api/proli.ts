@@ -16,6 +16,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { INSTRUCCIONES } from './_proli/instrucciones.js'
 import { CONOCIMIENTO } from './_proli/conocimiento.js'
 import { HERRAMIENTAS } from './_proli/herramientas.js'
+import { URL_AVISO_PRIVACIDAD } from './_proli/privacidad.js'
 
 declare const process: { env: Record<string, string | undefined> }
 type Mensaje = Anthropic.Beta.Messages.BetaMessageParam
@@ -29,10 +30,16 @@ const MAX_TEXTO_USUARIO = 500      // caracteres por pregunta
 const PETICIONES_POR_VENTANA = 300 // por IP, cada 10 minutos (por instancia del servidor)
 const VENTANA_MS = 10 * 60_000
 
+// La regla del aviso de privacidad depende de si ya hay enlace (api/_proli/privacidad.ts). Se arma aquí y
+// no en instrucciones.ts para que ese archivo no tenga imports: lo leen las pruebas de tono en Node.
+const AVISO = URL_AVISO_PRIVACIDAD
+  ? `Al pedir permiso, di que el aviso de privacidad de Proliferante está junto al código QR (${URL_AVISO_PRIVACIDAD.replace(/^https?:\/\//, '')}).`
+  : 'Todavía no hay un aviso de privacidad publicado: no lo menciones ni lo inventes; anota solo lo indispensable y recuerda que los datos van únicamente en el mensaje que el visitante envía él mismo.'
+
 // Instrucciones + conocimiento: idénticos para todos los visitantes, así que se guardan en caché
 // (1 hora: en el stand hay ratos sin visitantes y la caché de 5 minutos se perdería)
 const SISTEMA: Anthropic.Beta.Messages.BetaTextBlockParam[] = [
-  { type: 'text', text: `${INSTRUCCIONES}\n\n${CONOCIMIENTO}`, cache_control: { type: 'ephemeral', ttl: '1h' } },
+  { type: 'text', text: `${INSTRUCCIONES.replace('{{AVISO_PRIVACIDAD}}', AVISO)}\n\n${CONOCIMIENTO}`, cache_control: { type: 'ephemeral', ttl: '1h' } },
 ]
 
 // Límite sencillo por IP. Es por instancia (Vercel puede tener varias), así que es una barrera

@@ -1,8 +1,12 @@
 /**
- * Los 10 escenarios de aceptación del Playbook GovTech 2026 (sección 22) contra el servidor local de
- * Proli. Cada escenario es una conversación con turnos fijos del visitante; las acciones (tool_use) se
- * simulan respondiendo «Listo». Imprime la transcripción para revisarla a mano (no hay aserciones:
- * lo que se revisa es el tono, el flujo y que no invente ni prometa citas).
+ * Pruebas de aceptación de Proli contra el servidor local: los 10 casos del prompt operativo de Paola
+ * (sección 16) y los del Playbook GovTech 2026 (sección 22) que no estaban: aliado sin compra,
+ * resultados de Matrícula+ y retiro del consentimiento. Cada escenario es una conversación con turnos
+ * fijos del visitante; las acciones (tool_use) se simulan respondiendo «Listo».
+ *
+ * Imprime la transcripción para revisarla a mano (tono, flujo, que no invente ni prometa citas) y marca
+ * con ⚠ lo que se puede medir: más de 45 palabras, más de una pregunta, formas de «usted» o plural,
+ * siglas, markdown y emojis. Al final, un resumen con el total de alertas.
  *
  * Uso (desde web/, con la clave en .env.local):
  *   npm run build && npm run proli:local      (en otra terminal)
@@ -29,7 +33,37 @@ const escenarios = [
   ['8 · Agenda caída', 'Matrícula+, capítulo Tu reto', ['Agéndame una reunión mañana a las 9 con su equipo.']],
   ['9 · Pide precio', 'Presupuesto+, capítulo Cómo lo hicimos', ['¿Cuánto cuesta un proyecto así?']],
   ['10 · Demo no disponible', 'página para elegir demo', ['Muéstrame el demo de SECOP de compras públicas.']],
+  // Playbook, sección 22 (escenarios 6, 7 y 10)
+  ['PB6 · Speaker o aliado sin compra', 'Conoce a Proli', ['Soy speaker del evento y dirijo un laboratorio de innovación pública. No compro nada, pero me interesa colaborar.']],
+  ['PB7 · Pide resultados de Matrícula+', 'Matrícula+, capítulo La gran revelación', ['¿Entonces con Matrícula+ Bogotá redujo 73 % los niños lejos de casa?']],
+  ['PB10 · Retira el consentimiento', 'Matrícula+, capítulo Tu reto', [
+    'Tengo un reto con la deserción escolar en mi municipio y quiero la reunión.',
+    'En los grados noveno y décimo se nos van muchos estudiantes y no sabemos a quiénes acompañar primero.',
+    'Sí, eso es.',
+    'Sí, autorizo. Soy Carlos Ruiz, de la Secretaría de Educación de Chía. Prefiero WhatsApp.',
+    'Pensándolo bien, no quiero que me contacten. Borra mis datos.',
+  ]],
+  // Tuteo: aunque el visitante hable de usted
+  ['T1 · El visitante habla de usted', 'Presupuesto+, capítulo La solución', ['Buenos días. ¿Usted me podría explicar qué estoy viendo, por favor?']],
+  ['T2 · Alto cargo muy formal', 'página para elegir demo', ['Buenas tardes, soy el viceministro de Transporte. Le agradecería que me explique a qué se dedica su empresa.']],
 ]
+
+// Lo que se puede medir en cada respuesta (instrucciones: máximo 45 palabras, una pregunta, siempre tú)
+const USTED = /(?<!\p{L})(usted|ustedes|les|su (?:entidad|equipo|empresa|organización|reto)|cuénteme|dígame|permítame|le (?:cuento|muestro|explico)|quieren|quisieran|pudieran)(?!\p{L})/iu
+const SIGLA = /(?<!\p{L})(?!GovTech)[A-ZÁÉÍÓÚÑ]{3,}(?!\p{L})/u
+function alertas(t) {
+  const palabras = t.split(/\s+/).filter(Boolean).length
+  const preguntas = (t.match(/\?/g) ?? []).length
+  const a = []
+  if (palabras > 45) a.push(`LARGO(${palabras})`)
+  if (preguntas > 1) a.push(`PREGUNTAS(${preguntas})`)
+  const u = t.match(USTED); if (u) a.push(`USTED(«${u[0]}»)`)
+  const s = t.match(SIGLA); if (s) a.push(`SIGLA(«${s[0]}»)`)
+  if (/[*#`]|^\s*[-•]\s/m.test(t)) a.push('MARKDOWN')
+  if (/\p{Extended_Pictographic}/u.test(t)) a.push('EMOJI')
+  return { palabras, a }
+}
+let respuestas = 0, conAlerta = 0
 
 async function llamar(mensajes) {
   const r = await fetch(URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mensajes }) })
@@ -58,7 +92,12 @@ for (const [nombre, pantalla, turnos] of escenarios) {
       const r = await llamar(mensajes)
       if (r.error) { console.log('  ERROR', r.error); break }
       const acciones = r.fin.contenido.filter((b) => b.type === 'tool_use')
-      if (r.texto.trim()) console.log(`  Proli: ${r.texto.trim()}`)
+      const texto = r.texto.trim()
+      if (texto) {
+        const { palabras, a } = alertas(texto)
+        respuestas++; if (a.length) conAlerta++
+        console.log(`  Proli (${palabras} pal.)${a.length ? ` ⚠ ${a.join(' ')}` : ''}: ${texto}`)
+      }
       if (acciones.length) console.log(`    [acciones: ${acciones.map((a) => `${a.name} ${JSON.stringify(a.input)}`).join(' · ')}]`)
       mensajes.push({ role: 'assistant', content: r.fin.contenido })
       if (!acciones.length) break
@@ -66,3 +105,6 @@ for (const [nombre, pantalla, turnos] of escenarios) {
     }
   }
 }
+
+console.log(`
+Resumen: ${respuestas} respuestas, ${conAlerta} con alertas (⚠).`)

@@ -40,6 +40,7 @@ Todo está en el repositorio `jesuscoderdev/Matricula_plus`, carpeta `web/`.
 | `api/_proli/instrucciones.ts` | **Las instrucciones de Proli**, escritas a mano y revisadas: identidad, misión, voz, flujo de conversación, consentimiento, objeciones y reglas sobre cifras. |
 | `api/_proli/conocimiento.ts` | **Lo que Proli sabe de los demos** (cifras, método, fuentes, tablas por localidad). **Es un archivo generado: no se edita a mano.** |
 | `api/_proli/herramientas.ts` | **Las herramientas** (acciones sobre la pantalla) con su esquema JSON (`strict`, listas cerradas `enum`). |
+| `api/_proli/privacidad.ts` | **Enlace del aviso de privacidad** (`URL_AVISO_PRIVACIDAD`, hoy vacío: lo confirma Paola). `api/proli.ts` arma con él la regla `{{AVISO_PRIVACIDAD}}` de las instrucciones, y `QrCita.tsx` lo muestra junto al código QR. |
 | `api/tsconfig.json` | Configuración de TypeScript de la función (Node, ESM). |
 
 Los archivos que empiezan por `_` dentro de `api/` **no** son funciones de Vercel; solo los importa `api/proli.ts`. Los imports relativos llevan `.js` (por ejemplo `./_proli/instrucciones.js`) porque el paquete es `"type": "module"`.
@@ -72,7 +73,8 @@ Cada uno llama a `registrar('<ámbito>', manejador)` y a `informarPantalla('…'
 |---|---|---|
 | `npm run proli:conocimiento` | `scripts/proli-conocimiento.mjs` | **Regenera `api/_proli/conocimiento.ts`** a partir de los JSON de los demos. |
 | `npm run proli:local` | `scripts/servidor-local.mjs` | Sirve `dist/` y `/api/proli` en **http://localhost:4174**, sin Vercel. Lee la clave de `web/.env.local`. |
-| `npm run proli:pruebas` | `scripts/proli-pruebas.mjs` | Corre los **10 escenarios de aceptación** del Playbook contra el servidor local e imprime la transcripción. |
+| `npm run proli:pruebas` | `scripts/proli-pruebas.mjs` | Corre los **10 escenarios de aceptación** del prompt de Paola, 3 más del Playbook (aliado, resultados de Matrícula+ y retiro del consentimiento) y 2 de tuteo contra el servidor local. Imprime la transcripción y marca con ⚠ las respuestas de más de 45 palabras, con más de una pregunta, con «usted» o plural, con siglas, markdown o emojis. |
+| `npm test` | `pruebas/proli-tono.test.ts` | Pruebas de tono sin IA (de Jesús): revisan que las instrucciones, las respuestas sin conexión y la guía tuteen y suenen cercanas y profesionales. |
 | `npm run proli:videos` | `scripts/proli-videos.ts` | Exporta videos de Proli (PNG, MOV con alfa, WEBM y MP4) para edición y redes. Necesita `@napi-rs/canvas` y `ffmpeg`. |
 
 ### Documentos fuente (no están en el repositorio)
@@ -198,6 +200,7 @@ Definidas en `api/_proli/herramientas.ts` y ejecutadas en el navegador por `src/
 | `ir_a_pantalla` | `pantalla`: `portada` \| `conozca_a_proli` \| `elegir_demo` | Navega fuera de los demos. |
 | `abrir_demo` | `demo`: `matricula` \| `movilidad` | Abre un demo desde su inicio. |
 | `abrir_agenda` | `demo` | Lleva a «Tu reto» del demo y muestra el QR. Por dentro se convierte en `<demo>_capitulo { capitulo: 'agenda' }`. |
+| `borrar_reto` | (sin entrada) | Cuando el visitante retira el permiso o pide que no lo contacten: quita su nombre y su reto del mensaje de WhatsApp y del QR. |
 | `agendar_con_reto` | `demo`, `resumen` (unos 480 caracteres) | Guarda el resumen del reto (con nombre y entidad solo si el visitante los autorizó) para que el mensaje de WhatsApp y el QR lo lleven escrito. Luego hace `abrir_agenda`. |
 | `movilidad_capitulo` | `capitulo`: `portada`, `problema`, `solucion`, `antes`, `resultados`, `como`, `metodologia`, `reto` | Presupuesto+: va a un paso o abre la metodología. |
 | `movilidad_lista` | `lista`: `contar` \| `modelo` | Presupuesto+: en Antes y después, muestra la selección basada en 2024 o la de Presupuesto+. |

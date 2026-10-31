@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Qr from './Qr'
 import { MOSTRAR_QR_GENERADO, QR_IMAGEN, urlCitaCon } from '../config'
+import { URL_AVISO_PRIVACIDAD } from '../../api/_proli/privacidad'
 import { useReto } from '../proli/ordenes'
 
 /**
@@ -19,7 +20,12 @@ export default function QrCita() {
       </figure>
     )
   }
-  if (MOSTRAR_QR_GENERADO) return <Qr texto={urlCitaCon(reto)} etiqueta={reto ? 'Escanea: el mensaje ya lleva tu reto' : 'Escanea para agendar una cita'} />
+  if (MOSTRAR_QR_GENERADO) return (
+    <>
+      <Qr texto={urlCitaCon(reto)} etiqueta={reto ? 'Escanea: el mensaje ya lleva tu reto' : 'Escanea para agendar una cita'} />
+      {URL_AVISO_PRIVACIDAD && <p className="qr__aviso">Aviso de privacidad: {URL_AVISO_PRIVACIDAD.replace(/^https?:\/\//, '')}</p>}
+    </>
+  )
   return (
     <figure className="qr">
       <div className="qr__img qr__img--pendiente">QR<br /><small>configura QR_IMAGEN</small></div>
