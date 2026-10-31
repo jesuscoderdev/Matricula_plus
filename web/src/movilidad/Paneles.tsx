@@ -18,8 +18,8 @@ import { Boton, CifraGrande, entrar, masDe, type Pantalla } from '../componentes
 import ProliActividad from '../componentes/ProliActividad'
 import AnimacionSistema from './AnimacionSistema'
 import QrCita from '../componentes/QrCita'
-import { EMPRESA, NOMBRE_MOVILIDAD, URL_CITA, urlCitaCon } from '../config'
-import { BOTON_WHATSAPP, irAProli } from '../proli/ordenes'
+import { EMPRESA, NOMBRE_MOVILIDAD } from '../config'
+import { irAProli } from '../proli/ordenes'
 import { esTotem, type Modo } from '../modo'
 import { entero, millones, pctFraccion, type DatosMovilidad } from './datos'
 import { guionDe } from './guion'
@@ -266,9 +266,7 @@ export function como({ datos, modo, ir, abrirHoja }: PropsMov): Pantalla {
 }
 
 // ---------------------------------------------------------------- 6. Tu reto
-export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: PropsMov): Pantalla {
-  const totem = esTotem(modo)
-  const agendar = () => (totem || !URL_CITA ? setVerQr(!verQr) : window.open(urlCitaCon(suReto), '_blank', 'noopener'))
+export function reto({ modo, ir, verQr, alInicio }: PropsMov): Pantalla {
   return {
     actividad: 'idea',
     titular: (
@@ -287,7 +285,7 @@ export function reto({ modo, ir, verQr, setVerQr, reto: suReto, alInicio }: Prop
     accion: modo !== 'auto' && <Boton onClick={() => irAProli()}>Contarle mi reto a Proli →</Boton>,
     secundarias: modo !== 'auto' && (
       <>
-        <button className="boton boton--claro boton--ancho pp__boton-2" onClick={agendar} data-proli="cap-reto">{totem ? (verQr ? 'Volver a Proli' : 'Agendar conversación →') : `${BOTON_WHATSAPP(!!suReto)} →`}</button>
+        <button className="boton boton--claro boton--ancho pp__boton-2" onClick={() => irAProli({ agenda: true })} data-proli="cap-reto">Agendar 20 minutos →</button>
         <div className="fila pp__fila">
           <button className="boton-texto" onClick={() => ir('portada')}>Ver de nuevo</button>
           {alInicio && <button className="boton-texto" onClick={alInicio}>Ver otros proyectos</button>}

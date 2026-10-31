@@ -71,10 +71,9 @@ function useZonaSobreMapa(activo: boolean, pantalla: string) {
 /** Preguntas sugeridas según dónde está el visitante. */
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
-    texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
-    sinConexion: esTotem(leerModo())
-      ? '¡Qué bueno! Ahora no puedo conversar, pero el equipo sí y le encantará escucharte. Escanea el código con tu celular para enviarle tu solicitud: te confirmarán un horario.'
-      : '¡Qué bueno! Ahora no puedo conversar, pero el equipo sí y le encantará escucharte. Toca «Agendar conversación» para escribirle por WhatsApp: te confirmarán un horario.',
+    // Proli V9: el reto se cuenta en la página de Proli (descubrimiento breve, ficha y agenda)
+    texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'agendar_con_reto', entrada: { demo } }],
+    sinConexion: '¡Qué bueno! Te llevo a la conversación de Proli para que me cuentes qué quieres lograr.',
   })
   if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
     { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },

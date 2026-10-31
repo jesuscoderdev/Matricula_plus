@@ -7,7 +7,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/proli.ts": { "maxDuration": 60 }
+    "api/proli.ts": { "maxDuration": 60 }, "api/conversa.ts": { "maxDuration": 60 }, "api/registro.ts": { "maxDuration": 20 }
   },
   "cleanUrls": false,
   "redirects": [
