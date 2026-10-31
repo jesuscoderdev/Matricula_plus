@@ -542,7 +542,9 @@ h1, h2, h3, p { margin: 0; }
 .intro__marca { display: flex; align-items: flex-start; font-family: var(--f-marca); font-size: 2.6rem; font-weight: 700; letter-spacing: -0.01em; }
 .intro__letra { display: inline-block; }
 .intro__mas { display: inline-block; position: relative; top: 0.1em; color: var(--marca-violeta); margin-left: 0.1em; }
-.intro__lema { font-family: var(--f-mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--violeta-osc); }
+.intro__lema { font-family: var(--f-mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--violeta-osc);
+  /* si el lema se parte en dos líneas, las dos van centradas bajo el logo */
+  margin: 0; max-width: 30rem; padding-inline: 1.5rem; text-align: center; line-height: 1.6; text-wrap: balance; }
 
 /* Selector de tema: Sistema · Claro · Oscuro */
 .selector-tema { flex: none; display: inline-flex; gap: 0.1rem; padding: 0.18rem; border-radius: 99rem; background: var(--hundido); border: 1px solid var(--linea); }
