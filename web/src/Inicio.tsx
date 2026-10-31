@@ -22,6 +22,7 @@ import ConozcaProli from './ConozcaProli'
 import { alIrAProli, informarPantalla, irAProli, registrar } from './proli/ordenes'
 import PaginaProli from './proli/PaginaProli'
 import { recordado, recordar } from './recordar'
+import { irA, lugarDeRuta, rutaDe, rutasActivas, type Etapa, type Lugar } from './rutas'
 import faviconProliferante from './assets/favicon-proliferante.png'
 import faviconMatricula from './assets/favicon-matricula.png'
 import faviconMovilidad from './assets/favicon-movilidad.png'
@@ -38,17 +39,36 @@ const pedido = (): IdProyecto | null => {
   return activos.some((x) => x.id === p) ? (p as IdProyecto) : null
 }
 
-type Etapa = 'portada' | 'proli' | 'elegir' | 'conversar'
-
 export default function Inicio() {
   const fijo = useMemo(pedido, [])
-  // Al recargar se vuelve a donde iba el visitante (src/recordar.ts), no a la portada
-  const antes = useMemo(() => (fijo ? null : recordado<{ etapa: Etapa; proyecto: IdProyecto | null }>('inicio')), [fijo])
-  const [proyecto, setProyecto] = useState<IdProyecto | null>(fijo ?? (activos.some((x) => x.id === antes?.proyecto) ? antes!.proyecto : null))
+  // En celular y computador, la dirección dice dónde está el visitante (src/rutas.ts) y manda al cargar
+  const rutas = useMemo(() => !fijo && rutasActivas(), [fijo])
+  const deRuta = useMemo(() => (rutas ? lugarDeRuta() : null), [rutas])
+  // En el tótem, al recargar se vuelve a donde iba el visitante (src/recordar.ts), no a la portada
+  const antes = useMemo(() => (fijo || rutas ? null : recordado<Lugar>('inicio')), [fijo, rutas])
+  const inicial = fijo ? { etapa: 'elegir' as Etapa, proyecto: fijo } : deRuta ?? antes
+  const [proyecto, setProyecto] = useState<IdProyecto | null>(activos.some((x) => x.id === inicial?.proyecto) ? inicial!.proyecto : null)
   // Pantallas antes de los proyectos: portada → conozca a Proli → elegir proyecto.
   // Quien entra con ?proyecto= va directo, sin portada.
-  const [etapa, setEtapa] = useState<Etapa>(fijo ? 'elegir' : antes?.etapa ?? 'portada')
+  const [etapa, setEtapa] = useState<Etapa>(inicial?.etapa ?? 'portada')
   useEffect(() => { if (!fijo) recordar('inicio', { etapa, proyecto }) }, [fijo, etapa, proyecto])
+  // La dirección sigue a la pantalla; «atrás» y «adelante» del navegador mueven la pantalla
+  // (una dirección que no es de la app se reemplaza por la de la portada, sin dejarla en el historial)
+  const primera = useRef(true)
+  useEffect(() => {
+    if (rutas) irA(rutaDe({ etapa, proyecto }), primera.current && deRuta === null)
+    primera.current = false
+  }, [rutas, deRuta, etapa, proyecto])
+  useEffect(() => {
+    if (!rutas) return
+    const alNavegar = () => {
+      const l = lugarDeRuta() ?? { etapa: 'portada', proyecto: null }
+      setProyecto(l.proyecto); setEtapa(l.etapa)
+      if (l.etapa === 'conversar') setDesde(null)
+    }
+    window.addEventListener('popstate', alNavegar)
+    return () => window.removeEventListener('popstate', alNavegar)
+  }, [rutas])
   const [modo, setModo] = useState<Modo>(leerModo)
   const [turno, setTurno] = useState(0)   // auto: qué proyecto sigue
   // La página de Proli: de qué demo venía el visitante al tocar «Contarle mi reto a Proli»
@@ -60,8 +80,10 @@ export default function Inicio() {
     const p = PROYECTOS.find((x) => x.id === proyecto)
     const icono = proyecto === 'educacion' ? faviconMatricula : proyecto === 'movilidad' ? faviconMovilidad : faviconProliferante
     document.querySelector('link[rel="icon"]')?.setAttribute('href', icono)
-    document.title = p ? `${p.nombre} · ${p.pregunta}` : `${EMPRESA} · ${PROYECTOS.filter((x) => !x.proximamente).map((x) => x.nombre).join(' y ')}`
-  }, [proyecto])
+    document.title = p ? `${p.nombre} · ${p.pregunta}`
+      : etapa === 'conversar' ? `Proli · ${EMPRESA}`
+      : `${EMPRESA} · ${PROYECTOS.filter((x) => !x.proximamente).map((x) => x.nombre).join(' y ')}`
+  }, [proyecto, etapa])
   useEffect(() => {
     if (!modoAutomatico()) return
     const alCambiar = () => setModo(leerModo())
@@ -139,7 +161,7 @@ export default function Inicio() {
     )
   }
   if (etapa === 'portada') return <PortadaStand modo={modo} alContinuar={aProli} />
-  if (etapa === 'conversar') return <PaginaProli enApp={{ modo, desde, alVolver: aElegir, alPortada: modo === 'auto' ? undefined : aPortada }} />
+  if (etapa === 'conversar') return <PaginaProli modo={modo} desde={desde} alVolver={aElegir} alPortada={modo === 'auto' ? undefined : aPortada} />
   if (etapa === 'proli') return <ConozcaProli modo={modo} alContinuar={aElegir} alVolver={aPortada} />
   return <Hub modo={modo} entrar={setProyecto} alPortada={aPortada} siguiente={alternar ? activos[turno % activos.length].id : null} />
 }

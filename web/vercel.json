@@ -11,11 +11,11 @@
   },
   "cleanUrls": false,
   "redirects": [
-    { "source": "/(proli|Proli|PROLI)/", "destination": "/proli", "permanent": true },
+    { "source": "/:ruta(proli|retos|matricula|presupuesto)/", "destination": "/:ruta", "permanent": true },
     { "source": "/(Proli|PROLI)", "destination": "/proli", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/proli", "destination": "/index.html" }
+    { "source": "/:ruta(proli|retos|matricula|presupuesto)", "destination": "/index.html" }
   ],
   "headers": [
     {

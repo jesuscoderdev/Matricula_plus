@@ -3,12 +3,10 @@
  * voz alta (voz.ts) mientras escribe su saludo; debajo (o al lado, en pantallas anchas) el chat, con
  * espacio de sobra. Al empezar a conversar, Proli se hace pequeño y el chat ocupa la pantalla.
  *
- * Se llega de dos formas:
- *  · dentro de la app (`enApp`): con «Contarle mi reto a Proli», al final de cada demo o al elegir
- *    reto. Proli sabe de qué demo viene el visitante, y si quiere mostrarle un demo, lo abre de verdad
- *    (la conversación sigue en el panel del demo: es la misma, conversacion.ts).
- *  · sola, en govtech.proliferante.com/proli: aquí no hay demos; cuando Proli quiere mostrar uno,
- *    aparece en el chat el botón para abrirlo.
+ * Se llega con «Contarle mi reto a Proli» (al final de cada demo o al elegir reto) o directo a
+ * govtech.proliferante.com/proli (src/rutas.ts). Proli sabe de qué demo viene el visitante, y si
+ * quiere mostrarle un demo, lo abre de verdad: la conversación sigue en el panel del demo (es la
+ * misma, conversacion.ts).
  *
  * La cita aparece en el chat: el código QR en el tótem y el botón de WhatsApp en celular y computador.
  * El aviso de privacidad queda siempre a la vista, bajo el campo de texto.
@@ -19,19 +17,16 @@ import ProliAnimado from '../componentes/ProliAnimado'
 import AvisoPrivacidad from '../componentes/AvisoPrivacidad'
 import QrCita from '../componentes/QrCita'
 import { BotonTema, LogoEmpresa, MarcaDeAgua } from '../componentes/Marca'
-import { EMPRESA, NOMBRE_MOVILIDAD, PROLI_PAGINA, URL_CITA, urlCitaCon, type IdProyecto } from '../config'
-import { esTotem, leerModo, type Modo } from '../modo'
-import { BOTON_WHATSAPP, fijarAgendaEnPagina, informarPantalla, leerReto, registrar, useReto } from './ordenes'
+import { NOMBRE_MOVILIDAD, PROLI_PAGINA, URL_CITA, urlCitaCon, type IdProyecto } from '../config'
+import { esTotem, type Modo } from '../modo'
+import { BOTON_WHATSAPP, fijarAgendaEnPagina, informarPantalla, leerReto, useReto } from './ordenes'
 import { PANTALLA_PROLI, avisarActividad, esPropuesta, useConversacion, type Sugerencia } from './conversacion'
 import { decir, hayVoz } from './voz'
 
 const MS_LETRA = 24          // velocidad con que Proli escribe su saludo
 const SEGUNDOS_LECTURA = 20  // margen extra para leer la respuesta antes de la inactividad del tótem
 type Demo = 'matricula' | 'movilidad'
-const DEMOS: Record<Demo, { nombre: string; url: string }> = {
-  matricula: { nombre: 'Matrícula+', url: './?proyecto=educacion' },
-  movilidad: { nombre: NOMBRE_MOVILIDAD, url: './?proyecto=movilidad' },
-}
+const DEMOS: Record<Demo, string> = { matricula: 'Matrícula+', movilidad: NOMBRE_MOVILIDAD }
 const demoDe = (p: IdProyecto | null): Demo | null => (p === 'educacion' ? 'matricula' : p === 'movilidad' ? 'movilidad' : null)
 
 const sugerencias = (totem: boolean): Sugerencia[] => [
@@ -55,12 +50,8 @@ function useEscribiendo(texto: string, activo: boolean) {
   return texto.slice(0, n)
 }
 
-/**
- * Lo que Proli puede hacer desde esta página. La agenda siempre aparece en el chat. Sola (sin la app),
- * no hay demos que abrir: Proli los ofrece con un botón; devuelve el demo ofrecido, para mostrarlo.
- */
-function useOrdenesDePagina(totem: boolean, conDemos: boolean, pantalla: string) {
-  const [demo, setDemo] = useState<Demo | null>(null)
+/** La agenda, desde esta página, aparece en su chat (Proli no saca al visitante a un demo para agendar). */
+function useAgendaEnPagina(totem: boolean, pantalla: string) {
   useEffect(() => { informarPantalla(pantalla) }, [pantalla])
   useEffect(() => fijarAgendaEnPagina(() => {
     const reto = !!leerReto()
@@ -69,39 +60,22 @@ function useOrdenesDePagina(totem: boolean, conDemos: boolean, pantalla: string)
       : `En este chat apareció el botón «${BOTON_WHATSAPP(reto)}», que abre WhatsApp con el mensaje ya escrito: dile que lo toque. Aquí no hay código QR: no lo menciones.`
     return `${reto ? 'Listo: tu reto quedó escrito en el mensaje para el equipo.' : 'Listo: en el chat, cómo escribirle al equipo.'} | ${como} El visitante envía el mensaje él mismo y el equipo le responde para confirmar un horario: todavía no es una cita.`
   }), [totem])
-  useEffect(() => {
-    if (conDemos) return
-    const ofrecer = (d: Demo) => {
-      setDemo(d)
-      return `Listo: en el chat apareció el botón «Abrir ${DEMOS[d].nombre}». | Aquí no hay demos a la vista: el botón abre ${DEMOS[d].nombre} en esta misma pestaña. Cuéntale en pocas palabras qué va a ver; no digas que ya está en pantalla.`
-    }
-    const bajas = [
-      registrar('inicio', (o) => {
-        if (o.nombre === 'abrir_demo') return ofrecer(o.entrada.demo === 'movilidad' ? 'movilidad' : 'matricula')
-        return 'Aquí no hay demos a la vista: en el enlace «Ver los demos», arriba, el visitante encuentra los dos retos. Cuéntale en palabras lo que quiere saber.'
-      }),
-      registrar('matricula', () => ofrecer('matricula')),
-      registrar('movilidad', () => ofrecer('movilidad')),
-    ]
-    return () => bajas.forEach((b) => b())
-  }, [conDemos])
-  return demo
 }
 
-export default function PaginaProli({ enApp }: {
-  /** dentro de la app: de qué demo viene el visitante y a dónde vuelve (sin esto, la página sola de /proli) */
-  enApp?: { modo: Modo; desde: IdProyecto | null; alVolver: () => void; alPortada?: () => void }
+export default function PaginaProli({ modo, desde: desdeProyecto, alVolver, alPortada }: {
+  modo: Modo
+  /** de qué demo viene el visitante (null: llegó directo, p. ej. a /proli) */
+  desde: IdProyecto | null
+  /** a elegir reto */
+  alVolver: () => void
+  alPortada?: () => void
 }) {
-  const modo = enApp?.modo ?? leerModo()
   const totem = esTotem(modo)
-  const desde = demoDe(enApp?.desde ?? null)
+  const desde = demoDe(desdeProyecto)
   const reducir = useReducedMotion()
   const reto = useReto()
   const { lineas, ocupado, sinConexion, cita, preguntar, reiniciar } = useConversacion()
-  const pantalla = enApp
-    ? `${PANTALLA_PROLI}${desde ? `, después de ver ${DEMOS[desde].nombre}` : ''}: aquí no hay demos a la vista; si el visitante quiere ver uno, ábrelo`
-    : `${PANTALLA_PROLI} (govtech.proliferante.com/proli): aquí no hay demos a la vista`
-  const demo = useOrdenesDePagina(totem, !!enApp, pantalla)
+  useAgendaEnPagina(totem, `${PANTALLA_PROLI}${desde ? `, después de ver ${DEMOS[desde]}` : ''}: aquí no hay demos a la vista; si el visitante quiere ver uno, ábrelo`)
   const [texto, setTexto] = useState('')
   const refLista = useRef<HTMLDivElement>(null)
   // Si viene de un demo, Proli lo recibe con el reto; si no, se presenta
@@ -111,13 +85,6 @@ export default function PaginaProli({ enApp }: {
   const [voz, setVoz] = useState<'hablando' | 'bloqueada' | 'lista'>('lista')
   const callar = useRef<() => void>(() => {})
   const conversando = lineas.length > 0
-
-  // Sola, la página pone su modo (celular o computador) y su título; en la app ya lo hace Inicio
-  useEffect(() => {
-    if (enApp) return
-    document.documentElement.dataset.modo = modo
-    document.title = `Proli · ${EMPRESA}`
-  }, [enApp, modo])
 
   const hablar = () => {
     callar.current()
@@ -149,7 +116,7 @@ export default function PaginaProli({ enApp }: {
   }, [])
   // Al empezar a conversar, Proli deja de hablar
   useEffect(() => { if (conversando) callar.current() }, [conversando])
-  useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas, cita, ocupado, demo])
+  useEffect(() => { refLista.current?.scrollTo({ top: refLista.current.scrollHeight, behavior: 'smooth' }) }, [lineas, cita, ocupado])
   // Tótem: margen para leer la respuesta antes de que la inactividad vuelva a la portada
   useEffect(() => {
     if (ocupado || !lineas.length) return
@@ -173,9 +140,8 @@ export default function PaginaProli({ enApp }: {
     <div className={`app pagina-proli ${conversando ? 'pagina-proli--conversando' : ''}`}>
       <MarcaDeAgua className="marca-agua--pagina-proli" />
       <header className="pagina-proli__marca">
-        {enApp
-          ? <><LogoEmpresa alTocar={enApp.alPortada} /><button type="button" className="pagina-proli__demos" onClick={enApp.alVolver}>Ver los demos →</button></>
-          : <><a href="./" aria-label={`${EMPRESA}: ver los demos`}><LogoEmpresa /></a><a className="pagina-proli__demos" href="./">Ver los demos →</a></>}
+        <LogoEmpresa alTocar={alPortada} />
+        <button type="button" className="pagina-proli__demos" onClick={alVolver}>Ver los demos →</button>
         {!totem && <BotonTema />}
       </header>
 
@@ -219,11 +185,6 @@ export default function PaginaProli({ enApp }: {
               <p key={i} className={`proli-panel__linea proli-panel__linea--${l.quien}`}>{l.quien === 'accion' ? `↳ ${l.texto}` : l.texto}</p>
             ))}
             <AnimatePresence>
-              {demo && !ocupado && (
-                <motion.a key={demo} className="boton boton--claro pagina-proli__accion" href={DEMOS[demo].url} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-                  Abrir {DEMOS[demo].nombre} →
-                </motion.a>
-              )}
               {cita && !ocupado && (
                 <motion.div key="cita" className="pagina-proli__accion" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
                   {totem || !URL_CITA
