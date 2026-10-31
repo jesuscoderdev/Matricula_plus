@@ -101,7 +101,7 @@ export default defineConfig(({ mode }) => {
             maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
             navigateFallback: 'index.html',
             // La vista previa de desarrollo no debe caer en la app
-            navigateFallbackDenylist: [/_previa-stand/],
+            navigateFallbackDenylist: [/_previa-stand/, /^\/api\//],   // las respuestas de Proli nunca pasan por el service worker
             cleanupOutdatedCaches: true,
           },
         }),

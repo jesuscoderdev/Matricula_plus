@@ -2290,3 +2290,10 @@ ul.nota-mov { padding-left: 1.1rem; gap: 0.35rem; display: grid; }
 /* Tótem: todo un poco más grande para tocar con el dedo */
 :root:is([data-modo='stand']) .formulario-v9__opcion input { width: 1.5rem; height: 1.5rem; }
 :root:is([data-modo='stand']) .formulario-v9 { gap: 0.8rem; }
+
+/* Proli V12: horarios reales y confirmación de la reunión */
+.formulario-v9__dias { margin-bottom: 0.2rem; }
+.formulario-v9__resumen { margin: 0; font-size: 1rem; line-height: 1.55; color: var(--texto); }
+.confirmada-v9 { border-color: var(--verde); background: var(--verde-suave); }
+.confirmada-v9 p { margin: 0; font-size: 0.98rem; line-height: 1.45; color: var(--texto); }
+:root[data-tema='oscuro'] .confirmada-v9 { background: rgb(123 198 137 / 0.12); }
