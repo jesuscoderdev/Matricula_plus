@@ -100,7 +100,7 @@ function esPropuesta(texto: string) {
 function sugerencias(pantalla: string): Sugerencia[] {
   const agenda = (demo: 'movilidad' | 'matricula'): Sugerencia => ({
     texto: 'Tengo un reto en mi entidad', ordenes: [{ nombre: 'abrir_agenda', entrada: { demo } }], conversar: true,
-    sinConexion: 'Ahora no puedo conversar, pero el equipo sí. Escanea el código o toca «Agendar conversación» para enviar tu solicitud: te confirmarán un horario.',
+    sinConexion: '¡Qué bueno! Ahora no puedo conversar, pero el equipo sí y le encantará escucharte. Escanea el código o toca «Agendar conversación» para enviar tu solicitud: te confirmarán un horario.',
   })
   if (pantalla.startsWith(NOMBRE_MOVILIDAD)) return [
     { texto: '¿Qué estoy viendo?', sinConexion: `Es ${NOMBRE_MOVILIDAD}: con datos abiertos de Bogotá, muestra cómo invertir el presupuesto de seguridad vial en las esquinas con más riesgo, usando más información que la de un solo año.` },
@@ -278,7 +278,7 @@ export default function Asistente() {
     agregar({ quien: 'visitante', texto: pregunta })
     setTexto('')
     if (preguntas.current >= MAX_PREGUNTAS) {
-      agregar({ quien: 'aviso', texto: 'Esta conversación ya va larga. Toca «Reiniciar» para seguir.' })
+      agregar({ quien: 'aviso', texto: 'Esta conversación ya va larga. Toca «Reiniciar» y seguimos con gusto.' })
       return
     }
     preguntas.current++
@@ -303,7 +303,7 @@ export default function Asistente() {
         setSinConexion(false)
         if (stop === 'refusal' || stop === 'max_tokens') {
           // No se ejecutan acciones a medias; la próxima pregunta empieza una conversación nueva
-          if (stop === 'refusal') agregar({ quien: 'proli', texto: 'De eso prefiero no hablar. ¿Te muestro algo de los demos?' })
+          if (stop === 'refusal') agregar({ quien: 'proli', texto: 'Prefiero no meterme en ese tema, pero con gusto te muestro algo de los demos. ¿Te parece?' })
           historial.current = []; contextoEnviado.current = ''
           break
         }
