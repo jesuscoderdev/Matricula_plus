@@ -62,7 +62,7 @@ export default function PortadaStand({ modo, alContinuar }: { modo: Modo; alCont
         </div>
 
         <motion.div className="portada-stand__proli" {...entrar} transition={{ delay: 0.5 }}>
-          <Proli tamano={totem ? 6.5 : 5.5} lado="izquierda" globo={p.proli} />
+          <Proli tamano={totem ? 6.5 : modo === 'escritorio' ? 10 : 5.5} lado="izquierda" globo={p.proli} />
         </motion.div>
 
         <motion.div className="portada-stand__accion" {...entrar} transition={{ delay: 0.8 }}>

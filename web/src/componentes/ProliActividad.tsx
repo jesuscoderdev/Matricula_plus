@@ -36,7 +36,7 @@ const ESCENAS: Record<Actividad, () => ReactNode> = {
                        transition={ciclo([0, 0.5, 1], { delay: k * 0.35, ease: 'easeInOut' })} />
         ))}
         <motion.circle cx={94} cy={44} r={22} fill="#f2c94c" animate={{ opacity: [0, 0, 0.35, 0.35, 0], scale: [0.6, 0.6, 1.1, 1.1, 0.6] }}
-                       style={{ originX: '94px', originY: '44px' }} transition={ciclo([0, 0.45, 0.6, 0.9, 1])} />
+                       style={{ originX: 0.5, originY: 0.5 }} transition={ciclo([0, 0.45, 0.6, 0.9, 1])} />
         <motion.path d="M94 26 C 82 26 76 36 80 46 C 82 51 86 53 86 59 L102 59 C 102 53 106 51 108 46 C 112 36 106 26 94 26 Z"
                      stroke={NAVY} strokeWidth={2.5} animate={{ fill: ['#ffffff', '#ffffff', '#f2c94c', '#f2c94c', '#ffffff'] }} transition={ciclo([0, 0.45, 0.6, 0.9, 1])} />
         <rect x={86} y={61} width={16} height={5} rx={1.5} fill={PIZARRA} /><rect x={88} y={68} width={12} height={4} rx={1.5} fill={PIZARRA} />
@@ -74,15 +74,18 @@ const ESCENAS: Record<Actividad, () => ReactNode> = {
             <text x={x + 28} y={88} textAnchor="middle" fontSize={7.5} fontWeight={600} fill={k === 2 ? V : PIZARRA}>{k === 2 ? 'último año' : 'años anteriores'}</text>
           </g>
         ))}
-        {/* la lupa: empieza en el último año y recorre hacia atrás */}
-        <motion.g animate={{ x: [132, 132, 66, 0, 0, 132], opacity: [0, 1, 1, 1, 1, 0] }} transition={ciclo([0, 0.1, 0.32, 0.52, 0.85, 1])}>
+        {/* la lupa: empieza en el último año y recorre hacia atrás, deteniéndose en cada año justo cuando
+            aparecen sus puntos (0,3 y 0,5 del ciclo); vuelve al inicio ya invisible */}
+        <motion.g animate={{ x: [132, 132, 132, 66, 66, 0, 0, 0, 132], opacity: [0, 1, 1, 1, 1, 1, 1, 0, 0] }}
+                  transition={ciclo([0, 0.06, 0.14, 0.24, 0.44, 0.53, 0.85, 0.9, 1])}>
           <circle cx={34} cy={45} r={21} fill="rgba(123,198,137,0.14)" stroke={NAVY} strokeWidth={3} />
           <line x1={49} y1={60} x2={58} y2={70} stroke={NAVY} strokeWidth={5} strokeLinecap="round" />
         </motion.g>
         {/* abajo, la calle con las dos esquinas: la de la derecha se enciende */}
         <line x1={24} y1={134} x2={176} y2={134} stroke={AZUL} strokeWidth={5} strokeLinecap="round" />
         <Pin color={V} x={72} y={132} />
-        <motion.g animate={{ scale: [1, 1, 1.25, 1.25, 1], opacity: [0.35, 0.35, 1, 1, 0.35] }} style={{ originX: '128px', originY: '132px' }}
+        {/* crece desde su punta: el origen es una fracción de la caja del propio pin (framer-motion usa fill-box en SVG) */}
+        <motion.g animate={{ scale: [1, 1, 1.25, 1.25, 1], opacity: [0.35, 0.35, 1, 1, 0.35] }} style={{ originX: 0.5, originY: 1 }}
                   transition={ciclo([0, 0.6, 0.68, 0.9, 1])}>
           <Pin color={VERDE_OSC} x={128} y={132} />
         </motion.g>
@@ -114,15 +117,26 @@ const ESCENAS: Record<Actividad, () => ReactNode> = {
       </motion.g>
     </>
   ),
-  // Antes y después (Presupuesto+): sale un punto morado, entra uno verde
-  intercambio: () => (
-    <>
-      <Pin color={PIZARRA} x={30} y={88} />
-      <motion.g animate={{ x: [0, 0, -40, -40, 0], opacity: [1, 1, 0, 0, 1] }} transition={siempre(4, { times: [0, 0.3, 0.5, 0.9, 1] })}><Pin color={V} x={60} y={88} /></motion.g>
-      <motion.g animate={{ x: [40, 40, 0, 0, 40], opacity: [0, 0, 1, 1, 0] }} transition={siempre(4, { times: [0, 0.4, 0.6, 0.9, 1] })}><Pin color={VERDE_OSC} x={90} y={88} /></motion.g>
-      <motion.path d="M48 40 Q 70 20 92 40" fill="none" stroke={VERDE_OSC} strokeWidth={2.5} strokeDasharray="4 4" animate={{ strokeDashoffset: [16, 0] }} transition={siempre(0.8, { ease: 'linear' })} />
-    </>
-  ),
+  // Antes y después (Presupuesto+): con el mismo presupuesto, la inversión pasa de una esquina a otra.
+  // Los pines no se mueven de su sitio: la moneda viaja del morado al verde, el morado se apaga y el verde se enciende
+  intercambio: () => {
+    const ciclo = (times: number[]) => siempre(4, { times })
+    return (
+      <>
+        <line x1={14} y1={90} x2={106} y2={90} stroke={AZUL} strokeWidth={3} strokeLinecap="round" />
+        <Pin color={PIZARRA} x={30} y={88} />
+        <motion.g animate={{ opacity: [1, 1, 0.3, 0.3, 1] }} transition={ciclo([0, 0.3, 0.55, 0.9, 1])}><Pin color={V} x={60} y={88} /></motion.g>
+        <motion.g animate={{ opacity: [0.3, 0.3, 1, 1, 0.3] }} transition={ciclo([0, 0.5, 0.62, 0.9, 1])}><Pin color={VERDE_OSC} x={90} y={88} /></motion.g>
+        <path d="M60 58 Q 75 30 90 58" fill="none" stroke={VERDE_OSC} strokeWidth={2} strokeDasharray="3 4" opacity={0.6} />
+        <motion.g animate={{ x: [0, 0, 15, 30, 30], y: [0, 0, -14, 0, 0], opacity: [0, 1, 1, 1, 0] }} transition={ciclo([0, 0.25, 0.42, 0.58, 0.66])}>
+          <circle cx={60} cy={58} r={6} fill="#f2c94c" stroke="#c99a1e" strokeWidth={1.2} />
+          <text x={60} y={61} textAnchor="middle" fontSize={7.5} fontWeight={700} fill="#8a6510">$</text>
+        </motion.g>
+        <motion.path d="M96 40 L100 44 L108 35" fill="none" stroke={VERDE_OSC} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"
+                     animate={{ opacity: [0, 0, 1, 1, 0] }} transition={ciclo([0, 0.6, 0.68, 0.9, 1])} />
+      </>
+    )
+  },
   // Resultados (Presupuesto+): la barra verde supera a la morada
   grafica: () => (
     <>
