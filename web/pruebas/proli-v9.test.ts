@@ -242,6 +242,8 @@ test('Horarios: desde el 3 de noviembre, de 8:00 a 17:30 (cada 20 minutos: la ú
   assert.equal(dias[0], '2026-11-03')
   assert.ok(!dias.includes('2026-11-07') && !dias.includes('2026-11-08'), 'sin fin de semana')
   assert.ok(!dias.includes('2026-11-16'), 'sin el festivo del 16 de noviembre')
+  assert.equal(dias[dias.length - 1], '2027-02-03', 'hasta tres meses después del 3 de noviembre')
+  assert.ok(!esHorarioValido(instante('2027-02-04', 10 * 60), ANTES), 'después del 3 de febrero, no')
   const h = horariosDelDia('2026-11-03', ANTES)
   assert.equal(horaCorta(h[0]), '8:00 a. m.')
   assert.equal(horaCorta(h[h.length - 1]), '5:00 p. m.')

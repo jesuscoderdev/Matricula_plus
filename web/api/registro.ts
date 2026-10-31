@@ -13,7 +13,7 @@
  * Sin asesor conocido, la reunión es con Paola (Paola, 31-oct). La misma `clave` repetida no crea otra.
  */
 import { abrir } from './_proli/v9/sesion.js'
-import { asesorPorId, POR_ASIGNAR, BUZON_CENTRAL } from './_proli/v9/asesores.js'
+import { asesorPorId, correoAsesor, POR_ASIGNAR, BUZON_CENTRAL } from './_proli/v9/asesores.js'
 import {
   Conflicto, actualizarReserva, bloquearHorario, guardarContacto, guardarFicha, guardarInteraccion, guardarPermisos, guardarSesion,
   haySupabase, liberarBloqueosVencidos, reservaPorClave, type Reserva,
@@ -102,6 +102,7 @@ export async function POST(request: Request): Promise<Response> {
   const elegido = b.asesor === POR_ASIGNAR ? null : (asesorPorId(typeof b.asesor === 'string' ? b.asesor : null) ?? asesorPorId(s?.asesor))
   const asesor = elegido ?? asesorPorId(ASESOR_POR_DEFECTO)!
   const porDefecto = !elegido
+  const correo = correoAsesor(asesor, process.env)
 
   if (!haySupabase()) {
     const falta = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'].filter((x) => !process.env[x]?.trim())
@@ -134,8 +135,8 @@ export async function POST(request: Request): Promise<Response> {
       throw e
     }
     // 2) Volver a mirar el calendario del asesor justo antes de crear la reunión
-    const ocupado = await ocupados([asesor.correo], inicio, fin)
-    if (!libres([inicio], ocupado[asesor.correo]).length) {
+    const ocupado = await ocupados([correo], inicio, fin)
+    if (!libres([inicio], ocupado[correo]).length) {
       await actualizarReserva(reserva, { status: 'cancelada' })
       return json(409, { error: 'horario_tomado' })
     }
@@ -150,7 +151,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       evento = await crearEvento({
         titulo: `Proliferante | Exploración de iniciativa — ${contacto.organizacion}`, descripcion, inicio, fin,
-        invitados: [contacto.email, asesor.correo], meet: !presencial, clave: reserva,
+        invitados: [contacto.email, correo], meet: !presencial, clave: reserva,
         lugar: presencial ? 'Stand de Proliferante, GovTech Summit 2026 (Bogotá)' : undefined,
       })
     } catch (e) {
@@ -158,7 +159,7 @@ export async function POST(request: Request): Promise<Response> {
       await actualizarReserva(reserva, { status: 'cancelada' })
       return json(502, { error: 'calendario' })
     }
-    const faltan = [contacto.email, asesor.correo].filter((x) => !evento.invitados.includes(x.toLowerCase()))
+    const faltan = [contacto.email, correo].filter((x) => !evento.invitados.includes(x.toLowerCase()))
     // 4) Confirmada en el CRM. Si esto falla, el evento existe: queda para reconciliar, sin crear otro
     try {
       await actualizarReserva(reserva, { status: 'confirmada', calendar_event_id: evento.id, meet_link: evento.enlace })

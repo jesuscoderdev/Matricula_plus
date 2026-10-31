@@ -1,5 +1,6 @@
 /**
- * Horarios de las reuniones de 20 minutos (Paola, 31-oct): desde el 3 de noviembre de 2026, de 8:00 a 17:30
+ * Horarios de las reuniones de 20 minutos (Paola, 31-oct): del 3 de noviembre de 2026 al 3 de febrero de 2027
+ * (tres meses), de 8:00 a 17:30
  * hora de Colombia (UTC-5, sin horario de verano), de lunes a viernes y sin festivos. Cada horario se ocupa
  * POR ASESOR: dos asesores pueden tener reuniones a la misma hora, un mismo asesor no (y hello@ organiza
  * todas, así que su calendario no bloquea). Sin imports: lo usan el servidor y las pruebas.
@@ -8,7 +9,7 @@ export const MINUTOS_REUNION = 20
 export const PRIMER_DIA = '2026-11-03'
 export const HORA_INICIO = 8 * 60          // 8:00
 export const HORA_FIN = 17 * 60 + 30       // 17:30: cada 20 minutos desde las 8:00, la última empieza a las 17:00
-export const DIAS_ADELANTE = 30            // hasta cuántos días hábiles se ofrecen
+export const ULTIMO_DIA = '2027-02-03'     // tres meses después del 3 de noviembre (Paola, 31-oct)
 export const ANTICIPACION_MIN = 30         // no se ofrece un horario que empieza en menos de 30 minutos
 const OFFSET_BOGOTA = -5 * 60
 
@@ -23,14 +24,14 @@ const minutosBogota = (d: Date) => { const l = new Date(d.getTime() + OFFSET_BOG
 
 export function esDiaHabil(dia: string): boolean {
   const semana = new Date(`${dia}T12:00:00Z`).getUTCDay()
-  return semana !== 0 && semana !== 6 && !FESTIVOS.has(dia) && dia >= PRIMER_DIA
+  return semana !== 0 && semana !== 6 && !FESTIVOS.has(dia) && dia >= PRIMER_DIA && dia <= ULTIMO_DIA
 }
 
-/** Los próximos días hábiles con horarios, desde hoy o desde el 3 de noviembre */
+/** Los días hábiles con horarios, desde hoy (o desde el 3 de noviembre) hasta el 3 de febrero */
 export function diasDisponibles(ahora = new Date()): string[] {
   const dias: string[] = []
   let d = Date.parse(`${diaBogota(ahora) > PRIMER_DIA ? diaBogota(ahora) : PRIMER_DIA}T12:00:00Z`)
-  while (dias.length < DIAS_ADELANTE) {
+  while (new Date(d).toISOString().slice(0, 10) <= ULTIMO_DIA) {
     const dia = new Date(d).toISOString().slice(0, 10)
     if (esDiaHabil(dia) && horariosDelDia(dia, ahora).length) dias.push(dia)
     d += 86_400_000

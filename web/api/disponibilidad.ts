@@ -6,10 +6,12 @@
  * Libre = dentro del horario autorizado (agenda.ts), sin eventos en el calendario del asesor y sin otra
  * reserva suya en el CRM (también las que se están confirmando). Sin asesor conocido, se mira a Paola.
  */
-import { asesorPorId, POR_ASIGNAR } from './_proli/v9/asesores.js'
+import { asesorPorId, correoAsesor, POR_ASIGNAR } from './_proli/v9/asesores.js'
 import { haySupabase, reservasDelAsesor } from './_proli/v9/almacen.js'
 import { diasDisponibles, horaCorta, horariosDelDia, instante, libres, fechaLarga } from './_proli/v9/agenda.js'
 import { hayGoogle, ocupados } from './_proli/v9/google.js'
+
+declare const process: { env: Record<string, string | undefined> }
 
 const json = (status: number, datos: unknown) =>
   new Response(JSON.stringify(datos), { status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
@@ -32,8 +34,9 @@ export async function POST(request: Request): Promise<Response> {
   const dia = typeof b.dia === 'string' && dias.includes(b.dia) ? b.dia : dias[0]
   try {
     const desde = instante(dia, 0), hasta = instante(dia, 24 * 60)
-    const [cal, crm] = await Promise.all([ocupados([asesor.correo], desde, hasta), reservasDelAsesor(asesor.id, desde, hasta)])
-    const horarios = libres(horariosDelDia(dia), [...cal[asesor.correo], ...crm]).map((h) => ({ inicio: h.toISOString(), hora: horaCorta(h) }))
+    const correo = correoAsesor(asesor, process.env)
+    const [cal, crm] = await Promise.all([ocupados([correo], desde, hasta), reservasDelAsesor(asesor.id, desde, hasta)])
+    const horarios = libres(horariosDelDia(dia), [...cal[correo], ...crm]).map((h) => ({ inicio: h.toISOString(), hora: horaCorta(h) }))
     return json(200, { asesor: asesor.id, dias: dias.map((d) => ({ dia: d, nombre: fechaLarga(instante(d, 12 * 60)) })), dia, horarios })
   } catch (e) {
     console.error('[proli disponibilidad]', e instanceof Error ? e.message : e)

@@ -285,6 +285,7 @@ function FormularioV9({ ficha, aprobada, asesorFijo, canal, token, senal, alCanc
   const [cargando, setCargando] = useState(false)
   const [elegido, setElegido] = useState<{ inicio: string; hora: string; dia: string } | null>(null)
   const [todos, setTodos] = useState(false)
+  const [desdeDia, setDesdeDia] = useState(0)   // los días se muestran de 10 en 10 (hasta el 3 de febrero)
   const [revisar, setRevisar] = useState(false)
   const [error, setError] = useState('')
   const [enviando, setEnviando] = useState(false)
@@ -395,10 +396,12 @@ function FormularioV9({ ficha, aprobada, asesorFijo, canal, token, senal, alCanc
           <legend>¿Cuándo te queda mejor? <small>(hora de Colombia)</small></legend>
           {horarios && (
             <div className="conversa-v9__asesores formulario-v9__dias">
-              {horarios.dias.slice(0, 10).map((d) => (
+              {desdeDia > 0 && <button type="button" className="proli-panel__chip" onClick={() => setDesdeDia((x) => Math.max(0, x - 10))}>← Fechas anteriores</button>}
+              {horarios.dias.slice(desdeDia, desdeDia + 10).map((d) => (
                 <button key={d.dia} type="button" className={`proli-panel__chip ${horarios.dia === d.dia ? 'proli-panel__chip--si' : ''}`}
-                        onClick={() => { setElegido(null); void cargar(f.asesor, d.dia) }}>{d.nombre.replace(/ de [a-z]+$/, '')}</button>
+                        onClick={() => { setElegido(null); void cargar(f.asesor, d.dia) }}>{d.nombre}</button>
               ))}
+              {desdeDia + 10 < horarios.dias.length && <button type="button" className="proli-panel__chip" onClick={() => setDesdeDia((x) => x + 10)}>Más fechas →</button>}
             </div>
           )}
           {cargando ? <small>Buscando horarios libres…</small> : horarios && (
