@@ -61,7 +61,7 @@ createServer(async (req, res) => {
     const control = new AbortController()
     res.on('close', () => { if (!res.writableEnded) control.abort() })
     const respuesta = await POST(new Request(url, {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': '127.0.0.1' },
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': '127.0.0.1', ...(req.headers.authorization ? { authorization: req.headers.authorization } : {}) },
       body: Buffer.concat(trozos), signal: control.signal,
     }))
     res.writeHead(respuesta.status, Object.fromEntries(respuesta.headers))
